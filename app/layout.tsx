@@ -1,0 +1,45 @@
+import React from "react"
+import type { Metadata, Viewport } from "next"
+import { Inter, Playfair_Display } from "next/font/google"
+import { ThemeProvider } from "@/components/theme-provider"
+import "./globals.css"
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+})
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+})
+
+export const metadata: Metadata = {
+  title: "Green Legacy - Plant a Tree, Create a Legacy",
+  description:
+    "India's premier tree plantation startup connecting donors, agriculture colleges, and environmental impact. Plant trees for birthdays, memorials, corporate events and more.",
+  keywords: ["tree plantation", "environment", "India", "CSR", "green", "sustainability"],
+}
+
+export const viewport: Viewport = {
+  themeColor: "#2D5016",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange={false}>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}

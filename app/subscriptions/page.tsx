@@ -1,0 +1,297 @@
+"use client"
+
+import { useState, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
+import { Check, Zap, Shield, Calendar, Gift, Star, ChevronDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
+import { PRODUCTS, SUBSCRIPTIONS } from "@/lib/products"
+import { useScrollAnimation } from "@/hooks/use-scroll-animation"
+import { cn } from "@/lib/utils"
+import dynamic from "next/dynamic"
+
+const Checkout = dynamic(() => import("@/components/checkout"), { ssr: false })
+
+function SubscriptionsContent() {
+  const searchParams = useSearchParams()
+  const initialPlan = searchParams.get("plan")
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(initialPlan)
+  const [showCheckout, setShowCheckout] = useState(!!initialPlan)
+  const [activeTab, setActiveTab] = useState<"one-time" | "subscription">("one-time")
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+
+  const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
+  const { ref: benefitsRef, isVisible: benefitsVisible } = useScrollAnimation()
+  const { ref: faqRef, isVisible: faqVisible } = useScrollAnimation()
+
+  const currentProducts = activeTab === "one-time" ? PRODUCTS : SUBSCRIPTIONS
+
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlan(planId)
+    setShowCheckout(true)
+    setTimeout(() => {
+      document.getElementById("checkout-section")?.scrollIntoView({ behavior: "smooth" })
+    }, 100)
+  }
+
+  const faqs = [
+    { q: "Can I pause my subscription?", a: "Yes! You can pause your subscription at any time from your account dashboard. Your trees planted so far remain yours forever, and you can resume whenever you're ready." },
+    { q: "What happens to my Green Points?", a: "Green Points never expire. You can redeem them for merchandise, additional tree plantings, or donate them to community planting drives." },
+    { q: "Can I gift a subscription?", a: "Absolutely! We offer gift subscriptions for all tiers. The recipient gets a beautiful digital certificate and can track their trees growing in real-time." },
+    { q: "How do I get my tax deduction receipt?", a: "All donations are eligible for tax deductions under Section 80G. Receipts are automatically emailed within 48 hours of each payment." },
+    { q: "Can I visit my planted trees?", a: "Yes! Forest and Legacy plan holders get site visit invitations. We organize quarterly plantation visits at partner colleges across India." },
+  ]
+
+  const benefits = [
+    { icon: Calendar, title: "Consistent Impact", desc: "Automated monthly planting ensures continuous environmental contribution" },
+    { icon: Shield, title: "Tax Benefits", desc: "Automatic tax deduction receipts for every payment under Section 80G" },
+    { icon: Star, title: "Priority Planting", desc: "Subscribers get priority access to premium planting locations" },
+    { icon: Gift, title: "Bonus Trees", desc: "Receive bonus anniversary trees on your subscription milestones" },
+    { icon: Zap, title: "Exclusive Events", desc: "Invitations to subscriber-only planting drives and community events" },
+  ]
+
+  return (
+    <>
+      <SiteHeader />
+      <main>
+        {/* Hero */}
+        <section ref={heroRef} className="relative overflow-hidden bg-background pt-28 pb-16 md:pt-36 lg:pb-24">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.06)_0%,transparent_60%)]" />
+          <div
+            className={cn(
+              "relative z-10 mx-auto max-w-4xl px-4 text-center transition-all duration-700 lg:px-8",
+              heroVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+            )}
+          >
+            <p className="text-sm font-medium uppercase tracking-widest text-accent">Subscriptions</p>
+            <h1 className="mt-3 font-serif text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl text-balance">
+              Plant Trees Every Month, Build Forests Over Time
+            </h1>
+            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-pretty">
+              Set it and forget it - automated tree planting on your schedule. Choose a one-time package or subscribe for ongoing impact.
+            </p>
+          </div>
+        </section>
+
+        {/* Tab Switcher */}
+        <section className="bg-background pb-8">
+          <div className="mx-auto flex max-w-sm justify-center gap-1 rounded-full border border-border bg-muted p-1">
+            <button
+              onClick={() => { setActiveTab("one-time"); setShowCheckout(false); setSelectedPlan(null) }}
+              className={cn(
+                "flex-1 rounded-full px-6 py-2.5 text-sm font-medium transition-all duration-300",
+                activeTab === "one-time"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              One-Time
+            </button>
+            <button
+              onClick={() => { setActiveTab("subscription"); setShowCheckout(false); setSelectedPlan(null) }}
+              className={cn(
+                "flex-1 rounded-full px-6 py-2.5 text-sm font-medium transition-all duration-300",
+                activeTab === "subscription"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Subscribe
+            </button>
+          </div>
+        </section>
+
+        {/* Pricing Cards */}
+        <section className="bg-background pb-20">
+          <div className="mx-auto max-w-7xl px-4 lg:px-8">
+            <div className="grid gap-6 md:grid-cols-3">
+              {currentProducts.map((product, i) => (
+                <div
+                  key={product.id}
+                  className={cn(
+                    "group relative flex flex-col rounded-2xl border bg-card p-8 transition-all duration-500 hover:shadow-xl animate-fade-in-up",
+                    product.popular
+                      ? "border-primary shadow-lg md:scale-105"
+                      : "border-border hover:-translate-y-1",
+                    selectedPlan === product.id && "ring-2 ring-primary"
+                  )}
+                  style={{ animationDelay: `${i * 150}ms` }}
+                >
+                  {product.badge && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground whitespace-nowrap">
+                        {product.badge}
+                      </span>
+                    </div>
+                  )}
+                  <div className="mb-6">
+                    <h3 className="text-xl font-semibold text-card-foreground">{product.name}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{product.description}</p>
+                  </div>
+                  <div className="mb-6">
+                    <span className="text-4xl font-bold text-foreground">{product.priceDisplay}</span>
+                    {product.mode === "payment" && (
+                      <span className="ml-1 text-sm text-muted-foreground">one-time</span>
+                    )}
+                  </div>
+                  <div className="mb-4 flex gap-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <span className="font-semibold text-foreground">{product.trees}</span> trees
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="font-semibold text-foreground">{product.points.toLocaleString()}</span> pts
+                    </span>
+                  </div>
+                  <ul className="mb-8 flex-1 space-y-3">
+                    {product.features.map((f) => (
+                      <li key={f} className="flex items-start gap-3 text-sm text-muted-foreground">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    onClick={() => handleSelectPlan(product.id)}
+                    className={cn(
+                      "w-full rounded-xl py-5 transition-all duration-300",
+                      product.popular || selectedPlan === product.id
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "bg-muted text-foreground hover:bg-primary hover:text-primary-foreground"
+                    )}
+                  >
+                    {selectedPlan === product.id ? "Selected" : `Choose ${product.name}`}
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            {/* Corporate Subscription */}
+            {activeTab === "subscription" && (
+              <div className="mt-8 rounded-2xl border border-border bg-card p-8 text-center animate-fade-in-up" style={{ animationDelay: "450ms" }}>
+                <h3 className="text-xl font-semibold text-card-foreground">Corporate Subscription</h3>
+                <p className="mt-2 text-muted-foreground">
+                  Custom plans for organizations. Flexible tree quantity, monthly CSR reports, employee engagement portal, and dedicated account manager.
+                </p>
+                <Button variant="outline" className="mt-4 rounded-full border-border bg-transparent text-foreground hover:bg-muted">
+                  Contact for Custom Pricing
+                </Button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Checkout Section */}
+        {showCheckout && selectedPlan && (
+          <section id="checkout-section" className="scroll-mt-20 bg-muted/30 py-16">
+            <div className="mx-auto max-w-2xl px-4 lg:px-8">
+              <h2 className="mb-8 text-center font-serif text-2xl font-bold text-foreground">
+                Complete Your Purchase
+              </h2>
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-lg">
+                <Checkout productId={selectedPlan} />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Why Subscribe */}
+        <section ref={benefitsRef} className="py-20 lg:py-28">
+          <div className="mx-auto max-w-7xl px-4 lg:px-8">
+            <div
+              className={cn(
+                "text-center transition-all duration-700",
+                benefitsVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+              )}
+            >
+              <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">
+                Why Choose Green Legacy?
+              </h2>
+            </div>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {benefits.map((b, i) => (
+                <div
+                  key={b.title}
+                  className={cn(
+                    "group rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:shadow-lg hover:-translate-y-1",
+                    benefitsVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                  )}
+                  style={{ transitionDelay: benefitsVisible ? `${i * 100}ms` : "0ms" }}
+                >
+                  <div className="mb-4 inline-flex rounded-xl bg-primary/10 p-3 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                    <b.icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="font-semibold text-card-foreground">{b.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{b.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section ref={faqRef} className="bg-muted/30 py-20 lg:py-28">
+          <div className="mx-auto max-w-3xl px-4 lg:px-8">
+            <div
+              className={cn(
+                "text-center transition-all duration-700",
+                faqVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+              )}
+            >
+              <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">
+                Frequently Asked Questions
+              </h2>
+            </div>
+            <div className="mt-12 space-y-4">
+              {faqs.map((faq, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "rounded-xl border border-border bg-card overflow-hidden transition-all duration-500",
+                    faqVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                  )}
+                  style={{ transitionDelay: faqVisible ? `${i * 100}ms` : "0ms" }}
+                >
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="flex w-full items-center justify-between p-5 text-left"
+                    aria-expanded={openFaq === i}
+                  >
+                    <span className="font-medium text-card-foreground">{faq.q}</span>
+                    <ChevronDown
+                      className={cn(
+                        "h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300",
+                        openFaq === i && "rotate-180"
+                      )}
+                    />
+                  </button>
+                  <div
+                    className={cn(
+                      "overflow-hidden transition-all duration-300",
+                      openFaq === i ? "max-h-40 pb-5" : "max-h-0"
+                    )}
+                  >
+                    <p className="px-5 text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </>
+  )
+}
+
+export default function SubscriptionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    }>
+      <SubscriptionsContent />
+    </Suspense>
+  )
+}

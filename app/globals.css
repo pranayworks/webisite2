@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 60 20% 98%;
+    --foreground: 100 30% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 100 30% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 100 30% 10%;
+    --primary: 100 55% 20%;
+    --primary-foreground: 60 20% 98%;
+    --secondary: 16 25% 55%;
+    --secondary-foreground: 60 20% 98%;
+    --muted: 80 10% 93%;
+    --muted-foreground: 100 10% 40%;
+    --accent: 88 50% 47%;
+    --accent-foreground: 100 55% 12%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 80 15% 85%;
+    --input: 80 15% 85%;
+    --ring: 100 55% 20%;
+    --chart-1: 100 55% 20%;
+    --chart-2: 88 50% 47%;
+    --chart-3: 16 25% 55%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 150 40% 40%;
+    --radius: 0.75rem;
+  }
+  .dark {
+    --background: 100 20% 5%;
+    --foreground: 60 20% 95%;
+    --card: 100 15% 10%;
+    --card-foreground: 60 20% 95%;
+    --popover: 100 15% 10%;
+    --popover-foreground: 60 20% 95%;
+    --primary: 88 50% 47%;
+    --primary-foreground: 100 55% 8%;
+    --secondary: 16 20% 40%;
+    --secondary-foreground: 60 20% 95%;
+    --muted: 100 10% 15%;
+    --muted-foreground: 80 10% 60%;
+    --accent: 100 55% 20%;
+    --accent-foreground: 60 20% 95%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 100 10% 18%;
+    --input: 100 10% 18%;
+    --ring: 88 50% 47%;
+    --chart-1: 88 50% 47%;
+    --chart-2: 100 55% 30%;
+    --chart-3: 16 25% 55%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 150 40% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+  50% { transform: translateY(-20px) rotate(5deg); opacity: 1; }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-30px) rotate(-3deg); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(124, 179, 66, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(124, 179, 66, 0.6); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+html {
+  scroll-behavior: smooth;
+}
