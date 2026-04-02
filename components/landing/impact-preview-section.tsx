@@ -1,5 +1,7 @@
 "use client"
 
+import * as React from "react"
+
 import Link from "next/link"
 import { TreePine, Wind, Droplets, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,6 +17,11 @@ const stats = [
 
 export function ImpactPreviewSection() {
   const { ref, isVisible } = useScrollAnimation()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const values = [
     useCountUp(5847, 2500, isVisible),
@@ -23,19 +30,29 @@ export function ImpactPreviewSection() {
     useCountUp(876, 2200, isVisible),
   ]
 
+  // Pre-generate stable random values for the circles to avoid hydration mismatch
+  const particles = React.useMemo(() => {
+    return Array.from({ length: 20 }).map((_, i) => ({
+      left: `${(i * 7 + 13) % 100}%`,
+      top: `${(i * 11 + 17) % 100}%`,
+      delay: `${(i * 0.3) % 5}s`,
+      duration: `${4 + (i * 0.7) % 4}s`,
+    }))
+  }, [])
+
   return (
     <section ref={ref} className="relative overflow-hidden bg-foreground py-20 lg:py-28">
       {/* Particle-like dots */}
       <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
+        {mounted && particles.map((p, i) => (
           <div
             key={i}
             className="absolute h-1 w-1 rounded-full bg-accent/20 animate-float"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${4 + Math.random() * 4}s`,
+              left: p.left,
+              top: p.top,
+              animationDelay: p.delay,
+              animationDuration: p.duration,
             }}
           />
         ))}

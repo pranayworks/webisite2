@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter, Playfair_Display } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import LoadingScreen from "@/components/LoadingScreen"
 import "./globals.css"
 
 const inter = Inter({
@@ -19,6 +20,10 @@ export const metadata: Metadata = {
   description:
     "India's premier tree plantation startup connecting donors, agriculture colleges, and environmental impact. Plant trees for birthdays, memorials, corporate events and more.",
   keywords: ["tree plantation", "environment", "India", "CSR", "green", "sustainability"],
+  icons: {
+    icon: "/logo.svg",
+    apple: "/logo.svg",
+  },
 }
 
 export const viewport: Viewport = {
@@ -35,8 +40,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange={false}>
+          <LoadingScreen />
           {children}
         </ThemeProvider>
       </body>

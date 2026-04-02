@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import { Menu, X, Sun, Moon, TreePine } from "lucide-react"
@@ -13,6 +14,7 @@ const navItems = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Subscriptions", href: "/subscriptions" },
   { label: "Impact", href: "/impact" },
+  { label: "Testimonials", href: "/testimonials" },
   { label: "Get Involved", href: "/get-involved" },
   { label: "Media", href: "/media" },
   { label: "Contact", href: "/contact" },
@@ -57,12 +59,14 @@ export function SiteHeader() {
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:h-20 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group" aria-label="Green Legacy Home">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform duration-300 group-hover:scale-110">
-              <TreePine className="h-5 w-5" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-foreground md:text-xl">
-              Green Legacy
-            </span>
+            <Image 
+              src="/logo.svg"
+              alt="Green Legacy Logo"
+              width={160}
+              height={45}
+              className="h-10 w-auto transition-transform duration-300 group-hover:scale-105"
+              priority
+            />
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">

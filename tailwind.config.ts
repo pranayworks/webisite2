@@ -104,6 +104,30 @@ const config: Config = {
           '0%': { transform: 'translateX(0%)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        fadeOut: {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0', visibility: 'hidden' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        loadingBar: {
+          '0%': { width: '0%' },
+          '100%': { width: '100%' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-20px) rotate(10deg)' },
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        expandWidth: {
+          '0%': { width: '0%', opacity: '0' },
+          '100%': { width: '100%', opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -114,6 +138,12 @@ const config: Config = {
         'slide-in-left': 'slide-in-left 0.6s ease-out forwards',
         'scale-in': 'scale-in 0.5s ease-out forwards',
         marquee: 'marquee 30s linear infinite',
+        fadeOut: 'fadeOut 0.5s ease-in-out 1.5s forwards',
+        fadeIn: 'fadeIn 0.8s ease-in-out',
+        loadingBar: 'loadingBar 2s ease-in-out forwards',
+        float: 'float 3s ease-in-out infinite',
+        fadeInUp: 'fadeInUp 0.8s ease-out forwards',
+        expandWidth: 'expandWidth 1.5s ease-out forwards',
       },
     },
   },

@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { TreePine, Instagram, Linkedin, Twitter, Youtube, Facebook, ArrowUp } from "lucide-react"
+import Image from "next/image"
+import { TreePine, Instagram, Linkedin, Twitter, Youtube, Facebook, ArrowUp, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
@@ -32,11 +33,11 @@ const support = [
 ]
 
 const socials = [
-  { icon: Instagram, href: "#", label: "Instagram" },
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Youtube, href: "#", label: "YouTube" },
-  { icon: Facebook, href: "#", label: "Facebook" },
+  { icon: Instagram, href: "https://www.instagram.com/greenlegacy_org?igsh=MXNnZGY1eXkyaXRvcA==", label: "Instagram" },
+  { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61578555315281", label: "Facebook" },
+  { icon: Twitter, href: "https://x.com/GreenLegac28872", label: "Twitter" },
+  { icon: Youtube, href: "https://youtube.com/@greenlegacy-h5m?si=iwAo3JvWMUj8tA63", label: "YouTube" },
+  { icon: MessageCircle, href: "https://wa.me/918074935169?text=Hi%20Green%20Legacy,%20I'm%20interested%20in%20planting%20a%20tree%20and%20want%20to%20know%20more%20about%20the%20impact!", label: "WhatsApp" },
 ]
 
 export function SiteFooter() {
@@ -61,10 +62,13 @@ export function SiteFooter() {
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <TreePine className="h-5 w-5" />
-                </div>
-                <span className="text-lg font-bold text-foreground">Green Legacy</span>
+                <Image 
+                  src="/logo.svg"
+                  alt="Green Legacy Logo"
+                  width={140}
+                  height={40}
+                  className="h-8 w-auto"
+                />
               </Link>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 Planting today, thriving tomorrow. We connect donors, agriculture colleges, and NGOs

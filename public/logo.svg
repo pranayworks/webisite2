@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 120" preserveAspectRatio="xMinYMid meet">
+  <defs>
+    <!-- Left Leaf Gradients -->
+    <linearGradient id="leftLeafDark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#5B8A1D"/>
+      <stop offset="100%" stop-color="#72A925"/>
+    </linearGradient>
+    <linearGradient id="leftLeafLight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#79B52B"/>
+      <stop offset="100%" stop-color="#8BC935"/>
+    </linearGradient>
+
+    <!-- Right Leaf Gradients -->
+    <linearGradient id="rightLeafDark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6FA820"/>
+      <stop offset="100%" stop-color="#80BE26"/>
+    </linearGradient>
+    <linearGradient id="rightLeafLight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8CC933"/>
+      <stop offset="100%" stop-color="#9AD73E"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(20, 20)">
+    
+    <!-- Leaves -->
+    <g transform="translate(0, 0)">
+      <!-- Left Leaf -->
+      <g transform="translate(0, 0)">
+        <path d="M 12 55 Q -10 30 5 0 Q 30 -5 42 20 Q 25 40 12 55 Z" fill="url(#leftLeafDark)" />
+        <path d="M 5 0 Q 35 10 42 20 Q 35 45 12 55 Q 12 25 5 0 Z" fill="url(#leftLeafLight)" />
+        <path d="M 12 55 Q 15 25 5 0" stroke="#FFFFFF" stroke-width="2.5" fill="none" />
+      </g>
+      <!-- Right Leaf -->
+      <g transform="translate(26, 12)">
+        <path d="M 18 70 Q -15 35 5 -10 Q 35 -15 55 25 Q 35 55 18 70 Z" fill="url(#rightLeafDark)" />
+        <path d="M 5 -10 Q 50 5 55 25 Q 45 60 18 70 Q 20 30 5 -10 Z" fill="url(#rightLeafLight)" />
+        <path d="M 18 70 Q 22 30 5 -10" stroke="#FFFFFF" stroke-width="3" fill="none" />
+      </g>
+    </g>
+
+    <!-- Text -->
+    <g transform="translate(100, 28)">
+      <text x="0" y="0" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="44" fill="#726E71" letter-spacing="1">GREEN</text>
+      <text x="0" y="44" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="44" fill="#726E71" letter-spacing="1">LEGACY</text>
+    </g>
+
+  </g>
+</svg>
