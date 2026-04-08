@@ -3,46 +3,22 @@
 import { stripe } from "@/lib/stripe"
 import { PRODUCTS, SUBSCRIPTIONS } from "@/lib/products"
 
-export async function startCheckoutSession(productId: string) {
+export async function startCheckoutSession(productId: string, userId: string) {
   const allProducts = [...PRODUCTS, ...SUBSCRIPTIONS]
   const product = allProducts.find((p) => p.id === productId)
   if (!product) {
     throw new Error(`Product with id "${productId}" not found`)
   }
 
-  // priceInCents already represents the smallest currency unit (paisa for INR)
-  if (product.mode === "subscription" && product.interval) {
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: "embedded",
-      redirect_on_completion: "never",
-      line_items: [
-        {
-          price_data: {
-            currency: "inr",
-            product_data: {
-              name: product.name,
-              description: product.description,
-            },
-            unit_amount: product.priceInCents,
-            recurring: {
-              interval: product.interval === "quarter" ? "month" : product.interval,
-              interval_count: product.interval === "quarter" ? 3 : 1,
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-    })
-    if (!session.client_secret) {
-      throw new Error("Failed to create checkout session")
-    }
-    return session.client_secret
-  }
-
-  const session = await stripe.checkout.sessions.create({
+  const sessionOptions: any = {
     ui_mode: "embedded",
-    redirect_on_completion: "never",
+    redirect_on_completion: "always",
+    return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/subscriptions/success?session_id={CHECKOUT_SESSION_ID}`,
+    metadata: {
+      userId,
+      trees: product.trees.toString(),
+      productId: product.id
+    },
     line_items: [
       {
         price_data: {
@@ -56,8 +32,18 @@ export async function startCheckoutSession(productId: string) {
         quantity: 1,
       },
     ],
-    mode: "payment",
-  })
+    mode: product.mode,
+  }
+
+  // Adjust for subscriptions
+  if (product.mode === "subscription" && product.interval) {
+    sessionOptions.line_items[0].price_data.recurring = {
+      interval: product.interval === "quarter" ? "month" : product.interval,
+      interval_count: product.interval === "quarter" ? 3 : 1,
+    }
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionOptions)
 
   if (!session.client_secret) {
     throw new Error("Failed to create checkout session")

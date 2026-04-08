@@ -47,13 +47,11 @@ export default function LoadingScreen() {
         
         {/* Brand Logo Animation */}
         <div className="relative flex justify-center">
-          <div className="animate-fadeInUp relative w-64 h-32 md:w-80 md:h-40">
-            <Image 
+          <div className="animate-fadeInUp relative h-20 md:h-24">
+            <img 
               src="/logo.svg" 
               alt="Green Legacy Loading..." 
-              fill
-              className="object-contain"
-              priority
+              className="h-full w-auto object-contain"
             />
           </div>
         </div>

@@ -14,9 +14,9 @@ export default function SignUpPage() {
     fullName: '',
     email: '',
     phone: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   })
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -30,13 +30,8 @@ export default function SignUpPage() {
     setError(null)
     setSuccess(false)
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError('Encryption key must be at least 6 characters')
       return
     }
 
@@ -46,16 +41,20 @@ export default function SignUpPage() {
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName
+          }
+        }
       })
 
       if (authError) throw authError
 
       if (!authData.user) {
-        throw new Error('Failed to create user account')
+        throw new Error('Failed to create identity node')
       }
 
-      // Wait a moment for the auth to process
       await new Promise(resolve => setTimeout(resolve, 500))
 
       // Create profile entry
@@ -70,26 +69,21 @@ export default function SignUpPage() {
 
       if (profileError) {
         console.error('Profile creation error:', profileError)
-        // Continue anyway - they can update profile later
       }
 
       setSuccess(true)
       
-      // Redirect to login after 1.5 seconds
       setTimeout(() => {
         router.push('/login')
-      }, 1500)
+      }, 2000)
 
     } catch (err: any) {
-      console.error('Signup error:', err)
-      
-      // Better error messages
       if (err.message?.includes('rate limit')) {
-        setError('Too many signup attempts. Please wait a few minutes and try again.')
+        setError('Too many attempts. Please wait.')
       } else if (err.message?.includes('already registered')) {
-        setError('This email is already registered. Try logging in instead.')
+        setError('This node is already registered. Authenticate instead.')
       } else {
-        setError(err.message || 'Failed to create account. Please try again.')
+        setError(err.message || 'Failed to establish legacy. Please try again.')
       }
     } finally {
       setLoading(false)
@@ -97,148 +91,181 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
-        
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-700 mb-2">
-            🌳 Create Your Account
-          </h1>
-          <p className="text-gray-600">Join Green Legacy today</p>
-        </div>
+    <div className="bg-[#121410] text-[#e3e3db] font-['Manrope'] overflow-hidden selection:bg-[#b2f432] selection:text-[#233600]">
+      <main className="flex min-h-screen w-full">
+        {/* Left Section: Visual Legacy Area */}
+        <section className="relative hidden lg:flex flex-1 items-center justify-center bg-[#121410] overflow-hidden">
+          <div 
+            className="absolute inset-0 opacity-20" 
+            style={{ 
+              backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAg9f36xGiM4LqW74MvntHxoRmqb2QULQejNuvlKzsk7h1dvnyBmXBrbQRiADvcFwOL_ZIl6JGTamVAntT-fUtuA0ZCiovmZu6oS8NfC6C9Cj99cLGopENgpdhAo9RPLPF4-C1Ay9cwQ96X7kb-zasy6nRKdcG_WxyCvaYfYWzrMkBr5jiLbmi-F7EtBRm5WEJTBvdOa3XiWKmMMjdZ3yTHzFBiE-p9Fnc252m54NcdehLReXqNWlNZCZRta5UO0W90Te-aCwT2dI2s')",
+              backgroundSize: "cover",
+              backgroundPosition: "center"
+            }}
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(178,244,50,0.1),transparent)]"></div>
 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded mb-6">
-            <p className="font-semibold">Error</p>
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
+          <div className="relative z-10 text-center space-y-12">
+            <div className="relative w-96 h-96 mx-auto flex items-center justify-center">
+              <div className="absolute inset-0 opacity-10 blur-xl scale-110">
+                <span className="material-symbols-outlined text-[300px] text-[#b2f432]" style={{ fontVariationSettings: "'FILL' 1" }}>park</span>
+              </div>
+              <div className="relative flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-[#b2f432]/20 flex items-center justify-center animate-pulse">
+                  <span className="material-symbols-outlined text-4xl text-[#b2f432]" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
+                </div>
+                <div className="mt-8">
+                  <h2 className="font-['Noto_Serif'] text-4xl italic font-bold tracking-tight text-[#e3e3db]">Planting Perpetuity</h2>
+                  <p className="mt-4 font-['Manrope'] text-[#c2caaf] max-w-sm mx-auto">Your digital presence begins as a seed. Every entry fosters a new era of stewardship.</p>
+                </div>
+              </div>
+            </div>
 
-        {success && (
-          <div className="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded mb-6">
-            <p className="font-semibold">✓ Success!</p>
-            <p className="text-sm">Account created. Redirecting to login...</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              name="fullName"
-              required
-              value={formData.fullName}
-              onChange={handleChange}
-              disabled={loading || success}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="Enter your full name"
-            />
+            <div className="grid grid-cols-4 gap-4 max-w-md mx-auto">
+              <div className="h-1 bg-[#b2f432] rounded-full"></div>
+              <div className="h-1 bg-[#343530] rounded-full"></div>
+              <div className="h-1 bg-[#343530] rounded-full"></div>
+              <div className="h-1 bg-[#343530] rounded-full"></div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address *
-            </label>
-            <input
-              type="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              disabled={loading || success}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="you@example.com"
-            />
+          <div className="absolute top-12 left-12">
+            <span className="font-['Noto_Serif'] text-2xl font-bold italic text-[#e3e3db]">Arboretum</span>
           </div>
+        </section>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number (Optional)
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              disabled={loading || success}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="+91 XXXXX XXXXX"
-            />
-          </div>
+        {/* Right Section: Minimalist Form Area */}
+        <section className="flex-1 flex items-center justify-center bg-[#1a1c18] px-8 md:px-24 relative z-10">
+          <div className="w-full max-w-md space-y-10">
+            <header className="space-y-4">
+              <h1 className="font-['Noto_Serif'] text-5xl font-bold text-[#e3e3db] tracking-tighter">Grow Your Legacy</h1>
+              <p className="font-['Manrope'] text-lg text-[#c2caaf] font-light">Join the circle of stewards in the digital wilderness.</p>
+            </header>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password *
-            </label>
-            <input
-              type="password"
-              name="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              disabled={loading || success}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="At least 6 characters"
-            />
-            <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password *
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              required
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              disabled={loading || success}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="Re-enter your password"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || success}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Creating Account...
-              </span>
-            ) : success ? (
-              '✓ Account Created!'
-            ) : (
-              'Create Account'
+            {error && (
+              <div className="bg-red-950/50 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
             )}
-          </button>
-        </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600 text-sm">
-            Already have an account?{' '}
-            <Link href="/login" className="text-green-600 hover:text-green-700 font-semibold">
-              Log in here
-            </Link>
-          </p>
-        </div>
+            {success && (
+              <div className="bg-[#b2f432]/10 border border-[#b2f432]/50 text-[#b2f432] px-4 py-3 rounded-lg text-sm">
+                Legacy established. Redirecting to initialization sequence...
+              </div>
+            )}
 
-        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-500">
-            By signing up, you agree to our Terms of Service and Privacy Policy
-          </p>
-        </div>
-      </div>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-2 group">
+                <label className="font-['Manrope'] text-xs uppercase tracking-widest text-[#c2caaf] group-focus-within:text-[#b2f432] transition-colors" htmlFor="steward-name">
+                  Steward Name
+                </label>
+                <div className="relative">
+                  <input 
+                    id="steward-name" 
+                    name="fullName"
+                    type="text" 
+                    required
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    disabled={loading || success}
+                    placeholder="Full identity name" 
+                    className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 group">
+                <label className="font-['Manrope'] text-xs uppercase tracking-widest text-[#c2caaf] group-focus-within:text-[#b2f432] transition-colors" htmlFor="email">
+                  Digital Node
+                </label>
+                <div className="relative">
+                  <input 
+                    id="email" 
+                    name="email"
+                    type="email" 
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    disabled={loading || success}
+                    placeholder="email@node.arboretum" 
+                    className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 group">
+                <label className="font-['Manrope'] text-xs uppercase tracking-widest text-[#c2caaf] group-focus-within:text-[#b2f432] transition-colors" htmlFor="phone">
+                  Liaison Number
+                </label>
+                <div className="relative">
+                  <input 
+                    id="phone" 
+                    name="phone"
+                    type="tel" 
+                    value={formData.phone}
+                    onChange={handleChange}
+                    disabled={loading || success}
+                    placeholder="+91 XXXXX XXXXX" 
+                    className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 group">
+                <label className="font-['Manrope'] text-xs uppercase tracking-widest text-[#c2caaf] group-focus-within:text-[#b2f432] transition-colors" htmlFor="password">
+                  Encryption Key
+                </label>
+                <div className="relative">
+                  <input 
+                    id="password" 
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                    disabled={loading || success}
+                    placeholder="••••••••••••" 
+                    className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-4 text-[#c2caaf] hover:text-[#b2f432] transition-colors"
+                  >
+                    <span className="material-symbols-outlined">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-6 space-y-6">
+                <button 
+                  type="submit" 
+                  disabled={loading || success}
+                  className="w-full py-5 bg-[#b2f432] text-[#233600] font-['Manrope'] font-extrabold uppercase tracking-widest text-sm rounded-full hover:bg-[#97d700] transition-all duration-300 transform active:scale-[0.98] shadow-xl shadow-[#b2f432]/10 disabled:opacity-50 disabled:active:scale-100"
+                >
+                  {loading ? 'Initializing...' : 'Establish Legacy'}
+                </button>
+                <p className="text-center font-['Manrope'] text-sm text-[#c2caaf]">
+                  Already a Steward? <Link href="/login" className="text-[#b2f432] hover:underline underline-offset-4 decoration-1">Authenticate Identity</Link>
+                </p>
+              </div>
+            </form>
+
+            <footer className="pt-12 text-center">
+              <div className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-[0.2em] text-[#c2caaf]/40">
+                <span>Encrypted Protocol</span>
+                <span className="w-1 h-1 bg-[#c2caaf]/40 rounded-full"></span>
+                <span>Zero-Footprint Carbon</span>
+                <span className="w-1 h-1 bg-[#c2caaf]/40 rounded-full"></span>
+                <span>V. 2.0.4</span>
+              </div>
+            </footer>
+          </div>
+        </section>
+      </main>
+
+      {/* Overlay Grain for texture */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-50 mix-blend-overlay"></div>
     </div>
   )
 }

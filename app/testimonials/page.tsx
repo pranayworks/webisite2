@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils"
 import { Quote, MessageSquare, Star, Heart } from "lucide-react"
 
 const stats = [
-  { label: "Happy Donors", value: "500+", icon: Heart, color: "text-rose-500" },
-  { label: "Community Voices", value: "120+", icon: MessageSquare, color: "text-sky-500" },
+  { label: "Happy Donors", value: "5", icon: Heart, color: "text-rose-500" },
+  { label: "Community Voices", value: "10", icon: MessageSquare, color: "text-sky-500" },
   { label: "Average Rating", value: "4.9/5", icon: Star, color: "text-amber-500" },
 ]
 

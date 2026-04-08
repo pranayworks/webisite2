@@ -20,6 +20,18 @@ function SubscriptionsContent() {
   const [showCheckout, setShowCheckout] = useState(!!initialPlan)
   const [activeTab, setActiveTab] = useState<"one-time" | "subscription">("one-time")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null)
+
+  const occasions = [
+    { id: 'birthday', label: 'Birthdays', desc: 'Grow with your loved ones', icon: Gift, color: 'text-pink-400 bg-pink-400/10' },
+    { id: 'anniversary', label: 'Anniversaries', desc: 'Roots as strong as your love', icon: Star, color: 'text-red-400 bg-red-400/10' },
+    { id: 'new_arrival', label: 'New Arrivals', desc: 'Welcome life with life', icon: Zap, color: 'text-blue-400 bg-blue-400/10' },
+    { id: 'graduation', label: 'Graduations', desc: 'Plant seeds of success', icon: Shield, color: 'text-orange-400 bg-orange-400/10' },
+    { id: 'memorial', label: 'Memorials', desc: 'Living tributes that endure', icon: Calendar, color: 'text-purple-400 bg-purple-400/10' },
+    { id: 'corporate', label: 'Corporate CSR', desc: 'Scale your impact', icon: Check, color: 'text-green-400 bg-green-400/10' },
+    { id: 'wedding', label: 'Weddings', desc: 'Together we grow', icon: Star, color: 'text-pink-500 bg-pink-500/10' },
+    { id: 'just_because', label: 'Just Because', desc: 'Every day is Earth Day', icon: Gift, color: 'text-emerald-400 bg-emerald-400/10' },
+  ]
 
   const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
   const { ref: benefitsRef, isVisible: benefitsVisible } = useScrollAnimation()
@@ -181,14 +193,48 @@ function SubscriptionsContent() {
           </div>
         </section>
 
-        {/* Checkout Section */}
+        {/* Occasions Section */}
+        <section className="bg-background py-20">
+          <div className="mx-auto max-w-7xl px-4 lg:px-8">
+            <div className="text-center mb-12">
+              <p className="text-sm font-medium uppercase tracking-widest text-accent mb-2">OCCASIONS</p>
+              <h2 className="font-serif text-4xl font-bold text-foreground">Plant for Every Precious Moment</h2>
+            </div>
+            
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {occasions.map((occ) => (
+                <button
+                  key={occ.id}
+                  onClick={() => setSelectedOccasion(occ.id)}
+                  className={cn(
+                    "flex flex-col items-start p-6 rounded-2xl border text-left transition-all duration-300 hover:shadow-md",
+                    selectedOccasion === occ.id 
+                      ? "border-accent bg-accent/5 ring-1 ring-accent" 
+                      : "border-border bg-card hover:border-accent/40"
+                  )}
+                >
+                  <div className={cn("p-3 rounded-xl mb-4", occ.color)}>
+                    <occ.icon className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-foreground mb-1">{occ.label}</h3>
+                  <p className="text-xs text-muted-foreground">{occ.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
         {showCheckout && selectedPlan && (
           <section id="checkout-section" className="scroll-mt-20 bg-muted/30 py-16">
             <div className="mx-auto max-w-2xl px-4 lg:px-8">
-              <h2 className="mb-8 text-center font-serif text-2xl font-bold text-foreground">
+              <h2 className="mb-4 text-center font-serif text-2xl font-bold text-foreground">
                 Complete Your Purchase
               </h2>
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-lg">
+              {!selectedOccasion && (
+                <div className="mb-6 p-4 rounded-xl bg-orange-400/10 border border-orange-400/20 text-orange-400 text-sm text-center font-medium">
+                   Please select an occasion above before continuing.
+                </div>
+              )}
+              <div className={cn("rounded-2xl border border-border bg-card p-6 shadow-lg transition-opacity", !selectedOccasion && "opacity-40 pointer-events-none")}>
                 <Checkout productId={selectedPlan} />
               </div>
             </div>

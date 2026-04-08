@@ -3,14 +3,24 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
-import { Menu, X, Sun, Moon, TreePine } from "lucide-react"
+import { Menu, X, Sun, Moon, TreePine, User, LogOut } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const navItems = [
   { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Subscriptions", href: "/subscriptions" },
   { label: "Impact", href: "/impact" },
@@ -25,6 +35,13 @@ export function SiteHeader() {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push("/")
+    router.refresh()
+  }
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20)
@@ -59,13 +76,10 @@ export function SiteHeader() {
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:h-20 lg:px-8">
           <Link href="/" className="flex items-center gap-2 group" aria-label="Green Legacy Home">
-            <Image 
+            <img
               src="/logo.svg"
               alt="Green Legacy Logo"
-              width={160}
-              height={45}
-              className="h-10 w-auto transition-transform duration-300 group-hover:scale-105"
-              priority
+              className="h-10 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
           </Link>
 
@@ -75,7 +89,7 @@ export function SiteHeader() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200",
+                  "rounded-lg px-1.5 lg:px-2 xl:px-3 py-2 text-[13px] xl:text-sm font-medium whitespace-nowrap transition-colors duration-200",
                   pathname === item.href
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -98,11 +112,36 @@ export function SiteHeader() {
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             </Button>
 
-            <Link href="/subscriptions" className="hidden md:block">
-              <Button className="animate-pulse-glow rounded-full bg-primary px-6 text-primary-foreground hover:bg-primary/90">
-                Plant a Tree
-              </Button>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-colors">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">User menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/login" className="cursor-pointer w-full">Log In</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/signup" className="cursor-pointer w-full">Sign Up</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard" className="cursor-pointer w-full">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="cursor-pointer w-full text-destructive focus:text-destructive flex items-center gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Log Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button
               variant="ghost"
@@ -143,11 +182,34 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <Link href="/subscriptions" onClick={() => setIsMobileOpen(false)}>
-            <Button className="mt-4 animate-pulse-glow rounded-full bg-primary px-8 py-6 text-lg text-primary-foreground hover:bg-primary/90">
-              Plant a Tree
+          <div className="flex flex-col items-center gap-4 mt-6">
+            <Link href="/login" onClick={() => setIsMobileOpen(false)} className="w-full">
+              <Button variant="outline" className="w-full rounded-full px-8 py-6 text-lg">
+                Log In
+              </Button>
+            </Link>
+            <Link href="/signup" onClick={() => setIsMobileOpen(false)} className="w-full">
+              <Button className="w-full rounded-full bg-primary px-8 py-6 text-lg text-primary-foreground hover:bg-primary/90">
+                Sign Up
+              </Button>
+            </Link>
+            <Link href="/dashboard" onClick={() => setIsMobileOpen(false)} className="w-full">
+              <Button variant="ghost" className="w-full rounded-full px-8 py-6 text-lg">
+                Dashboard
+              </Button>
+            </Link>
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                handleLogout()
+                setIsMobileOpen(false)
+              }} 
+              className="w-full rounded-full px-8 py-6 text-lg text-destructive hover:text-destructive flex items-center justify-center gap-2"
+            >
+              <LogOut className="h-5 w-5" />
+              Log Out
             </Button>
-          </Link>
+          </div>
         </nav>
       </div>
     </>

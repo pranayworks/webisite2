@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
+import { submitApplication } from "@/app/actions/submit-application"
 
 const pathways = [
   {
@@ -58,13 +59,22 @@ export default function GetInvolvedPage() {
   const { ref: eventRef, isVisible: eventVisible } = useScrollAnimation()
   const { ref: partnerRef, isVisible: partnerVisible } = useScrollAnimation()
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setFormSubmitted(true)
-    setTimeout(() => {
-      setFormSubmitted(false)
-      setActiveModal(null)
-    }, 3000)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleFormAction = async (formData: FormData) => {
+    setIsSubmitting(true)
+    const res = await submitApplication(formData)
+    setIsSubmitting(false)
+    
+    if (res.success) {
+      setFormSubmitted(true)
+      setTimeout(() => {
+        setFormSubmitted(false)
+        setActiveModal(null)
+      }, 3000)
+    } else {
+      alert("Error: " + res.error)
+    }
   }
 
   return (
@@ -238,21 +248,26 @@ export default function GetInvolvedPage() {
               <>
                 <h3 className="text-xl font-semibold text-card-foreground">{activeModal}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Fill in your details to get started.</p>
-                <form onSubmit={handleFormSubmit} className="mt-6 space-y-4">
+                <form action={handleFormAction} className="mt-6 space-y-4">
+                  <input type="hidden" name="type" value={activeModal} />
                   <div>
-                    <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-foreground">Full Name</label>
+                    <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-foreground">
+                      {activeModal === "Corporate Partnership" ? "Company/Org Name & Contact Person" : "Full Name"}
+                    </label>
                     <input
                       id="name"
+                      name="name"
                       type="text"
                       required
                       className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                      placeholder="Your name"
+                      placeholder="Enter name"
                     />
                   </div>
                   <div>
                     <label htmlFor="modal-email" className="mb-1.5 block text-sm font-medium text-foreground">Email</label>
                     <input
                       id="modal-email"
+                      name="email"
                       type="email"
                       required
                       className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -260,28 +275,66 @@ export default function GetInvolvedPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-foreground">Phone</label>
+                    <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-foreground">Phone Number</label>
                     <input
                       id="phone"
+                      name="phone"
                       type="tel"
+                      required
                       className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       placeholder="+91 XXXXX XXXXX"
                     />
                   </div>
-                  <div>
-                    <label htmlFor="message" className="mb-1.5 block text-sm font-medium text-foreground">Why do you want to join?</label>
-                    <textarea
-                      id="message"
-                      rows={3}
-                      className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                      placeholder="Tell us about yourself..."
-                    />
-                  </div>
+
+                  {activeModal === "Become a Volunteer" && (
+                    <>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">Occupation / Profession</label>
+                        <input name="occupation" required className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground" placeholder="E.g. Software Engineer, Farmer" />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">Why do you want to volunteer?</label>
+                        <textarea name="reason" required rows={3} className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground" placeholder="Tell us your motivation..." />
+                      </div>
+                    </>
+                  )}
+
+                  {activeModal === "Corporate Partnership" && (
+                    <>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">Expected CSR Budget / Plan</label>
+                        <input name="budget" required className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground" placeholder="E.g. Planting 5000 trees annually" />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">Partnership Goals</label>
+                        <textarea name="goals" required rows={3} className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground" placeholder="Describe your sustainability initiatives..." />
+                      </div>
+                    </>
+                  )}
+
+                  {activeModal === "Campus Ambassador" && (
+                    <>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">College / University Name</label>
+                        <input name="college" required className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground" placeholder="E.g. Tamil Nadu Agricultural University" />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">Degree & Year of Study</label>
+                        <input name="degree" required className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground" placeholder="E.g. BSc Agriculture, 2nd Year" />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">Why should we select you?</label>
+                        <textarea name="reason" required rows={3} className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground" placeholder="Highlight your leadership/extracurriculars..." />
+                      </div>
+                    </>
+                  )}
+
                   <Button
                     type="submit"
+                    disabled={isSubmitting}
                     className="w-full rounded-xl bg-primary py-5 text-primary-foreground hover:bg-primary/90"
                   >
-                    Submit Application
+                    {isSubmitting ? "Submitting..." : "Submit Application"}
                   </Button>
                 </form>
               </>

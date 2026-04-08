@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
+import { submitContact } from "@/app/actions/submit-contact"
 
 const contactOptions = [
   { icon: Mail, title: "General Inquiries", email: "contact@greenlegacy.in", desc: "We respond within 24 hours" },
@@ -28,24 +29,31 @@ const faqs = [
 ]
 
 const socials = [
-  { icon: Instagram, label: "Instagram", handle: "@greenlegacy.in" },
-  { icon: Linkedin, label: "LinkedIn", handle: "Green Legacy India" },
-  { icon: Twitter, label: "Twitter/X", handle: "@greenlegacy_in" },
+  { icon: Instagram, label: "Instagram", handle: "@greenlegacy_org" },
+  { icon: Linkedin, label: "LinkedIn", handle: "Green Legacy " },
+  { icon: Twitter, label: "Twitter/X", handle: "@green legacy" },
   { icon: Youtube, label: "YouTube", handle: "Green Legacy" },
-  { icon: Facebook, label: "Facebook", handle: "GreenLegacyIndia" },
+  { icon: Facebook, label: "Facebook", handle: "Green Legacy" },
 ]
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
   const { ref: formRef, isVisible: formVisible } = useScrollAnimation()
   const { ref: faqRef, isVisible: faqVisible } = useScrollAnimation()
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 4000)
+  const handleFormAction = async (formData: FormData) => {
+    setIsSubmitting(true)
+    const res = await submitContact(formData)
+    setIsSubmitting(false)
+    if (res.success) {
+      setSubmitted(true)
+      setTimeout(() => setSubmitted(false), 4000)
+    } else {
+      alert("Error sending message: " + res.error)
+    }
   }
 
   return (
@@ -116,12 +124,13 @@ export default function ContactPage() {
                     <p className="mt-2 text-sm text-muted-foreground">Thanks! We will be in touch soon.</p>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                  <form action={handleFormAction} className="mt-8 space-y-5">
                     <div className="grid gap-5 sm:grid-cols-2">
                       <div>
                         <label htmlFor="contact-name" className="mb-1.5 block text-sm font-medium text-foreground">Name</label>
                         <input
                           id="contact-name"
+                          name="name"
                           type="text"
                           required
                           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
@@ -132,6 +141,7 @@ export default function ContactPage() {
                         <label htmlFor="contact-email" className="mb-1.5 block text-sm font-medium text-foreground">Email</label>
                         <input
                           id="contact-email"
+                          name="email"
                           type="email"
                           required
                           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
@@ -144,6 +154,7 @@ export default function ContactPage() {
                         <label htmlFor="contact-phone" className="mb-1.5 block text-sm font-medium text-foreground">Phone (optional)</label>
                         <input
                           id="contact-phone"
+                          name="phone"
                           type="tel"
                           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
                           placeholder="+91 XXXXX XXXXX"
@@ -154,6 +165,7 @@ export default function ContactPage() {
                         <div className="relative">
                           <select
                             id="contact-subject"
+                            name="subject"
                             required
                             className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
                           >
@@ -170,6 +182,7 @@ export default function ContactPage() {
                       <label htmlFor="contact-message" className="mb-1.5 block text-sm font-medium text-foreground">Message</label>
                       <textarea
                         id="contact-message"
+                        name="message"
                         rows={5}
                         required
                         className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
@@ -178,9 +191,10 @@ export default function ContactPage() {
                     </div>
                     <Button
                       type="submit"
+                      disabled={isSubmitting}
                       className="rounded-xl bg-primary px-8 py-5 text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:scale-[1.02]"
                     >
-                      <Send className="mr-2 h-4 w-4" /> Plant Your Message
+                      <Send className="mr-2 h-4 w-4" /> {isSubmitting ? "Sending..." : "Plant Your Message"}
                     </Button>
                   </form>
                 )}
@@ -198,7 +212,7 @@ export default function ContactPage() {
                   <div className="mt-3 space-y-3 text-sm text-muted-foreground">
                     <div className="flex items-start gap-3">
                       <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      <span>Green Legacy HQ, 42 Eco Park Road, Bengaluru, Karnataka 560001</span>
+                      <span>Green Legacy HQ, Kapil Kavuri Hub, Financial District, Hyderabad </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Phone className="h-4 w-4 shrink-0 text-primary" />
