@@ -13,18 +13,23 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    console.log("Initiating password reset for:", email)
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       })
 
-      if (error) throw error
+      if (error) {
+        console.error("Supabase Reset Error:", error)
+        throw error
+      }
 
       setSent(true)
       toast.success("Recovery link sent! Check your inbox.")
     } catch (err: any) {
-      toast.error(err.message || "Failed to send recovery link")
+      console.error("Forgot Password FAIL:", err)
+      toast.error(err.message || "Failed to send recovery link. Check your internet or SMTP settings.")
     } finally {
       setLoading(false)
     }
