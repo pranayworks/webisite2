@@ -69,15 +69,21 @@ export default function DashboardPage() {
         const region = o.location || 'Cauvery Delta, IN'
         const coords = o.planting_gps || 'Awaiting Sync'
         
-        // Map real results
-        const photoUrl = o.planting_photo || `https://images.unsplash.com/photo-${['1502082553048-f009c37129b9', '1441974231531-c6227db76b6e', '1511497584788-c76fc42c9545', '1501183638710-841dd1904471'][i % 4]}?auto=format&fit=crop&q=80&w=800`
-        const dateStr = o.planting_date ? new Date(o.planting_date).toLocaleDateString() : new Date(o.created_at).toLocaleDateString()
+        // Use real planting photo as the initial record
+        const initialPhoto = o.planting_photo || `https://images.unsplash.com/photo-${['1502082553048-f009c37129b9', '1441974231531-c6227db76b6e', '1511497584788-c76fc42c9545', '1501183638710-841dd1904471'][i % 4]}?auto=format&fit=crop&q=80&w=800`
+        const initialDate = o.planting_date ? new Date(o.planting_date).toLocaleDateString() : new Date(o.created_at).toLocaleDateString()
 
-        const photos = [{
-          url: photoUrl,
-          date: dateStr,
-          note: 'Bio-asset verified.'
-        }]
+        // Combine with real growth updates from the database
+        const historicalUpdates = (o.growth_updates || []).map((gu: any) => ({
+          url: gu.photo_url,
+          date: new Date(gu.created_at).toLocaleDateString(),
+          note: gu.note
+        }))
+
+        const photos = [
+          { url: initialPhoto, date: initialDate, note: 'Seedling established and verified.' },
+          ...historicalUpdates
+        ]
 
         return {
           id: o.id,
@@ -87,8 +93,8 @@ export default function DashboardPage() {
           age: o.age || '0y 1m',
           status: 'Healthy',
           photos: photos,
-          growthStage: 100,
-          latestPhoto: photoUrl
+          growthStage: Math.min(100, (photos.length * 20)), // Dynamic growth stage based on updates
+          latestPhoto: photos[photos.length - 1].url
         }
       })
       setPlantings(formattedPlantings)

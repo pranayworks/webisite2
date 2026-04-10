@@ -80,10 +80,11 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
+      // 1. Fetch Orders (Active Queue: Pending + Planted)
       const { data: ordersData, error: ordersError } = await supabase
         .from('planting_orders')
         .select('*')
-        .eq('status', 'Pending')
+        .in('status', ['Pending', 'Planted'])
         .order('created_at', { ascending: false })
 
       const dummyOrders = [
@@ -98,13 +99,14 @@ export default function AdminDashboard() {
         date: new Date(o.created_at).toLocaleDateString(),
         quantity: `${o.trees} Tree${o.trees > 1 ? 's' : ''}`,
         status: o.status,
-        color: 'bg-secondary-container/20 text-secondary',
+        color: o.status === 'Planted' ? 'bg-[#b2f432]/20 text-[#b2f432]' : 'bg-secondary-container/20 text-secondary',
         occasion: o.occasion,
         plan: o.plan_name
       }))
 
       setOrders([...formattedOrders, ...dummyOrders])
 
+      // 2. Fetch History (Finalized Queue: Completed)
       const { data: historyData, error: historyError } = await supabase
         .from('planting_orders')
         .select('*')

@@ -12,6 +12,12 @@ export async function verifyAndRecordPlanting(sessionId: string) {
 
 export async function addGrowthUpdate(orderId: string, note: string, photoUrl?: string) {
   try {
+    // 0. Security Verification
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session || (session.user.email !== 'mamidipranay07@gmail.com' && session.user.user_metadata?.role !== 'admin')) {
+      throw new Error("Unauthorized stewardship access")
+    }
+
     const { error } = await supabase
       .from('growth_updates')
       .insert([{
@@ -61,6 +67,12 @@ export async function updateProfile(userId: string, data: {
   gender?: string 
 }) {
   try {
+    // 0. Security Verification
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session || (session.user.id !== userId && session.user.user_metadata?.role !== 'admin')) {
+      throw new Error("Unauthorized profile modification")
+    }
+
     const { error } = await supabase
       .from('profiles')
       .update(data)
