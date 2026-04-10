@@ -10,37 +10,64 @@ export async function submitContact(formData: FormData) {
     const subject = formData.get('subject') as string
     const message = formData.get('message') as string
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log("Email credentials missing in .env.local")
-      throw new Error("Server is missing email configuration. Add EMAIL_USER and EMAIL_PASS to .env.local")
+    // 1. Record in Supabase (Central Archive)
+    const { supabase } = await import('@/lib/supabase')
+    const { error: dbError } = await supabase
+      .from('contact_messages')
+      .insert([{ name, email, phone, subject, message, status: 'Unread' }])
+    
+    if (dbError) console.warn("Database save failed:", dbError)
+
+    // 2. Dynamic Routing Logic
+    const routingMap: Record<string, string> = {
+      'General': 'contact@greenlegacy.in',
+      'Partnership': 'partnerships@greenlegacy.in',
+      'Media': 'media@greenlegacy.in',
+      'Campus': 'campus@greenlegacy.in',
+      'Support': 'contact@greenlegacy.in'
     }
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    })
+    const targetEmail = routingMap[subject as keyof typeof routingMap] || 'contact@greenlegacy.in'
+    const adminEmail = process.env.ADMIN_EMAIL || 'mamidipranay07@gmail.com'
 
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        replyTo: email,
-        to: 'greenlegacy.org@gmail.com',
-        subject: `Contact Form: ${subject} - ${name}`,
-        html: `
-          <h2>New Contact Message</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <hr />
-          <h3>Message:</h3>
-          <p>${message.replace(/\n/g, '<br/>')}</p>
-        `
+    // 3. Send Notifications (Target Department + Admin Archive)
+    try {
+      const { sendEmail, generateInquiryEmailHtml } = await import('@/lib/email')
+      const { sendTelegramNotification } = await import('@/lib/telegram')
+
+      const emailHtml = generateInquiryEmailHtml(name, email, phone, subject, message)
+
+      // Send to Department
+      await sendEmail({
+        to: targetEmail,
+        subject: `🌱 [${subject}] New Inquiry from ${name}`,
+        html: emailHtml
+      })
+
+      // Archive a copy to Admin if different from target
+      if (adminEmail !== targetEmail) {
+        await sendEmail({
+          to: adminEmail,
+          subject: `🌱 [ARCHIVE] New Inquiry: ${subject} from ${name}`,
+          html: emailHtml
+        })
+      }
+
+      // Telegram to Admin
+      const telegramMsg = `
+📬 <b>New Inquiry: ${subject}</b>
+👤 <b>From:</b> ${name}
+📧 <b>Email:</b> ${email}
+📱 <b>Phone:</b> ${phone || 'N/A'}
+📑 <b>Target:</b> ${targetEmail}
+💬 <b>Message:</b>
+<i>${message.slice(0, 150)}${message.length > 150 ? '...' : ''}</i>
+      `.trim()
+
+      await sendTelegramNotification(telegramMsg)
+    } catch (e) {
+      console.warn("Routing Notification Failure:", e)
     }
-
-    await transporter.sendMail(mailOptions)
 
     return { success: true }
   } catch (error: any) {

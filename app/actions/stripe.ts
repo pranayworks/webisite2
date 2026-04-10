@@ -1,9 +1,10 @@
 "use server"
 
 import { stripe } from "@/lib/stripe"
+import { supabase } from "@/lib/supabase"
 import { PRODUCTS, SUBSCRIPTIONS } from "@/lib/products"
 
-export async function startCheckoutSession(productId: string, userId: string) {
+export async function startCheckoutSession(productId: string, userId: string, occasion?: string | null) {
   const allProducts = [...PRODUCTS, ...SUBSCRIPTIONS]
   const product = allProducts.find((p) => p.id === productId)
   if (!product) {
@@ -17,7 +18,8 @@ export async function startCheckoutSession(productId: string, userId: string) {
     metadata: {
       userId,
       trees: product.trees.toString(),
-      productId: product.id
+      productId: product.id,
+      occasion: occasion || "Standard Planting"
     },
     line_items: [
       {
@@ -49,4 +51,23 @@ export async function startCheckoutSession(productId: string, userId: string) {
     throw new Error("Failed to create checkout session")
   }
   return session.client_secret
+}
+
+export async function createPortalSession(userId: string) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("stripe_customer_id")
+    .eq("id", userId)
+    .single()
+
+  if (!profile?.stripe_customer_id) {
+    throw new Error("No billing history found. Please make a purchase first.")
+  }
+
+  const session = await stripe.billingPortal.sessions.create({
+    customer: profile.stripe_customer_id,
+    return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+  })
+
+  return session.url
 }

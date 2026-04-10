@@ -15,3 +15,11 @@ export function calculateImpact(trees: number = 0): ImpactMetrics {
     survivalRate: trees > 0 ? 94.8 : 0,
   };
 }
+
+export function calculateRank(trees: number) {
+  if (trees >= 100) return { title: 'Botanical Legend', icon: 'diamond', color: '#b2f432' };
+  if (trees >= 50) return { title: 'Forest Founder', icon: 'forest', color: '#97d700' };
+  if (trees >= 20) return { title: 'Grove Architect', icon: 'architecture', color: '#7bb200' };
+  if (trees >= 5) return { title: 'Sprout Steward', icon: 'eco', color: '#5e8c00' };
+  return { title: 'Seedling Guardian', icon: 'grass', color: '#424935' };
+}

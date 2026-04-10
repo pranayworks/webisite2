@@ -1,12 +1,14 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, Suspense, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { Check, Zap, Shield, Calendar, Gift, Star, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { PRODUCTS, SUBSCRIPTIONS } from "@/lib/products"
+import { supabase } from "@/lib/supabase"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
 import dynamic from "next/dynamic"
@@ -16,11 +18,20 @@ const Checkout = dynamic(() => import("@/components/checkout"), { ssr: false })
 function SubscriptionsContent() {
   const searchParams = useSearchParams()
   const initialPlan = searchParams.get("plan")
+  const [dbProducts, setDbProducts] = useState<any[]>([])
   const [selectedPlan, setSelectedPlan] = useState<string | null>(initialPlan)
   const [showCheckout, setShowCheckout] = useState(!!initialPlan)
   const [activeTab, setActiveTab] = useState<"one-time" | "subscription">("one-time")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchPlans() {
+      const { data } = await supabase.from('site_products').select('*')
+      if (data) setDbProducts(data)
+    }
+    fetchPlans()
+  }, [])
 
   const occasions = [
     { id: 'birthday', label: 'Birthdays', desc: 'Grow with your loved ones', icon: Gift, color: 'text-pink-400 bg-pink-400/10' },
@@ -37,7 +48,9 @@ function SubscriptionsContent() {
   const { ref: benefitsRef, isVisible: benefitsVisible } = useScrollAnimation()
   const { ref: faqRef, isVisible: faqVisible } = useScrollAnimation()
 
-  const currentProducts = activeTab === "one-time" ? PRODUCTS : SUBSCRIPTIONS
+  const currentProducts = dbProducts.length > 0 
+    ? dbProducts.filter(p => p.mode === (activeTab === 'one-time' ? 'payment' : 'subscription'))
+    : (activeTab === "one-time" ? PRODUCTS : SUBSCRIPTIONS)
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId)
@@ -156,7 +169,7 @@ function SubscriptionsContent() {
                     </span>
                   </div>
                   <ul className="mb-8 flex-1 space-y-3">
-                    {product.features.map((f) => (
+                    {product.features?.map((f: string) => (
                       <li key={f} className="flex items-start gap-3 text-sm text-muted-foreground">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                         {f}
@@ -185,9 +198,11 @@ function SubscriptionsContent() {
                 <p className="mt-2 text-muted-foreground">
                   Custom plans for organizations. Flexible tree quantity, monthly CSR reports, employee engagement portal, and dedicated account manager.
                 </p>
-                <Button variant="outline" className="mt-4 rounded-full border-border bg-transparent text-foreground hover:bg-muted">
-                  Contact for Custom Pricing
-                </Button>
+                <Link href="/contact">
+                  <Button variant="outline" className="mt-4 rounded-full border-border bg-transparent text-foreground hover:bg-muted">
+                    Contact for Custom Pricing
+                  </Button>
+                </Link>
               </div>
             )}
           </div>
@@ -235,7 +250,7 @@ function SubscriptionsContent() {
                 </div>
               )}
               <div className={cn("rounded-2xl border border-border bg-card p-6 shadow-lg transition-opacity", !selectedOccasion && "opacity-40 pointer-events-none")}>
-                <Checkout productId={selectedPlan} />
+                <Checkout productId={selectedPlan} occasion={selectedOccasion} />
               </div>
             </div>
           </section>

@@ -3,14 +3,15 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { calculateImpact } from '@/lib/impact'
+import { calculateImpact, calculateRank } from '@/lib/impact'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 
 // Material Symbols mapping
 const MaterialIcon = ({ name, className = "", style = {} }: { name: string, className?: string, style?: any }) => (
@@ -26,53 +27,75 @@ export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState<any[]>([])
   const [metrics, setMetrics] = useState(calculateImpact(0))
   const [plantings, setPlantings] = useState<any[]>([])
   const [selectedTreeHistory, setSelectedTreeHistory] = useState<any>(null)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   
   const certificateRef = useRef<HTMLDivElement>(null)
+  const benefitsRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [monthlyStats, setMonthlyStats] = useState({ oxygen: '0', carbon: '0', energy: '0', daysRemaining: 0 })
+  const rank = useMemo(() => calculateRank(metrics.trees), [metrics.trees])
 
   useEffect(() => {
     checkUser()
   }, [])
 
   useEffect(() => {
-    if (metrics.trees > 0) {
-      // Mocking registry entries based on total count
-      const species = ['Neem', 'Peepal', 'Banyan', 'Gulmohar']
-      const regions = ['Bavarian Alps, DE', 'Limpopo Basin, ZA', 'Sonoma Coast, US', 'Kyoto Forest, JP']
-      const coords = ['47.5500, 10.7500', '-23.6567, 29.6231', '38.4021, -123.1111', '35.0116, 135.7681']
-      const stockPhotos = [
-        ['1502082553048-f009c37129b9', '1470004914212-05527e49340b', '1511497584788-c76fc42c9545'], // Neem timeline
-        ['1441974231531-c6227db76b6e', '1426604966144-b2b1029ee622', '1464822759023-fed622ff2c3b'], // Peepal timeline
-        ['1511497584788-c76fc42c9545', '1476231682828-37e571bc172f', '1504192010702-861c8a164a66'], // Banyan timeline
-        ['1501183638710-841dd1904471', '1475113548107-324c8b14d3d1', '1500382017468-9049efa13b69'], // Gulmohar timeline
-      ]
+    async function fetchPlantings() {
+      if (!user?.id) return
 
-      const mockData = Array.from({ length: Math.min(metrics.trees, 4) }).map((_, i) => {
-        const historyIds = stockPhotos[i % stockPhotos.length]
-        const photos = historyIds.map((pid, idx) => ({
-          url: `https://images.unsplash.com/photo-${pid}?auto=format&fit=crop&q=80&w=800`,
-          date: new Date(Date.now() - (historyIds.length - 1 - idx) * 90 * 24 * 60 * 60 * 1000).toLocaleDateString()
-        }))
+      // Fetch both orders and their growth updates
+      const { data: orders, error: ordersError } = await supabase
+        .from('planting_orders')
+        .select(`
+          *,
+          growth_updates (*)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'Planted')
+
+      if (ordersError) {
+        console.error("Error fetching plantings:", ordersError)
+        return
+      }
+
+      setOrders(orders || [])
+
+      const formattedPlantings = (orders || []).map((o, i) => {
+        const species = o.species || ['Neem', 'Peepal', 'Banyan', 'Gulmohar'][i % 4]
+        const region = o.location || 'Cauvery Delta, IN'
+        const coords = o.planting_gps || 'Awaiting Sync'
+        
+        // Map real results
+        const photoUrl = o.planting_photo || `https://images.unsplash.com/photo-${['1502082553048-f009c37129b9', '1441974231531-c6227db76b6e', '1511497584788-c76fc42c9545', '1501183638710-841dd1904471'][i % 4]}?auto=format&fit=crop&q=80&w=800`
+        const dateStr = o.planting_date ? new Date(o.planting_date).toLocaleDateString() : new Date(o.created_at).toLocaleDateString()
+
+        const photos = [{
+          url: photoUrl,
+          date: dateStr,
+          note: 'Bio-asset verified.'
+        }]
 
         return {
-          id: i,
-          species: species[i % species.length],
-          region: regions[i % regions.length],
-          coordinates: coords[i % coords.length],
-          age: `${Math.floor(Math.random() * 5)}y ${Math.floor(Math.random() * 12)}m`,
-          status: i === 1 ? 'Thriving' : 'Healthy',
+          id: o.id,
+          species: species,
+          region: region,
+          coordinates: coords,
+          age: o.age || '0y 1m',
+          status: 'Healthy',
           photos: photos,
-          growthStage: (i + 1) * 30, // 30%, 60%, 90% etc
-          latestPhoto: photos[photos.length - 1].url
+          growthStage: 100,
+          latestPhoto: photoUrl
         }
       })
-      setPlantings(mockData)
+      setPlantings(formattedPlantings)
     }
-  }, [metrics.trees])
+
+    fetchPlantings()
+  }, [user?.id])
 
   async function checkUser() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -92,13 +115,46 @@ export default function DashboardPage() {
       // Calculate and set dynamic metrics based on user's specific plantings
       const userTrees = profile?.trees_planted || 0
       setMetrics(calculateImpact(userTrees))
+
+      // Monthly Metrics (Algorithmically derived from total trees)
+      setMonthlyStats({
+        oxygen: (userTrees * 0.45).toFixed(1),
+        carbon: (userTrees * 1.8).toFixed(1),
+        energy: (userTrees * 15).toFixed(0),
+        daysRemaining: 30 - new Date().getDate()
+      })
     }
     setLoading(false)
+  }
+
+  const handleShareImpact = async () => {
+    const shareText = `I am officially a ${rank.title} at Arboretum! My grove has produced ${monthlyStats.oxygen}kg of Oxygen this month alone. Join the restoration: ${window.location.origin}`
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'My Botanical Legacy',
+          text: shareText,
+          url: window.location.origin
+        })
+      } catch (err) {
+        console.log('Share cancelled')
+      }
+    } else {
+      navigator.clipboard.writeText(shareText)
+      toast.success("Impact link copied to clipboard!")
+    }
   }
 
   async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  async function handleManageBilling() {
+    toast.info("Payment Registry", {
+      description: "Transaction history is available in your account. For subscription changes, please contact stewardship@arboretum.com"
+    })
   }
 
   const handleDownloadPDF = async () => {
@@ -172,7 +228,15 @@ export default function DashboardPage() {
 
         </nav>
 
-        <div className="px-6 mt-auto">
+        <div className="px-6 mt-auto space-y-3">
+          <button 
+            onClick={handleManageBilling}
+            className="flex items-center justify-center gap-3 w-full border border-[#b2f432]/30 text-[#b2f432] py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-[#b2f432]/5 transition-all"
+          >
+            <span className="material-symbols-outlined text-sm">payments</span>
+            Payment Registry
+          </button>
+          
           <Link href="/subscriptions" className="block w-full">
             <button className="w-full bg-[#b2f432] text-[#233600] py-4 rounded-full font-bold text-xs uppercase tracking-widest shadow-[0_40px_40px_-5px_rgba(178,244,50,0.1)] active:scale-95 transition-transform hover:bg-[#97d700]">
               Plant a Tree
@@ -209,6 +273,51 @@ export default function DashboardPage() {
         </header>
 
         <div className="pt-28 px-8 max-w-7xl mx-auto space-y-12">
+          
+          {/* Stewardship Level & Badge Section */}
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="bg-[#1a1c18] border border-[#b2f432]/10 rounded-2xl p-8 flex flex-col md:flex-row items-center gap-10">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[#b2f432]/20 blur-2xl rounded-full scale-75 animate-pulse"></div>
+                <div className="relative h-28 w-28 rounded-full bg-gradient-to-br from-[#121410] to-[#292b26] border-2 border-[#b2f432]/30 flex items-center justify-center p-4">
+                  <span className="material-symbols-outlined text-[#b2f432] text-6xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    {metrics.trees >= 50 ? 'workspace_premium' : 
+                     metrics.trees >= 15 ? 'nature_people' : 
+                     metrics.trees >= 5 ? 'eco' : 
+                     metrics.trees >= 2 ? 'potted_plant' : 'local_florist'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex-1 space-y-4 text-center md:text-left">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-[#b2f432]">Stewardship Rank</h3>
+                  <h2 className="font-['Noto_Serif'] text-3xl font-bold mt-1">
+                    {metrics.trees >= 50 ? 'Botanical Legend' : 
+                     metrics.trees >= 15 ? 'Forest Founder' : 
+                     metrics.trees >= 5 ? 'Grove Architect' : 
+                     metrics.trees >= 2 ? 'Sprout Steward' : 'Seedling Guardian'}
+                  </h2>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[10px] items-end px-1">
+                    <span className="text-[#c2caaf]/60 tracking-wider font-bold">NEXT RANK: {
+                      metrics.trees >= 50 ? 'MAX LEVEL' : 
+                      metrics.trees >= 15 ? 'Botanical Legend (50 Trees)' : 
+                      metrics.trees >= 5 ? 'Forest Founder (15 Trees)' : 
+                      metrics.trees >= 2 ? 'Grove Architect (5 Trees)' : 'Sprout Steward (2 Trees)'
+                    }</span>
+                    <span className="text-[#b2f432] font-mono">{metrics.trees} Trees</span>
+                  </div>
+                  <div className="h-2 w-full bg-[#121410] rounded-full overflow-hidden border border-[#424935]/10">
+                    <div 
+                      className="h-full bg-[#b2f432] transition-all duration-1000 shadow-[0_0_15px_rgba(178,244,50,0.5)]" 
+                      style={{ width: `${Math.min(100, (metrics.trees / (metrics.trees >= 15 ? 50 : metrics.trees >= 5 ? 15 : metrics.trees >= 2 ? 5 : 2)) * 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* Impact Stats: Organic Bento Grid */}
           <section>
@@ -442,9 +551,139 @@ export default function DashboardPage() {
               </div>
             </div>
           </section>
+
+          {/* Monthly Impact Intelligence & Viral Share Section */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 bg-[#1a1c18] rounded-[2.5rem] p-10 border border-[#b2f432]/10 relative overflow-hidden group hover:border-[#b2f432]/30 transition-all">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#b2f432]/5 blur-[100px] -mr-32 -mt-32"></div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row justify-between gap-10">
+                <div className="space-y-6 flex-1">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-[#b2f432]/10 flex items-center justify-center text-[#b2f432]">
+                      <MaterialIcon name="monitoring" />
+                    </div>
+                    <h3 className="font-['Noto_Serif'] text-2xl font-bold">Stewardship Insights</h3>
+                  </div>
+                  <p className="text-[#c2caaf] text-sm leading-relaxed max-w-md">
+                    Based on your current grove of <span className="text-[#b2f432] font-bold">{metrics.trees} trees</span>, your biological assets have produced these estimated outputs this month:
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-6 pt-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]/40">Oxygen Produced</p>
+                      <p className="text-2xl font-bold">{monthlyStats.oxygen} <span className="text-xs text-[#b2f432]">KG</span></p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]/40">Carbon Absorbed</p>
+                      <p className="text-2xl font-bold">{monthlyStats.carbon} <span className="text-xs text-blue-400">KG</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full md:w-64 bg-[#121410] rounded-[2rem] p-8 border border-[#424935]/10 flex flex-col items-center justify-center text-center space-y-4 shadow-inner">
+                  <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-[#c2caaf]/60">Next Full Audit</p>
+                  <div className="relative h-24 w-24">
+                    <svg className="h-full w-full -rotate-90">
+                      <circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-[#343530]" />
+                      <circle 
+                        cx="48" 
+                        cy="48" 
+                        r="44" 
+                        stroke="currentColor" 
+                        strokeWidth="8" 
+                        fill="transparent" 
+                        strokeDasharray={276} 
+                        strokeDashoffset={276 - (276 * (30 - monthlyStats.daysRemaining) / 30)} 
+                        className="text-[#b2f432] transition-all duration-1000 ease-out" 
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center font-bold text-xl">{monthlyStats.daysRemaining}d</div>
+                  </div>
+                  <p className="text-[9px] text-[#424935] uppercase font-bold tracking-widest">Awaiting field sync</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Viral Share / Referral Card */}
+            <div className="bg-[#b2f432] rounded-[2.5rem] p-10 flex flex-col justify-between group shadow-[0_30px_60px_-15px_rgba(178,244,50,0.2)] hover:shadow-[0_40px_80px_-15px_rgba(178,244,50,0.3)] transition-all">
+              <div className="space-y-4">
+                <div className="h-14 w-14 rounded-2xl bg-[#233600]/10 flex items-center justify-center group-hover:bg-[#233600]/20 transition-colors">
+                  <MaterialIcon name="share" className="text-[#233600] text-2xl" />
+                </div>
+                <h3 className="font-['Noto_Serif'] text-3xl font-bold text-[#233600] leading-tight">Scale Your Network.</h3>
+                <p className="text-[#233600]/60 text-sm font-medium">Dispatch your current rank and growth stats to the global stewardship community.</p>
+              </div>
+              <button 
+                onClick={handleShareImpact}
+                className="w-full py-5 bg-[#233600] text-[#b2f432] rounded-2xl font-bold uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all mt-8 shadow-xl"
+              >
+                Dispatch to World <MaterialIcon name="send" className="text-sm" />
+              </button>
+            </div>
+          </section>
+
+          {/* New Digital Forest Gallery */}
+          <section className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300">
+            <div className="flex justify-between items-end px-2">
+              <div>
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">The Stewardship Field</h2>
+                <p className="text-[#c2caaf] text-sm mt-1">Verified biological assets in your digital forest.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {plantings.length > 0 ? plantings.map(tree => (
+                <div key={tree.id} className="bg-[#1a1c18] rounded-[2rem] overflow-hidden border border-[#424935]/10 group hover:border-[#b2f432]/30 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] transition-all duration-700">
+                  <div className="aspect-[4/5] relative overflow-hidden">
+                    <img 
+                      src={tree.latestPhoto} 
+                      className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" 
+                      alt={tree.species} 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#121410] via-transparent to-transparent opacity-80"></div>
+                    <div className="absolute bottom-6 left-8 flex flex-col gap-2">
+                      <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#b2f432] bg-[#233600]/60 px-4 py-1.5 rounded-full backdrop-blur-xl border border-[#b2f432]/20 w-fit">
+                        {tree.species}
+                      </span>
+                      <h4 className="text-xl font-bold text-white tracking-tight">{tree.region}</h4>
+                    </div>
+                  </div>
+                  <div className="p-8 space-y-6">
+                    <div className="flex justify-between items-center group/gps cursor-pointer">
+                      <div className="space-y-1">
+                        <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-[#c2caaf]/40">Legacy Coordinates</p>
+                        <p className="text-sm font-mono text-[#b2f432] group-hover:text-white transition-colors">{tree.coordinates}</p>
+                      </div>
+                      <MaterialIcon name="gps_fixed" className="text-[#b2f432] text-xl opacity-20 group-hover:opacity-100 transition-all group-hover:rotate-12" />
+                    </div>
+                    <div className="pt-6 border-t border-[#424935]/10 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-[#b2f432] animate-pulse"></div>
+                        <p className="text-xs font-bold text-[#e3e3db] uppercase tracking-widest">{tree.status}</p>
+                      </div>
+                      <button 
+                        onClick={() => { setSelectedTreeHistory(tree); setShowHistoryModal(true); }}
+                        className="h-12 w-12 rounded-2xl bg-[#343530] flex items-center justify-center hover:bg-[#b2f432] hover:text-[#233600] transition-all duration-300 group/btn"
+                      >
+                        <MaterialIcon name="analytics" className="group-hover/btn:scale-110 transition-transform" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="col-span-full py-24 px-12 border-2 border-dashed border-[#424935]/10 rounded-[3rem] flex flex-col items-center text-center space-y-6 bg-white/[0.01]">
+                   <span className="material-symbols-outlined text-6xl text-[#424935]/30">forest</span>
+                   <div className="space-y-2">
+                    <h3 className="text-xl font-bold text-[#c2caaf]">No verified plantings yet</h3>
+                    <p className="text-sm text-[#424935] max-w-sm mx-auto">Your trees will appear here once our field stewards verify the biological establishment.</p>
+                   </div>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
 
-        {/* Footer */}
         <footer className="bg-[#121410] w-full py-12 px-8 mt-auto border-t border-[#424935]/20">
           <div className="max-w-7xl mx-auto flex flex-col items-center gap-4 text-center">
             <p className="font-['Manrope'] text-xs text-[#e3e3db]/40">© 2026 Green Legacy. Dedicated to a greener future.</p>
@@ -461,25 +700,24 @@ export default function DashboardPage() {
       {/* BottomNavBar (Mobile only Filter from Hierarchy) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#1a1c18] border-t border-[#424935]/10 flex items-center justify-around z-50">
         <a className="flex flex-col items-center gap-1 text-[#b2f432]" href="#">
-          <span className="material-symbols-outlined">dashboard</span>
+          <MaterialIcon name="dashboard" />
           <span className="text-[8px] uppercase tracking-widest font-bold">Home</span>
         </a>
         <a className="flex flex-col items-center gap-1 text-[#c2caaf]" href="#">
-          <span className="material-symbols-outlined">forest</span>
+          <MaterialIcon name="forest" />
           <span className="text-[8px] uppercase tracking-widest">Trees</span>
         </a>
         <div className="-mt-8">
           <Link href="/subscriptions">
             <div className="h-14 w-14 rounded-full bg-[#b2f432] flex items-center justify-center shadow-lg hover:bg-[#97d700] transition-colors cursor-pointer">
-              <span className="material-symbols-outlined text-[#233600]">add</span>
+              <MaterialIcon name="add" className="text-[#233600]" />
             </div>
           </Link>
         </div>
         <a className="flex flex-col items-center gap-1 text-[#c2caaf]" href="#">
-          <span className="material-symbols-outlined">workspace_premium</span>
+          <MaterialIcon name="workspace_premium" />
           <span className="text-[8px] uppercase tracking-widest">Awards</span>
         </a>
-
       </nav>
 
       {/* Growth History Modal */}
@@ -498,7 +736,7 @@ export default function DashboardPage() {
                 onClick={() => setShowHistoryModal(false)}
                 className="h-10 w-10 rounded-full bg-[#343530] text-[#e3e3db] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all"
               >
-                <span className="material-symbols-outlined">close</span>
+                <MaterialIcon name="close" />
               </button>
             </div>
             
@@ -519,6 +757,11 @@ export default function DashboardPage() {
                       </div>
                       <span className="text-[8px] bg-[#343530] px-2 py-1 rounded text-[#b2f432] border border-[#b2f432]/10 font-bold uppercase tracking-tighter self-start">Verified</span>
                     </div>
+                    {photo.note && (
+                      <p className="text-xs text-[#c2caaf] italic line-clamp-3 pl-4 border-l border-[#424935]/20 font-['Manrope']">
+                        "{photo.note}"
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -526,7 +769,7 @@ export default function DashboardPage() {
             
             <div className="p-8 bg-[#121410]/50 border-t border-[#424935]/10 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-[#b2f432] text-4xl">verified</span>
+                <MaterialIcon name="verified" className="text-[#b2f432] text-4xl" />
                 <div>
                    <p className="text-sm font-bold">Authenticated Biological Impact</p>
                    <p className="text-xs text-[#c2caaf]">Validated by Green Legacy Field Stewards</p>
@@ -537,6 +780,7 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
       {/* Hidden Certificate Component for PDF generation */}
       <div className="fixed -left-[4000px] top-0 pointer-events-none">
         <div 

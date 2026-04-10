@@ -114,9 +114,7 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center justify-between px-1 pt-2">
-                <Link href="/signup" className="text-sm font-['Manrope'] text-[#c2caaf] hover:text-[#b2f432] transition-colors duration-300">
-                  Request Passage
-                </Link>
+                <div></div>
                 <Link href="#" className="text-sm font-['Manrope'] text-[#c2caaf] hover:text-[#b2f432] transition-colors duration-300">
                   Forgotten Key?
                 </Link>

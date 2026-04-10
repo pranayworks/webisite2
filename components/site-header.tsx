@@ -125,12 +125,12 @@ export function SiteHeader() {
                 <DropdownMenuItem asChild>
                   <Link href="/login" className="cursor-pointer w-full">Log In</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/signup" className="cursor-pointer w-full">Sign Up</Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="cursor-pointer w-full">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings" className="cursor-pointer w-full">Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
@@ -188,14 +188,14 @@ export function SiteHeader() {
                 Log In
               </Button>
             </Link>
-            <Link href="/signup" onClick={() => setIsMobileOpen(false)} className="w-full">
-              <Button className="w-full rounded-full bg-primary px-8 py-6 text-lg text-primary-foreground hover:bg-primary/90">
-                Sign Up
-              </Button>
-            </Link>
             <Link href="/dashboard" onClick={() => setIsMobileOpen(false)} className="w-full">
               <Button variant="ghost" className="w-full rounded-full px-8 py-6 text-lg">
                 Dashboard
+              </Button>
+            </Link>
+            <Link href="/dashboard/settings" onClick={() => setIsMobileOpen(false)} className="w-full">
+              <Button variant="ghost" className="w-full rounded-full px-8 py-6 text-lg">
+                Settings
               </Button>
             </Link>
             <Button 

@@ -1,80 +1,75 @@
 "use server"
 
-import { stripe } from "@/lib/stripe"
 import { supabase } from "@/lib/supabase"
 import { sendEmail, generatePlantingEmailHtml } from "@/lib/email"
 
+/**
+ * Historical Stripe verification (Deprecated)
+ */
 export async function verifyAndRecordPlanting(sessionId: string) {
+  return { success: false, message: "Stripe migration active. Use Razorpay flow." }
+}
+
+export async function addGrowthUpdate(orderId: string, note: string, photoUrl?: string) {
   try {
-    // 1. Retrieve the session from Stripe to verify payment
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
-    
-    if (session.payment_status !== "paid") {
-      return { success: false, message: "Payment not completed" }
+    const { error } = await supabase
+      .from('growth_updates')
+      .insert([{
+        order_id: orderId,
+        note: note,
+        photo_url: photoUrl || "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=800",
+        created_at: new Date().toISOString()
+      }])
+
+    if (error) throw error
+
+    // Notifications (Optional background)
+    try {
+      const { data: order } = await supabase.from('planting_orders').select('user_id, plan_name').eq('id', orderId).single()
+      if (order) {
+        const { data: profile } = await supabase.from('profiles').select('email, full_name').eq('id', order.user_id).single()
+        if (profile) {
+          const { generateGrowthUpdateEmailHtml, sendEmail } = await import("@/lib/email")
+          const { sendTelegramNotification } = await import("@/lib/telegram")
+
+          // Notify User
+          await sendEmail({
+            to: profile.email,
+            subject: `Growth Update: Your ${order.plan_name} is evolving`,
+            html: generateGrowthUpdateEmailHtml(profile.full_name, note, photoUrl || "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=800")
+          })
+
+          // Notify Admin
+          await sendTelegramNotification(`📈 <b>Growth Update Dispatched</b>\n👤 <b>User:</b> ${profile.full_name}\n🌳 <b>Plan:</b> ${order.plan_name}\n📝 <b>Note:</b> ${note}`)
+        }
+      }
+    } catch (e) {
+      console.warn("Milestone Notification Failure:", e)
     }
 
-    const userId = session.metadata?.userId
-    const trees = parseInt(session.metadata?.trees || "0")
-
-    if (!userId || trees <= 0) {
-      return { success: false, message: "Invalid session metadata" }
-    }
-
-    // 2. Check if this transaction has already been processed (optional but good)
-    // For now, we'll just update the profile. 
-    // In a prod app, you should have a 'transactions' table to prevent double counting.
-
-    // 3. Update the user's tree count in Supabase
-    const { data: profileData, error: fetchError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (fetchError) throw fetchError
-    const profile = profileData as any
-
-    const currentTrees = profile?.trees_planted || 0
-    const newTotal = currentTrees + trees
-
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ trees_planted: newTotal })
-      .eq('id', userId)
-
-    if (updateError) throw updateError
-
-    // 4. Send Confirmation Email to User
-    await sendEmail({
-      to: session.customer_details?.email || profile?.email || "",
-      subject: "Your Legacy is Planted - Geo-Location Established",
-      html: generatePlantingEmailHtml(
-        profile?.full_name || "Steward",
-        trees,
-        "Silver Oak Estate, Karnataka",
-        "13.0827, 77.5877"
-      )
-    })
-
-    // 5. Notify Admin about new order
-    await sendEmail({
-      to: "greenlegacy.org@gmail.com",
-      subject: `NEW ORDER: ${trees} Trees by ${profile?.full_name || "Steward"}`,
-      html: `
-        <h2>New Planting Order Received</h2>
-        <p><strong>Steward:</strong> ${profile?.full_name}</p>
-        <p><strong>Email:</strong> ${profile?.email}</p>
-        <p><strong>Quantity:</strong> ${trees} Trees</p>
-        <p><strong>Product ID:</strong> ${session.metadata?.productId}</p>
-        <p><strong>Transaction ID:</strong> ${session.id}</p>
-        <hr/>
-        <p>Please plant these trees and update the registry with actual coordinates and photos.</p>
-      `
-    })
-
-    return { success: true, newTotal }
+    return { success: true }
   } catch (error: any) {
-    console.error("Error recording planting:", error)
+    console.error("Error adding growth update:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+export async function updateProfile(userId: string, data: { 
+  full_name?: string, 
+  phone_number?: string, 
+  age?: number, 
+  gender?: string 
+}) {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update(data)
+      .eq('id', userId)
+
+    if (error) throw error
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error updating profile:", error)
     return { success: false, error: error.message }
   }
 }
