@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     "India's premier tree plantation startup connecting donors, agriculture colleges, and environmental impact. Plant trees for birthdays, memorials, corporate events and more.",
   keywords: ["tree plantation", "environment", "India", "CSR", "green", "sustainability"],
   icons: {
-    icon: "/logo.svg",
-    apple: "/logo.svg",
+    icon: "https://res.cloudinary.com/dqgqdszk2/image/upload/q_auto/f_auto/v1762489952/Screenshot_2025-11-07_095311-removebg-preview_vljmri.png",
+    apple: "https://res.cloudinary.com/dqgqdszk2/image/upload/q_auto/f_auto/v1762489952/Screenshot_2025-11-07_095311-removebg-preview_vljmri.png",
   },
 }
 

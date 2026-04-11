@@ -62,11 +62,11 @@ export function SiteFooter() {
         >
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-4">
-              <Link href="/" className="flex items-center gap-2">
+              <Link href="/" className="flex items-center">
                 <img 
                   src="/logo.svg"
                   alt="Green Legacy Logo"
-                  className="h-10 md:h-12 w-auto object-contain"
+                  className="h-12 w-auto object-contain"
                 />
               </Link>
               <p className="text-sm leading-relaxed text-muted-foreground">

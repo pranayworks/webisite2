@@ -33,9 +33,29 @@ const navItems = [
 export function SiteHeader() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
   const router = useRouter()
+
+  useEffect(() => {
+    // Check initial session
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      setLoading(false)
+    }
+
+    checkUser()
+
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -75,11 +95,11 @@ export function SiteHeader() {
         )}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:h-20 lg:px-8">
-          <Link href="/" className="flex items-center gap-2 group" aria-label="Green Legacy Home">
+          <Link href="/" className="flex items-center group" aria-label="Green Legacy Home">
             <img
               src="/logo.svg"
               alt="Green Legacy Logo"
-              className="h-10 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-11 md:h-15 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
           </Link>
 
@@ -119,27 +139,43 @@ export function SiteHeader() {
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56 overflow-hidden rounded-2xl border-border bg-background/95 backdrop-blur-xl">
+                <DropdownMenuLabel className="px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+
                 <DropdownMenuItem asChild>
-                  <Link href="/login" className="cursor-pointer w-full">Log In</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="cursor-pointer w-full">Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/settings" className="cursor-pointer w-full">Settings</Link>
+                  <Link href="/dashboard" className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-primary/10 transition-colors">
+                    <TreePine className="h-4 w-4" />
+                    <span>Steward Dashboard</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  className="cursor-pointer w-full text-destructive focus:text-destructive flex items-center gap-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Log Out</span>
-                </DropdownMenuItem>
+
+                {!user ? (
+                  <DropdownMenuItem asChild>
+                    <Link href="/login" className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-primary/10 transition-colors">
+                      <User className="h-4 w-4" />
+                      <span>Log In / Sign Up</span>
+                    </Link>
+                  </DropdownMenuItem>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/settings" className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-primary/10 transition-colors">
+                        <User className="h-4 w-4" />
+                        <span>Settings</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 px-4 py-3 cursor-pointer text-destructive focus:text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Log Out</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -182,33 +218,38 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <div className="flex flex-col items-center gap-4 mt-6">
-            <Link href="/login" onClick={() => setIsMobileOpen(false)} className="w-full">
-              <Button variant="outline" className="w-full rounded-full px-8 py-6 text-lg">
-                Log In
-              </Button>
-            </Link>
-            <Link href="/dashboard" onClick={() => setIsMobileOpen(false)} className="w-full">
-              <Button variant="ghost" className="w-full rounded-full px-8 py-6 text-lg">
-                Dashboard
-              </Button>
-            </Link>
-            <Link href="/dashboard/settings" onClick={() => setIsMobileOpen(false)} className="w-full">
-              <Button variant="ghost" className="w-full rounded-full px-8 py-6 text-lg">
-                Settings
-              </Button>
-            </Link>
-            <Button 
-              variant="ghost" 
-              onClick={() => {
-                handleLogout()
-                setIsMobileOpen(false)
-              }} 
-              className="w-full rounded-full px-8 py-6 text-lg text-destructive hover:text-destructive flex items-center justify-center gap-2"
-            >
-              <LogOut className="h-5 w-5" />
-              Log Out
-            </Button>
+          <div className="flex flex-col items-center gap-4 mt-6 w-full px-8">
+            {!user ? (
+              <Link href="/login" onClick={() => setIsMobileOpen(false)} className="w-full">
+                <Button className="w-full rounded-full bg-primary text-primary-foreground py-6 text-lg font-bold">
+                  Get Started
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/dashboard" onClick={() => setIsMobileOpen(false)} className="w-full">
+                  <Button variant="outline" className="w-full rounded-full py-6 text-lg">
+                    Dashboard
+                  </Button>
+                </Link>
+                <Link href="/dashboard/settings" onClick={() => setIsMobileOpen(false)} className="w-full">
+                  <Button variant="ghost" className="w-full rounded-full py-6 text-lg">
+                    Settings
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    handleLogout()
+                    setIsMobileOpen(false)
+                  }}
+                  className="w-full rounded-full py-6 text-lg text-destructive hover:text-destructive flex items-center justify-center gap-2"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Log Out
+                </Button>
+              </>
+            )}
           </div>
         </nav>
       </div>
