@@ -41,6 +41,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [orders, setOrders] = useState<any[]>([])
+  const [allOrders, setAllOrders] = useState<any[]>([])
   const [metrics, setMetrics] = useState(calculateImpact(0))
   const [plantings, setPlantings] = useState<any[]>([])
   const [selectedTreeHistory, setSelectedTreeHistory] = useState<any>(null)
@@ -76,6 +77,14 @@ export default function DashboardPage() {
       }
 
       setOrders(orders || [])
+
+      // Fetch ALL orders (planted + pending) for the map
+      const { data: allOrdersData } = await supabase
+        .from('planting_orders')
+        .select('id, steward_name, trees, status, location, planting_gps, planting_date, created_at, occasion, plan_name')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+      setAllOrders(allOrdersData || [])
 
       const formattedPlantings = (orders || []).map((o, i) => {
         const species = o.species || ['Neem', 'Peepal', 'Banyan', 'Gulmohar'][i % 4]
@@ -405,7 +414,7 @@ export default function DashboardPage() {
             </div>
             <div className="w-full h-[420px] rounded-2xl overflow-hidden border border-[#424935]/20">
               <TreeMap
-                sites={orders.map((order: any, i: number) => {
+                sites={allOrders.map((order: any, i: number) => {
                   // Known partner college coordinates as fallbacks
                   const fallbackCoords: [number, number][] = [
                     [11.0168, 76.9558], // TNAU Coimbatore
