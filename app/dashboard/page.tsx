@@ -423,7 +423,7 @@ export default function DashboardPage() {
             </div>
             <div className="w-full h-[420px] rounded-2xl overflow-hidden border border-[#424935]/20">
               <TreeMap
-                sites={allOrders.map((order: any, i: number) => {
+                sites={Array.isArray(allOrders) ? allOrders.map((order: any, i: number) => {
                   // Known partner college coordinates as fallbacks
                   const fallbackCoords: [number, number][] = [
                     [11.0168, 76.9558], // TNAU Coimbatore
@@ -434,23 +434,23 @@ export default function DashboardPage() {
                     [12.9716, 77.5946], // Bengaluru
                     [18.5204, 73.8567], // Pune
                   ]
-                  const [lat, lng] = order.planting_gps
+                  const [lat, lng] = order?.planting_gps
                     ? order.planting_gps.split(',').map(Number)
                     : fallbackCoords[i % fallbackCoords.length]
                   return {
-                    id: order.id,
-                    name: order.steward_name || 'My Grove',
-                    location: order.location || 'India',
-                    lat,
-                    lng,
-                    trees: order.trees || 1,
-                    status: order.status || 'Pending',
-                    date: order.planting_date
+                    id: order?.id || `site-${i}`,
+                    name: order?.steward_name || 'My Grove',
+                    location: order?.location || 'India',
+                    lat: lat || 20.5937,
+                    lng: lng || 78.9629,
+                    trees: order?.trees || 1,
+                    status: order?.status || 'Pending',
+                    date: order?.planting_date
                       ? new Date(order.planting_date).toLocaleDateString()
-                      : new Date(order.created_at).toLocaleDateString(),
-                    occasion: order.occasion,
+                      : order?.created_at ? new Date(order.created_at).toLocaleDateString() : 'Recent',
+                    occasion: order?.occasion,
                   }
-                })}
+                }) : []}
               />
             </div>
           </section>

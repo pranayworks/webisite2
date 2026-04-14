@@ -81,10 +81,10 @@ export default function LeafletMap({ sites }: LeafletMapProps) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       />
 
-      {sites.map((site) => (
+      {(Array.isArray(sites) ? sites : []).map((site) => (
         <Marker
           key={site.id}
-          position={[site.lat, site.lng]}
+          position={[site.lat || 20.5937, site.lng || 78.9629]}
           icon={site.status === "Planted" ? greenIcon : pendingIcon}
         >
           <Popup>
