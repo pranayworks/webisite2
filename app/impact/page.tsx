@@ -295,58 +295,7 @@ export default function ImpactPage() {
           </div>
         </section>
 
-        <section className="py-20 lg:py-28 bg-[#121410] text-[#e3e3db]">
-          <div className="mx-auto max-w-7xl px-4 lg:px-8 text-center">
-            <p className="text-sm font-medium uppercase tracking-widest text-[#b2f432]">Global Network</p>
-            <h2 className="mt-3 font-serif text-3xl font-bold sm:text-4xl text-balance">
-              Global Restoration Map
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-[#c2caaf]">Every pin represents a verified botanical legacy established by our global community of stewards.</p>
 
-            <div className="mt-16 aspect-video rounded-[2rem] overflow-hidden bg-[#1a1c18] border border-[#b2f432]/10 relative shadow-2xl group">
-              {/* This is a visual representation of a map */}
-              <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=2000')] bg-cover"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-full h-full max-w-4xl max-h-[500px]">
-                  {/* Random Pins */}
-                  {[
-                    { t: '20%', l: '30%', name: 'Silver Oak Estate' },
-                    { t: '40%', l: '60%', name: 'Western Ghats Ridge' },
-                    { t: '25%', l: '75%', name: 'Cauvery Basin' },
-                    { t: '60%', l: '45%', name: 'Northern Reserve' },
-                    { t: '15%', l: '55%', name: 'Limpopo Basin' },
-                  ].map((pin, i) => (
-                    <div
-                      key={i}
-                      className="absolute group/pin animate-bounce"
-                      style={{ top: pin.t, left: pin.l, animationDelay: `${i * 200}ms` }}
-                    >
-                      <div className="relative flex flex-col items-center">
-                        <div className="absolute -top-12 opacity-0 group-hover/pin:opacity-100 transition-all bg-[#b2f432] text-[#233600] text-[10px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap shadow-xl">
-                          {pin.name}
-                        </div>
-                        <div className="h-4 w-4 bg-[#b2f432] rounded-full shadow-[0_0_20px_rgba(178,244,50,0.6)] border-2 border-[#121410]"></div>
-                        <div className="h-4 w-4 bg-[#b2f432]/20 rounded-full animate-ping absolute inset-0"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end">
-                <div className="bg-[#121410]/80 backdrop-blur-md p-6 rounded-2xl border border-[#b2f432]/10 text-left">
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-[#b2f432]">Active Site</p>
-                  <p className="text-xl font-bold mt-1">Cauvery Restoration Zone</p>
-                  <div className="flex gap-4 mt-3 text-[10px] text-[#c2caaf]">
-                    <span>1,240 Trees</span>
-                    <span className="text-[#b2f432]">• Verified</span>
-                  </div>
-                </div>
-                <button className="bg-[#b2f432] text-[#233600] px-8 py-4 rounded-full font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">Explore Sites</button>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Impact Stories */}
         <section ref={storiesRef} className="py-20 lg:py-28">
