@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, useMemo } from "react"
 import { TreePine, Wind, Droplets, Sun, Users, GraduationCap, Building2, Briefcase, TrendingUp } from "lucide-react"
 import { SiteHeader } from "@/components/site-header"
