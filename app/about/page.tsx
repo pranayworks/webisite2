@@ -9,34 +9,6 @@ const teamMembers = [
     desc: "A visionary environmentalist with two decades of experience in conservation strategy and ecological restoration.",
     img: "https://res.cloudinary.com/dqgqdszk2/image/upload/q_auto/f_auto/v1775438058/WhatsApp_Image_2026-04-06_at_6.38.31_AM_sxtmuk.jpg",
     mt: false
-  },
-  {
-    name: "Sai Kumar",
-    role: "CEO",
-    desc: "Specializing in sustainable logistics, Sai Kumar ensures our mission is executed with clinical precision across three continents.",
-    img: "https://res.cloudinary.com/dqgqdszk2/image/upload/q_auto/f_auto/v1766557531/Screenshot_2025-10-05_113652_fihp8k.png",
-    mt: true
-  },
-  {
-    name: "Marcus Chen",
-    role: "Lead Ecologist",
-    desc: "A doctorate holder in Botany, Marcus oversees the selection of species to ensure maximum biodiversity and resilience.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBfLIjlb_vFUkF3_c8AA1J9fbfEch2b4zt-Ycup_-8DpI6vLd3Gx2LOeyDmRE3P1rHGQKo86Je4PpyPGQwTtnp5SpD_Gpb0OtgVf5XC5B1uGm-IzRFVzzdUYKqQL8hClK7MS-4_l0PEtcxydBreGmCS1GHe-rnbFsSaQFq2IJSB2Cf3SiEWsDFsACNxpupyXmfnSYP5aqAgceNcq6GqMSM5FgA3oLOUx-cHylYAfWWLG_vfgdoItntdhxBDOnccOhEDECIyYevWYgA7",
-    mt: false
-  },
-  {
-    name: "Aria Sterling",
-    role: "Head of Impact",
-    desc: "Aria measures the ripple effects of our growth, translating biological data into meaningful human stories of transformation.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuC4ixdXPweLPirumN0qv_eP-fu8d5giMpUrT7iqg1EDDfKbMrrWrcmWlPEld8iQBoR7FfJgPDQMIOgPXwGSQDm_4S2oKruya-S_zrTa0ZKC-582yofqiwNA1ciUgPjBOWjplyGraZSwDIOxHu5FY27sXSQ0QY5m44-Ul070lmLUvfibPE6p2vLvFqUkedcnZbGPe_nIio5cUqpNIC6YjDT0Ku_-6HfR2LNLjQRSk2egEs9g4f6su7AevX9LL5d-bEkHB13B8mW5qRzN",
-    mt: false
-  },
-  {
-    name: "Simon Brooks",
-    role: "Field Director",
-    desc: "On the ground every day, Simon leads our planting teams with a deep respect for the land and those who tend to it.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCDnMluS6sQdFRKMNBJ45IC0GMJgZGMV18q2H4Qi79nyUg1fOAtgsEOv4JhVDsN2KepaZF9_LcJFneF43jJe_dfxGv-FdJftbeAilWl3lKlJnvv_RqIIPPFJKGg6-kE7VnGpMCu5uNjKPJ-VxyzmzCP1EH0ZxLNCvJXR6PFEVdB9r-xpM5OVKUC1Z2_Omf-P8uf1oocd5urhWaN3Cbqqt4V6hx1rHg_HpaVQbErpaxMChKHI3kYRcRBsOyyYiK2ubS1zkwhyM-D7Jc5",
-    mt: true
   }
 ]
 
