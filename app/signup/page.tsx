@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { sendWelcomeEmail } from '@/app/actions/welcome'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -70,6 +71,9 @@ export default function SignUpPage() {
       if (profileError) {
         console.error('Profile creation error:', profileError)
       }
+
+      // Send welcome email (non-blocking)
+      sendWelcomeEmail(formData.fullName, formData.email).catch(console.warn)
 
       setSuccess(true)
       

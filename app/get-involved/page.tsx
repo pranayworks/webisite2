@@ -3,13 +3,14 @@
 import React from "react"
 
 import { useState } from "react"
-import { Users, Building2, GraduationCap, Check, X, Calendar, MapPin } from "lucide-react"
+import { Users, Building2, GraduationCap, Check, X, Calendar, MapPin, Phone, Mail, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
 import { submitApplication } from "@/app/actions/submit-application"
+import { saveRsvp } from "@/app/actions/welcome"
 
 const pathways = [
   {
@@ -60,6 +61,35 @@ export default function GetInvolvedPage() {
   const { ref: partnerRef, isVisible: partnerVisible } = useScrollAnimation()
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // RSVP state
+  const [rsvpEvent, setRsvpEvent] = useState<typeof events[0] | null>(null)
+  const [rsvpForm, setRsvpForm] = useState({ name: '', email: '', phone: '' })
+  const [rsvpSubmitted, setRsvpSubmitted] = useState(false)
+  const [rsvpLoading, setRsvpLoading] = useState(false)
+
+  const handleRsvp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!rsvpEvent) return
+    setRsvpLoading(true)
+    const result = await saveRsvp({
+      name: rsvpForm.name,
+      email: rsvpForm.email,
+      phone: rsvpForm.phone,
+      eventTitle: rsvpEvent.title,
+      eventDate: rsvpEvent.date,
+      eventLocation: rsvpEvent.location,
+    })
+    setRsvpLoading(false)
+    if (result.success) {
+      setRsvpSubmitted(true)
+      setTimeout(() => {
+        setRsvpEvent(null)
+        setRsvpSubmitted(false)
+        setRsvpForm({ name: '', email: '', phone: '' })
+      }, 4000)
+    }
+  }
 
   const handleFormAction = async (formData: FormData) => {
     setIsSubmitting(true)
@@ -169,6 +199,7 @@ export default function GetInvolvedPage() {
                   </div>
                   <Button
                     variant="outline"
+                    onClick={() => setRsvpEvent(e)}
                     className="mt-4 shrink-0 rounded-full border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground sm:mt-0"
                   >
                     RSVP
@@ -335,6 +366,102 @@ export default function GetInvolvedPage() {
                     className="w-full rounded-xl bg-primary py-5 text-primary-foreground hover:bg-primary/90"
                   >
                     {isSubmitting ? "Submitting..." : "Submit Application"}
+                  </Button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      {/* RSVP Modal */}
+      {rsvpEvent && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 backdrop-blur-sm p-4"
+          onClick={() => { setRsvpEvent(null); setRsvpSubmitted(false); setRsvpForm({ name: '', email: '', phone: '' }) }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="RSVP form"
+        >
+          <div
+            className="relative w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => { setRsvpEvent(null); setRsvpSubmitted(false); setRsvpForm({ name: '', email: '', phone: '' }) }}
+              className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {rsvpSubmitted ? (
+              <div className="py-8 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 text-primary">
+                  <Check className="h-8 w-8" />
+                </div>
+                <h3 className="text-xl font-semibold text-card-foreground">You're registered!</h3>
+                <p className="mt-2 text-sm text-muted-foreground">A confirmation email has been sent to <b>{rsvpForm.email}</b>. See you there! 🌱</p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-3">RSVP</span>
+                  <h3 className="text-xl font-semibold text-card-foreground">{rsvpEvent.title}</h3>
+                  <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{rsvpEvent.date}</span>
+                    <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{rsvpEvent.location}</span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleRsvp} className="space-y-4">
+                  <div>
+                    <label htmlFor="rsvp-name" className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
+                      <User className="h-3.5 w-3.5" /> Full Name
+                    </label>
+                    <input
+                      id="rsvp-name"
+                      type="text"
+                      required
+                      value={rsvpForm.name}
+                      onChange={(e) => setRsvpForm({ ...rsvpForm, name: e.target.value })}
+                      className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="rsvp-email" className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
+                      <Mail className="h-3.5 w-3.5" /> Email Address
+                    </label>
+                    <input
+                      id="rsvp-email"
+                      type="email"
+                      required
+                      value={rsvpForm.email}
+                      onChange={(e) => setRsvpForm({ ...rsvpForm, email: e.target.value })}
+                      className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="rsvp-phone" className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
+                      <Phone className="h-3.5 w-3.5" /> Phone Number
+                    </label>
+                    <input
+                      id="rsvp-phone"
+                      type="tel"
+                      required
+                      value={rsvpForm.phone}
+                      onChange={(e) => setRsvpForm({ ...rsvpForm, phone: e.target.value })}
+                      className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      placeholder="+91 XXXXX XXXXX"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={rsvpLoading}
+                    className="w-full rounded-xl bg-primary py-5 text-primary-foreground hover:bg-primary/90 mt-2"
+                  >
+                    {rsvpLoading ? "Confirming..." : "Confirm My Spot 🌱"}
                   </Button>
                 </form>
               </>
