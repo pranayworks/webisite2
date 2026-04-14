@@ -70,20 +70,20 @@ export default function AboutPage() {
               <h2 className="font-serif text-6xl mt-4 text-foreground">Core Team</h2>
             </div>
 
-            {/* Team Grid: Asymmetrical Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
+            {/* Centered Single Member Layout */}
+            <div className="flex justify-center">
               {teamMembers.map((member) => (
-                <div key={member.name} className={cn("group", member.mt && "lg:mt-24")}>
-                  <div className="aspect-[4/5] overflow-hidden mb-8 bg-muted rounded-2xl">
+                <div key={member.name} className="group max-w-sm text-center">
+                  <div className="aspect-[4/5] overflow-hidden mb-8 bg-muted rounded-2xl shadow-2xl">
                     <img
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       alt={`Portrait of ${member.name}`}
                       src={member.img}
                     />
                   </div>
-                  <h3 className="font-serif text-3xl mb-1 text-foreground">{member.name}</h3>
-                  <p className="uppercase tracking-widest text-primary text-xs font-bold mb-4">{member.role}</p>
-                  <p className="text-muted-foreground text-base leading-relaxed">{member.desc}</p>
+                  <h3 className="font-serif text-4xl mb-2 text-foreground">{member.name}</h3>
+                  <p className="uppercase tracking-[0.3em] text-primary text-sm font-bold mb-6">{member.role}</p>
+                  <p className="text-muted-foreground text-lg leading-relaxed">{member.desc}</p>
                 </div>
               ))}
             </div>
