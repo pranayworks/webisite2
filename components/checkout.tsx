@@ -43,41 +43,50 @@ export default function Checkout({ productId, occasion }: { productId: string, o
       const order = await createRazorpayOrder(productId, user.id, occasion)
 
       // 2. Open Razorpay Checkout
-      const options = {
+      const options: any = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         name: "Arboretum",
         description: `Planting Plan: ${productId}`,
-        order_id: order.id,
-        handler: async function (response: any) {
-          toast.loading("Verifying transaction...", { id: toastId })
-          
-          const result = await verifyRazorpayPayment(
-            order.id,
-            response.razorpay_payment_id,
-            response.razorpay_signature,
-            { userId: user.id, productId, occasion: occasion || "" }
-          )
+      }
 
-          if (result.success) {
-            toast.success("Botanical Legacy Established!", { id: toastId })
-            router.push("/dashboard")
-          } else {
-            toast.error(result.error || "Payment verification failed", { id: toastId })
-          }
-        },
-        prefill: {
-          email: user.email,
-        },
-        theme: {
-          color: "#b2f432",
-        },
-        modal: {
-          ondismiss: function() {
-            setLoading(false)
-            toast.dismiss(toastId)
-          }
+      if (order.mode === 'subscription') {
+        options.subscription_id = order.id
+      } else {
+        options.order_id = order.id
+      }
+
+      options.handler = async function (response: any) {
+        toast.loading("Verifying transaction...", { id: toastId })
+        
+        const result = await verifyRazorpayPayment(
+          order.id, // This will be either orderId or subscriptionId
+          response.razorpay_payment_id,
+          response.razorpay_signature,
+          { userId: user.id, productId, occasion: occasion || "" }
+        )
+
+        if (result.success) {
+          toast.success("Botanical Legacy Established!", { id: toastId })
+          router.push("/dashboard")
+        } else {
+          toast.error(result.error || "Payment verification failed", { id: toastId })
+        }
+      }
+
+      options.prefill = {
+        email: user.email,
+      }
+
+      options.theme = {
+        color: "#b2f432",
+      }
+
+      options.modal = {
+        ondismiss: function() {
+          setLoading(false)
+          toast.dismiss(toastId)
         }
       }
 

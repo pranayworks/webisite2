@@ -18,25 +18,40 @@ export async function createRazorpayOrder(productId: string, userId: string, occ
 
     const amount = product.price_in_cents || product.priceInCents
 
-    const options = {
-      amount,
-      currency: "INR",
-      receipt: `receipt_${Date.now()}_${userId.slice(0, 5)}`,
-      notes: {
-        userId,
-        productId,
-        occasion: occasion || "",
-      },
-    }
-
-    const order = await razorpay.orders.create(options)
-    return {
-      id: order.id,
-      amount: order.amount,
-      currency: order.currency,
+    // Handle One-Time Payment
+    if (product.mode === 'payment') {
+      const options = {
+        amount,
+        currency: "INR",
+        receipt: `receipt_${Date.now()}_${userId.slice(0, 5)}`,
+        notes: { userId, productId, occasion: occasion || "" },
+      }
+      const order = await razorpay.orders.create(options)
+      return { id: order.id, amount: order.amount, currency: order.currency, mode: 'payment' }
+    } 
+    
+    // Handle Recurring Subscription
+    else {
+      // Note: In production, 'plan_id' should come from your Razorpay Dashboard
+      // For now, we use a fallback or an environment variable
+      const planId = process.env[`RAZORPAY_PLAN_${productId.toUpperCase().replace(/-/g, '_')}`] || 'plan_default_placeholder'
+      
+      const subscription = await razorpay.subscriptions.create({
+        plan_id: planId,
+        total_count: 12, // Default to 1 year of impact
+        quantity: 1,
+        notes: { userId, productId, occasion: occasion || "" },
+      })
+      
+      return { 
+        id: subscription.id, 
+        amount: amount, 
+        currency: "INR", 
+        mode: 'subscription' 
+      }
     }
   } catch (error: any) {
-    console.error("Razorpay Order Error:", error)
+    console.error("Razorpay Generation Error:", error)
     throw new Error(error.message)
   }
 }
