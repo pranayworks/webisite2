@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [plantings, setPlantings] = useState<any[]>([])
   const [selectedTreeHistory, setSelectedTreeHistory] = useState<any>(null)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [certData, setCertData] = useState<any>(null)
   
   const certificateRef = useRef<HTMLDivElement>(null)
   const benefitsRef = useRef<HTMLDivElement>(null)
@@ -185,11 +186,19 @@ export default function DashboardPage() {
     })
   }
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadPDF = async (order?: any) => {
+    // If an order is passed, set it as active cert data
+    if (order) {
+      setCertData(order)
+    } else if (!certData) {
+      toast.error("No record selected for certification")
+      return
+    }
+
     if (!certificateRef.current) return
     
     setIsGenerating(true)
-    const toastId = toast.loading('Generating your official certificate...')
+    const toastId = toast.loading('Establishing biological verification...')
     
     try {
       // Small delay to ensure the hidden element is properly rendered
@@ -742,12 +751,22 @@ export default function DashboardPage() {
                         <div className="h-2 w-2 rounded-full bg-[#b2f432] animate-pulse"></div>
                         <p className="text-xs font-bold text-[#e3e3db] uppercase tracking-widest">{tree.status}</p>
                       </div>
-                      <button 
-                        onClick={() => { setSelectedTreeHistory(tree); setShowHistoryModal(true); }}
-                        className="h-12 w-12 rounded-2xl bg-[#343530] flex items-center justify-center hover:bg-[#b2f432] hover:text-[#233600] transition-all duration-300 group/btn"
-                      >
-                        <MaterialIcon name="analytics" className="group-hover/btn:scale-110 transition-transform" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handleDownloadPDF(tree)}
+                          className="h-12 w-12 rounded-2xl bg-[#1a1c18] border border-[#b2f432]/20 flex items-center justify-center hover:bg-[#b2f432] hover:text-[#233600] transition-all duration-300 group/cert"
+                          title="Download Certificate"
+                        >
+                          <MaterialIcon name="card_membership" className="group-hover/cert:scale-110 transition-transform" />
+                        </button>
+                        <button 
+                          onClick={() => { setSelectedTreeHistory(tree); setShowHistoryModal(true); }}
+                          className="h-12 w-12 rounded-2xl bg-[#343530] flex items-center justify-center hover:bg-[#b2f432] hover:text-[#233600] transition-all duration-300 group/btn"
+                          title="Growth Timeline"
+                        >
+                          <MaterialIcon name="analytics" className="group-hover/btn:scale-110 transition-transform" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -886,32 +905,33 @@ export default function DashboardPage() {
             <p className="text-xs uppercase tracking-[0.5em] text-[#c2caaf] mb-16">Universal Stewardship Commission</p>
             
             <h2 className="font-['Noto_Serif'] text-7xl font-bold mb-6 tracking-tight">Certificate of Stewardship</h2>
-            <p className="text-2xl text-[#c2caaf] font-light italic mb-16">This officially certifies that</p>
+            <p className="text-2xl text-[#c2caaf] font-light italic mb-12">This officially certifies that</p>
             
             <div className="w-full max-w-3xl border-b-4 border-[#b2f432]/40 pb-6 mb-12">
               <span className="font-['Noto_Serif'] text-6xl font-bold text-[#e3e3db] uppercase tracking-wider">{displayName}</span>
             </div>
             
             <p className="max-w-3xl text-xl text-[#c2caaf] leading-relaxed mb-16 px-12">
-              Has successfully anchored a biological legacy by establishing <strong>{metrics.trees} active specimens</strong>. 
-              These trees are now verified in the global registry, contributing significantly to the sequestration of 
-              <strong> {metrics.carbonOffset} tonnes of Carbon Dioxide</strong> and promoting global biodiversity.
+              Has successfully anchored a biological legacy by establishing <strong>{certData ? certData.trees || 1 : metrics.trees} specimen(s)</strong> of <strong>{certData?.species || 'Native Flora'}</strong>. 
+              These trees are now verified in the global registry at <strong>{certData?.region || 'Cauvery Delta'}</strong>, 
+              contributing significantly to global biodiversity and environmental restoration.
+              {certData?.occasion && <span className="block mt-4 text-[#b2f432] font-semibold italic">Planted in honor of: {certData.occasion}</span>}
             </p>
 
             <div className="grid grid-cols-3 gap-24 w-full max-w-4xl mt-12 pb-12">
               <div className="flex flex-col items-center border-t-2 border-[#424935]/40 pt-6">
                 <span className="text-xs uppercase tracking-[0.2em] text-[#c2caaf] font-bold">Issue Date</span>
-                <span className="font-bold text-[#e3e3db] mt-2 text-lg">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <span className="font-bold text-[#e3e3db] mt-2 text-lg">{certData?.date || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
               </div>
               <div className="flex flex-col items-center">
-                <div className="h-32 w-32 bg-[#b2f432]/10 rounded-full border-2 border-[#b2f432]/30 flex items-center justify-center relative mb-4">
-                   <MaterialIcon name="verified" className="text-[#b2f432] text-6xl" />
+                <div className="h-32 w-32 bg-white rounded-2xl border-4 border-[#b2f432]/30 flex items-center justify-center relative mb-4 overflow-hidden">
+                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://greenlegacy.in/verify/${certData?.id || 'official'}`} alt="verification qr" className="w-24 h-24" />
                 </div>
-                <span className="text-[10px] uppercase tracking-[0.3em] text-[#b2f432] font-black">Official Digital Seal</span>
+                <span className="text-[10px] uppercase tracking-[0.3em] text-[#b2f432] font-black">Verify Authentication</span>
               </div>
               <div className="flex flex-col items-center border-t-2 border-[#424935]/40 pt-6">
-                 <span className="text-xs uppercase tracking-[0.2em] text-[#c2caaf] font-bold">Registry ID</span>
-                 <span className="font-mono text-lg text-[#e3e3db] mt-2 tracking-tighter">#GL-{Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+                 <span className="text-xs uppercase tracking-[0.2em] text-[#c2caaf] font-bold">Legacy ID</span>
+                 <span className="font-mono text-lg text-[#e3e3db] mt-2 tracking-tighter">#{certData?.id?.substring(0,8).toUpperCase() || 'GL-CORE-001'}</span>
               </div>
             </div>
 
