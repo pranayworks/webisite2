@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [certData, setCertData] = useState<any>(null)
   const [mounted, setMounted] = useState(false)
+  const [showPaymentRegistry, setShowPaymentRegistry] = useState(false)
   
   const certificateRef = useRef<HTMLDivElement>(null)
   const benefitsRef = useRef<HTMLDivElement>(null)
@@ -171,9 +172,7 @@ export default function DashboardPage() {
   }
 
   async function handleManageBilling() {
-    toast.info("Payment Registry", {
-      description: "Transaction history is available in your account. For subscription changes, please contact stewardship@arboretum.com"
-    })
+    setShowPaymentRegistry(true)
   }
 
   const handleDownloadPDF = async (order?: any) => {
@@ -606,7 +605,6 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          {/* Monthly Impact Intelligence & Viral Share Section */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 bg-[#1a1c18] rounded-[2.5rem] p-10 border border-[#b2f432]/10 relative overflow-hidden group hover:border-[#b2f432]/30 transition-all">
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#b2f432]/5 blur-[100px] -mr-32 -mt-32"></div>
@@ -620,17 +618,17 @@ export default function DashboardPage() {
                     <h3 className="font-['Noto_Serif'] text-2xl font-bold">Stewardship Insights</h3>
                   </div>
                   <p className="text-[#c2caaf] text-sm leading-relaxed max-w-md">
-                    Based on your current grove of <span className="text-[#b2f432] font-bold">{metrics.trees} trees</span>, your biological assets have produced these estimated outputs this month:
+                    Based on your current grove of <span className="text-[#b2f432] font-bold">{metrics?.trees || 0} trees</span>, your biological assets have produced these estimated outputs this month:
                   </p>
                   
                   <div className="grid grid-cols-2 gap-6 pt-4">
                     <div className="space-y-1">
                       <p className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]/40">Oxygen Produced</p>
-                      <p className="text-2xl font-bold">{monthlyStats.oxygen} <span className="text-xs text-[#b2f432]">KG</span></p>
+                      <p className="text-2xl font-bold">{monthlyStats?.oxygen || '0.0'} <span className="text-xs text-[#b2f432]">KG</span></p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]/40">Carbon Absorbed</p>
-                      <p className="text-2xl font-bold">{monthlyStats.carbon} <span className="text-xs text-blue-400">KG</span></p>
+                      <p className="text-2xl font-bold">{monthlyStats?.carbon || '0.0'} <span className="text-xs text-blue-400">KG</span></p>
                     </div>
                   </div>
                 </div>
@@ -648,11 +646,11 @@ export default function DashboardPage() {
                         strokeWidth="8" 
                         fill="transparent" 
                         strokeDasharray={276} 
-                        strokeDashoffset={276 - (276 * (30 - monthlyStats.daysRemaining) / 30)} 
+                        strokeDashoffset={276 - (276 * (30 - (monthlyStats?.daysRemaining || 30)) / 30)} 
                         className="text-[#b2f432] transition-all duration-1000 ease-out" 
                       />
                     </svg>
-                    <div className="absolute inset-0 flex items-center justify-center font-bold text-xl">{monthlyStats.daysRemaining}d</div>
+                    <div className="absolute inset-0 flex items-center justify-center font-bold text-xl">{monthlyStats?.daysRemaining || 30}d</div>
                   </div>
                   <p className="text-[9px] text-[#424935] uppercase font-bold tracking-widest">Awaiting field sync</p>
                 </div>
@@ -908,6 +906,85 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      {/* Payment Registry Modal */}
+      {showPaymentRegistry && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-[#0d0f0b]/95 backdrop-blur-md" onClick={() => setShowPaymentRegistry(false)}></div>
+          <div className="bg-[#1a1c18] w-full max-w-5xl rounded-[2.5rem] overflow-hidden shadow-2xl relative z-10 border border-[#b2f432]/10 animate-in fade-in zoom-in duration-300">
+            <div className="p-10 border-b border-[#424935]/10 flex justify-between items-center bg-[#121410]/50">
+              <div>
+                <h3 className="font-['Noto_Serif'] text-3xl font-bold flex items-center gap-4 text-[#b2f432]">
+                   Stewardship Ledger
+                </h3>
+                <p className="text-[#c2caaf] text-sm mt-2 font-['Manrope'] tracking-wide">Historical record of financial and biological contributions.</p>
+              </div>
+              <button 
+                onClick={() => setShowPaymentRegistry(false)}
+                className="h-12 w-12 rounded-full bg-[#343530] text-[#e3e3db] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all border border-white/5"
+              >
+                <MaterialIcon name="close" />
+              </button>
+            </div>
+            
+            <div className="p-10 overflow-x-auto max-h-[60vh] custom-scrollbar">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-widest text-[#c2caaf]/60 font-black border-b border-[#424935]/20">
+                    <th className="pb-6 pl-2">S.No</th>
+                    <th className="pb-6">Legacy Item</th>
+                    <th className="pb-6">Establishment</th>
+                    <th className="pb-6">Quantity</th>
+                    <th className="pb-6">Geo Authentication</th>
+                    <th className="pb-6 text-right pr-2">Contribution</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#424935]/10">
+                  {allOrders.length > 0 ? allOrders.map((order, idx) => (
+                    <tr key={order.id} className="group hover:bg-[#b2f432]/5 transition-colors">
+                      <td className="py-6 pl-2 font-mono text-xs text-[#c2caaf]/40">{idx + 1}</td>
+                      <td className="py-6">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-[#e3e3db]">{order.plan_name || 'Forest Sapling'}</span>
+                          <span className="text-[10px] text-[#b2f432]/60 uppercase tracking-tighter">{order.occasion || 'General Plantation'}</span>
+                        </div>
+                      </td>
+                      <td className="py-6">
+                        <span className="text-sm font-medium">{new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      </td>
+                      <td className="py-6">
+                        <div className="flex items-center gap-2">
+                           <span className="h-2 w-2 rounded-full bg-[#b2f432]"></span>
+                           <span className="text-sm font-bold">{order.trees} Trees</span>
+                        </div>
+                      </td>
+                      <td className="py-6">
+                        <span className="text-xs font-mono text-[#c2caaf] bg-[#121410] px-3 py-1 rounded-lg border border-[#424935]/20">
+                          {order.planting_gps || 'Awaiting Sync'}
+                        </span>
+                      </td>
+                      <td className="py-6 text-right pr-2">
+                        <span className="text-sm font-black text-white">₹{order.amount || (order.trees * 299)}</span>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={6} className="py-20 text-center text-[#c2caaf]/40 italic">No treasury records found in current sequence.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="p-10 bg-[#121410]/50 border-t border-[#424935]/10 flex justify-between items-center">
+              <div className="flex items-center gap-4 text-[#c2caaf]">
+                <MaterialIcon name="verified_user" className="text-[#b2f432]" />
+                <span className="text-xs font-medium tracking-wide">Officially notarized by Green Legacy Biological Registry</span>
+              </div>
+              <p className="text-xs font-bold text-[#e3e3db]">Total Contribution: <span className="text-[#b2f432] ml-2">₹{allOrders.reduce((acc, curr) => acc + (curr.amount || curr.trees * 299), 0).toLocaleString()}</span></p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
