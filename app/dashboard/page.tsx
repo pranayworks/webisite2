@@ -45,6 +45,7 @@ export default function DashboardPage() {
   const [selectedTreeHistory, setSelectedTreeHistory] = useState<any>(null)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [certData, setCertData] = useState<any>(null)
+  const [mounted, setMounted] = useState(false)
   
   const certificateRef = useRef<HTMLDivElement>(null)
   const benefitsRef = useRef<HTMLDivElement>(null)
@@ -53,6 +54,7 @@ export default function DashboardPage() {
   const rank = useMemo(() => calculateRank(metrics.trees), [metrics.trees])
 
   useEffect(() => {
+    setMounted(true)
     checkUser()
   }, [])
 
@@ -421,36 +423,39 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="w-full h-[420px] rounded-2xl overflow-hidden border border-[#424935]/20">
-              <TreeMap
-                sites={Array.isArray(allOrders) ? allOrders.map((order: any, i: number) => {
-                  // Known partner college coordinates as fallbacks
-                  const fallbackCoords: [number, number][] = [
-                    [11.0168, 76.9558], // TNAU Coimbatore
-                    [13.0827, 80.2707], // Chennai
-                    [31.1471, 75.3412], // PAU Ludhiana
-                    [10.5276, 76.2144], // KAU Thrissur
-                    [17.3850, 78.4867], // Hyderabad
-                    [12.9716, 77.5946], // Bengaluru
-                    [18.5204, 73.8567], // Pune
-                  ]
-                  const [lat, lng] = order?.planting_gps
-                    ? order.planting_gps.split(',').map(Number)
-                    : fallbackCoords[i % fallbackCoords.length]
-                  return {
-                    id: order?.id || `site-${i}`,
-                    name: order?.steward_name || 'My Grove',
-                    location: order?.location || 'India',
-                    lat: lat || 20.5937,
-                    lng: lng || 78.9629,
-                    trees: order?.trees || 1,
-                    status: order?.status || 'Pending',
-                    date: order?.planting_date
-                      ? new Date(order.planting_date).toLocaleDateString()
-                      : order?.created_at ? new Date(order.created_at).toLocaleDateString() : 'Recent',
-                    occasion: order?.occasion,
-                  }
-                }) : []}
-              />
+              {mounted && Array.isArray(allOrders) && allOrders.length > 0 ? (
+                <TreeMap
+                  sites={allOrders.map((order: any, i: number) => {
+                    const fallbackCoords: [number, number][] = [
+                      [11.0168, 76.9558], [13.0827, 80.2707], [31.1471, 75.3412],
+                      [10.5276, 76.2144], [17.3850, 78.4867], [12.9716, 77.5946], [18.5204, 73.8567]
+                    ]
+                    const [lat, lng] = order?.planting_gps
+                      ? order.planting_gps.split(',').map(Number)
+                      : fallbackCoords[i % fallbackCoords.length]
+                    return {
+                      id: order?.id || `site-${i}`,
+                      name: order?.steward_name || 'My Grove',
+                      location: order?.location || 'India',
+                      lat: lat || 20.5937,
+                      lng: lng || 78.9629,
+                      trees: order?.trees || 1,
+                      status: order?.status || 'Pending',
+                      date: order?.planting_date
+                        ? new Date(order.planting_date).toLocaleDateString()
+                        : order?.created_at ? new Date(order.created_at).toLocaleDateString() : 'Recent',
+                      occasion: order?.occasion,
+                    }
+                  })}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-[#1a1c18]">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="h-8 w-8 border-2 border-[#b2f432] border-t-transparent rounded-full animate-spin" />
+                    <p className="text-[#c2caaf] text-sm">Visualizing Registry...</p>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
