@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react"
-
-import { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Mail, Handshake, Newspaper, GraduationCap, Send, Check, ChevronDown, Phone, MapPin, Instagram, Linkedin, Twitter, Youtube, Facebook } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SiteHeader } from "@/components/site-header"
@@ -10,6 +8,8 @@ import { SiteFooter } from "@/components/site-footer"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
 import { submitContact } from "@/app/actions/submit-contact"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 const contactOptions = [
   { icon: Mail, title: "General Inquiries", email: "contact@greenlegacy.in", desc: "We respond within 24 hours" },

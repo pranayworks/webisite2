@@ -11,13 +11,31 @@ import { PRODUCTS, SUBSCRIPTIONS } from "@/lib/products"
 import { supabase } from "@/lib/supabase"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 
 const Checkout = dynamic(() => import("@/components/checkout"), { ssr: false })
 
 function SubscriptionsContent() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
   const initialPlan = searchParams.get("plan")
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+      } else {
+        setUser(user)
+        setLoading(false)
+      }
+    }
+    checkAuth()
+  }, [router])
+
   const [dbProducts, setDbProducts] = useState<any[]>([])
   const [selectedPlan, setSelectedPlan] = useState<string | null>(initialPlan)
   const [showCheckout, setShowCheckout] = useState(!!initialPlan)

@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Calendar, ExternalLink, Download, Play, X, ImageIcon, Video, Newspaper, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 const pressReleases = [
   { title: "Green Legacy Reaches 5,000 Trees Milestone", date: "January 15, 2026", excerpt: "A landmark achievement as Green Legacy plants its 5,000th tree across 18 states in India, marking a significant step in our environmental mission." },

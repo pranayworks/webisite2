@@ -8,6 +8,7 @@ import { useScrollAnimation, useCountUp } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { calculateImpact } from "@/lib/impact"
+import { useRouter } from "next/navigation"
 
 const liveStats = [
   { icon: TreePine, label: "Trees Planted Today", value: 0, color: "text-green-500" },
@@ -49,6 +50,9 @@ const stories = [
 ]
 
 export default function ImpactPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"environmental" | "social" | "economic">("environmental")
   const [stats, setStats] = useState({
     today: 0,
@@ -69,65 +73,72 @@ export default function ImpactPage() {
   ])
 
   useEffect(() => {
-    async function fetchImpact() {
-      // 1. Fetch Total & Species
+    async function checkAuthAndFetch() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+      setUser(user)
+      
+      // Fetch Impact Logic
       const { data: allOrders } = await supabase
         .from('planting_orders')
         .select('trees, species, created_at')
 
-      if (!allOrders) return
+      if (allOrders) {
+        const totalTrees = allOrders.reduce((acc, curr) => acc + (curr.trees || 1), 0)
+        
+        const today = new Date().toISOString().split('T')[0]
+        const monthStr = new Date().toISOString().substring(0, 7)
 
-      const totalTrees = allOrders.reduce((acc, curr) => acc + (curr.trees || 1), 0)
-      
-      const today = new Date().toISOString().split('T')[0]
-      const monthStr = new Date().toISOString().substring(0, 7)
+        const treesToday = allOrders
+          .filter(o => o.created_at?.startsWith(today))
+          .reduce((acc, curr) => acc + (curr.trees || 1), 0)
 
-      const treesToday = allOrders
-        .filter(o => o.created_at?.startsWith(today))
-        .reduce((acc, curr) => acc + (curr.trees || 1), 0)
+        const treesMonth = allOrders
+          .filter(o => o.created_at?.startsWith(monthStr))
+          .reduce((acc, curr) => acc + (curr.trees || 1), 0)
 
-      const treesMonth = allOrders
-        .filter(o => o.created_at?.startsWith(monthStr))
-        .reduce((acc, curr) => acc + (curr.trees || 1), 0)
+        const impact = calculateImpact(totalTrees)
 
-      const impact = calculateImpact(totalTrees)
+        setStats({
+          today: treesToday,
+          month: treesMonth,
+          total: totalTrees,
+          co2: impact.carbonOffset,
+          o2: Number((totalTrees * 2.3).toFixed(1)),
+          water: Number((impact.waterSaved / 1000).toFixed(1))
+        })
 
-      setStats({
-        today: treesToday,
-        month: treesMonth,
-        total: totalTrees,
-        co2: impact.carbonOffset,
-        o2: Number((totalTrees * 2.3).toFixed(1)), // Formula for O2
-        water: Number((impact.waterSaved / 1000).toFixed(1)) // In ML
-      })
+        const speciesCounts: Record<string, number> = {}
+        allOrders.forEach(o => {
+          const s = o.species || 'Others'
+          speciesCounts[s] = (speciesCounts[s] || 0) + (o.trees || 1)
+        })
 
-      // 2. Calculate Species Distribution
-      const speciesCounts: Record<string, number> = {}
-      allOrders.forEach(o => {
-        const s = o.species || 'Others'
-        speciesCounts[s] = (speciesCounts[s] || 0) + (o.trees || 1)
-      })
+        const top5 = ["Neem", "Banyan", "Teak", "Mango", "Peepal"]
+        let topSum = 0
+        const newSpecies = top5.map(s => {
+          const count = speciesCounts[s] || 0
+          const pct = totalTrees > 0 ? Math.round((count / totalTrees) * 100) : 0
+          topSum += count
+          return { label: s, count, pct }
+        })
 
-      const top5 = ["Neem", "Banyan", "Teak", "Mango", "Peepal"]
-      let topSum = 0
-      const newSpecies = top5.map(s => {
-        const count = speciesCounts[s] || 0
-        const pct = totalTrees > 0 ? Math.round((count / totalTrees) * 100) : 0
-        topSum += count
-        return { label: s, count, pct }
-      })
+        const othersCount = totalTrees - topSum
+        newSpecies.push({ 
+          label: "Others", 
+          count: othersCount, 
+          pct: totalTrees > 0 ? Math.round((othersCount / totalTrees) * 100) : 0 
+        })
 
-      const othersCount = totalTrees - topSum
-      newSpecies.push({ 
-        label: "Others", 
-        count: othersCount, 
-        pct: totalTrees > 0 ? Math.round((othersCount / totalTrees) * 100) : 0 
-      })
-
-      setSpeciesStats(newSpecies)
+        setSpeciesStats(newSpecies)
+      }
+      setLoading(false)
     }
 
-    fetchImpact()
+    checkAuthAndFetch()
   }, [])
 
   const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
@@ -167,6 +178,16 @@ export default function ImpactPage() {
     useCountUp(socialStatsDynamic[2].value, 2000, tabVisible && activeTab === "social"),
     useCountUp(socialStatsDynamic[3].value, 2000, tabVisible && activeTab === "social")
   ]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#121410] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#b2f432] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
+  if (!user) return null
 
   return (
     <>

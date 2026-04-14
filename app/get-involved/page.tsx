@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react"
-
-import { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Users, Building2, GraduationCap, Check, X, Calendar, MapPin, Phone, Mail, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SiteHeader } from "@/components/site-header"
@@ -11,6 +9,8 @@ import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
 import { submitApplication } from "@/app/actions/submit-application"
 import { saveRsvp } from "@/app/actions/welcome"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 const pathways = [
   {
@@ -53,6 +53,9 @@ const partners = [
 ]
 
 export default function GetInvolvedPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [activeModal, setActiveModal] = useState<string | null>(null)
   const [formSubmitted, setFormSubmitted] = useState(false)
   const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
@@ -67,6 +70,29 @@ export default function GetInvolvedPage() {
   const [rsvpForm, setRsvpForm] = useState({ name: '', email: '', phone: '' })
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false)
   const [rsvpLoading, setRsvpLoading] = useState(false)
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+      } else {
+        setUser(user)
+        setLoading(false)
+      }
+    }
+    checkAuth()
+  }, [router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#121410] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#b2f432] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
+  if (!user) return null
 
   const handleRsvp = async (e: React.FormEvent) => {
     e.preventDefault()
