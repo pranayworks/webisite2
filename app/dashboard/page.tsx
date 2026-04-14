@@ -12,6 +12,19 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import dynamic from 'next/dynamic'
+
+const TreeMap = dynamic(() => import('@/components/TreeMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[420px] flex items-center justify-center bg-[#1a1c18] rounded-2xl">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 border-2 border-[#b2f432] border-t-transparent rounded-full animate-spin" />
+        <p className="text-[#c2caaf] text-sm">Loading Map...</p>
+      </div>
+    </div>
+  )
+})
 
 // Material Symbols mapping
 const MaterialIcon = ({ name, className = "", style = {} }: { name: string, className?: string, style?: any }) => (
@@ -369,6 +382,58 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+
+          {/* 🗺️ Planting Map Section */}
+          <section>
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <h3 className="font-['Noto_Serif'] text-3xl font-bold text-[#e3e3db]">Grove Map</h3>
+                <p className="text-[#c2caaf] text-sm mt-2">Live locations of your planting sites across India.</p>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-[#c2caaf]">
+                <span className="flex items-center gap-1.5">
+                  <span style={{ display:'inline-block', width:12, height:12, borderRadius:'50% 50% 50% 0', transform:'rotate(-45deg)', background:'#b2f432', border:'2px solid #233600' }} />
+                  Planted
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span style={{ display:'inline-block', width:12, height:12, borderRadius:'50% 50% 50% 0', transform:'rotate(-45deg)', background:'#f59e0b', border:'2px solid #78350f' }} />
+                  Pending
+                </span>
+              </div>
+            </div>
+            <div className="w-full h-[420px] rounded-2xl overflow-hidden border border-[#424935]/20">
+              <TreeMap
+                sites={orders.map((order: any, i: number) => {
+                  // Known partner college coordinates as fallbacks
+                  const fallbackCoords: [number, number][] = [
+                    [11.0168, 76.9558], // TNAU Coimbatore
+                    [13.0827, 80.2707], // Chennai
+                    [31.1471, 75.3412], // PAU Ludhiana
+                    [10.5276, 76.2144], // KAU Thrissur
+                    [17.3850, 78.4867], // Hyderabad
+                    [12.9716, 77.5946], // Bengaluru
+                    [18.5204, 73.8567], // Pune
+                  ]
+                  const [lat, lng] = order.planting_gps
+                    ? order.planting_gps.split(',').map(Number)
+                    : fallbackCoords[i % fallbackCoords.length]
+                  return {
+                    id: order.id,
+                    name: order.steward_name || 'My Grove',
+                    location: order.location || 'India',
+                    lat,
+                    lng,
+                    trees: order.trees || 1,
+                    status: order.status || 'Pending',
+                    date: order.planting_date
+                      ? new Date(order.planting_date).toLocaleDateString()
+                      : new Date(order.created_at).toLocaleDateString(),
+                    occasion: order.occasion,
+                  }
+                })}
+              />
             </div>
           </section>
 
