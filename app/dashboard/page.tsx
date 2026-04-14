@@ -423,7 +423,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="w-full h-[420px] rounded-2xl overflow-hidden border border-[#424935]/20">
-              {mounted && Array.isArray(allOrders) && allOrders.length > 0 ? (
+              {mounted && Array.isArray(allOrders) ? (
                 <TreeMap
                   sites={allOrders.map((order: any, i: number) => {
                     const fallbackCoords: [number, number][] = [

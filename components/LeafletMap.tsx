@@ -117,6 +117,17 @@ export default function LeafletMap({ sites }: LeafletMapProps) {
           </Popup>
         </Marker>
       ))}
+
+      {(!sites || sites.length === 0) && (
+        <Marker position={[11.0168, 76.9558]} icon={icons.greenIcon}>
+          <Popup>
+            <div style={{ fontFamily: "Manrope, sans-serif", textAlign: "center", padding: "10px" }}>
+              <h3 style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "700" }}>🌳 Ready to begin?</h3>
+              <p style={{ margin: 0, fontSize: "11px", color: "#6b7280" }}>Your trees will appear here after your first planting!</p>
+            </div>
+          </Popup>
+        </Marker>
+      )}
     </MapContainer>
   )
 }
