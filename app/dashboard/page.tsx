@@ -8,8 +8,6 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { calculateImpact, calculateRank } from '@/lib/impact'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import dynamic from 'next/dynamic'
@@ -201,6 +199,12 @@ export default function DashboardPage() {
     const toastId = toast.loading('Establishing biological verification...')
     
     try {
+      // Load PDF libraries dynamically on demand
+      const [html2canvas, { default: jsPDF }] = await Promise.all([
+        import('html2canvas').then(m => m.default),
+        import('jspdf')
+      ])
+
       // Small delay to ensure the hidden element is properly rendered
       await new Promise(resolve => setTimeout(resolve, 500))
       
@@ -211,19 +215,14 @@ export default function DashboardPage() {
       })
       
       const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: [canvas.width, canvas.height]
-      })
+      const pdf = new jsPDF('landscape', 'px', [1200, 840])
+      pdf.addImage(imgData, 'PNG', 0, 0, 1200, 840)
       
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
-      pdf.save(`GreenLegacy_Certificate_${displayName.replace(/\s+/g, '_')}.pdf`)
-      
-      toast.success('Certificate Downloaded!', { id: toastId })
+      pdf.save(`GreenLegacy_Certificate_${(certData?.id || 'Stewardship').substring(0,8)}.pdf`)
+      toast.success('Certificate verified and downloaded!', { id: toastId })
     } catch (error) {
       console.error('PDF Generation Error:', error)
-      toast.error('Failed to generate PDF. Please try again.', { id: toastId })
+      toast.error('Failed to establish sequence. Please try again.', { id: toastId })
     } finally {
       setIsGenerating(false)
     }
