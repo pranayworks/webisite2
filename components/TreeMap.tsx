@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react"
 import dynamic from "next/dynamic"
 import "leaflet/dist/leaflet.css"
 
-interface PlantingSite {
+export interface PlantingSite {
   id: string
   name: string
   location: string
