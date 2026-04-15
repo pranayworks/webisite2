@@ -67,10 +67,17 @@ export async function updateProfile(userId: string, data: {
   gender?: string 
 }) {
   try {
-    // 0. Security Verification
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session || (session.user.id !== userId && session.user.user_metadata?.role !== 'admin')) {
-      throw new Error("Unauthorized profile modification")
+    // 0. Security Verification (Reliable Server-Side Check)
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !authUser) {
+      throw new Error("Stewardship session expired. Please re-authenticate.")
+    }
+
+    const isAdmin = authUser.email === 'mamidipranay07@gmail.com' || authUser.user_metadata?.role === 'admin'
+    
+    if (authUser.id !== userId && !isAdmin) {
+      throw new Error(`Identity mismatch: Auth ${authUser.id.substring(0,5)} vs Target ${userId.substring(0,5)}`)
     }
 
     // Use upsert to ensure record exists
@@ -78,8 +85,7 @@ export async function updateProfile(userId: string, data: {
       .from('profiles')
       .upsert({
         id: userId,
-        ...data,
-        updated_at: new Date().toISOString()
+        ...data
       }, { onConflict: 'id' })
 
     if (error) throw error
