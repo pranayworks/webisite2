@@ -39,7 +39,7 @@ export default function SettingsPage() {
 
       setUser({ ...user, profile })
       setFullName(profile?.full_name || '')
-      setPhone(profile?.phone_number || '')
+      setPhone(profile?.phone || '')
       setAge(profile?.age?.toString() || '')
       setGender(profile?.gender || 'Other')
       setLoading(false)
