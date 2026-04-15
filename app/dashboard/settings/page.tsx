@@ -71,7 +71,7 @@ export default function SettingsPage() {
           gender: gender
         }
       })
-      toast.success('Profile established in database')
+      toast.success('Saved successfully')
     } else {
       toast.error('Failed to sync profile')
     }
