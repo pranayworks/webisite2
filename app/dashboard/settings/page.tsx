@@ -54,7 +54,7 @@ export default function SettingsPage() {
     setIsSaving(true)
     const result = await updateProfile(user.id, { 
       full_name: fullName,
-      phone_number: phone,
+      phone: phone,
       age: parseInt(age) || 0,
       gender: gender
     })

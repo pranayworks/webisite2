@@ -62,7 +62,7 @@ export async function addGrowthUpdate(orderId: string, note: string, photoUrl?: 
 
 export async function updateProfile(userId: string, data: { 
   full_name?: string, 
-  phone_number?: string, 
+  phone?: string, 
   age?: number, 
   gender?: string 
 }) {
@@ -73,10 +73,14 @@ export async function updateProfile(userId: string, data: {
       throw new Error("Unauthorized profile modification")
     }
 
+    // Use upsert to ensure record exists
     const { error } = await supabase
       .from('profiles')
-      .update(data)
-      .eq('id', userId)
+      .upsert({
+        id: userId,
+        ...data,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' })
 
     if (error) throw error
     return { success: true }
