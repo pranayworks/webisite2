@@ -4,16 +4,18 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
-
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -27,18 +29,37 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      // 1. Smart Check: Is this a new user?
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', formData.email)
+        .maybeSingle()
+
+      if (!profile) {
+        // User not found in profiles - treat as new user
+        router.push(`/signup?email=${encodeURIComponent(formData.email)}`)
+        return
+      }
+
+      // 2. Existing User: Proceed with Login
       const { data, error: loginError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
       })
 
-      if (loginError) throw loginError
+      if (loginError) {
+        if (loginError.message === 'Invalid login credentials') {
+          throw new Error('Access key mismatch. Please verify your credentials.')
+        }
+        throw loginError
+      }
 
       // Success! Redirect to dashboard
       router.push('/dashboard')
 
     } catch (err: any) {
-      setError(err.message || 'Failed to log in')
+      setError(err.message || 'Failed to authenticate')
     } finally {
       setLoading(false)
     }
@@ -69,7 +90,7 @@ export default function LoginPage() {
 
           <div className="bg-[#1e201c]/70 backdrop-blur-2xl rounded-xl p-10 shadow-2xl space-y-8 border border-[#424935]/15">
             {error && (
-              <div className="bg-red-950/50 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm text-center">
+              <div className="bg-red-950/50 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm text-center animate-in fade-in zoom-in duration-300">
                 {error}
               </div>
             )}
@@ -102,13 +123,20 @@ export default function LoginPage() {
                     <input 
                       id="key" 
                       name="password"
-                      type="password" 
+                      type={showPassword ? "text" : "password"} 
                       required
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="••••••••••••" 
-                      className="w-full bg-[#343530]/50 border-none rounded-lg px-4 py-4 text-[#e3e3db] placeholder:text-[#c2caaf]/30 focus:ring-1 focus:ring-[#b2f432]/40 transition-all font-['Manrope']"
+                      className="w-full bg-[#343530]/50 border-none rounded-lg px-4 py-4 pr-12 text-[#e3e3db] placeholder:text-[#c2caaf]/30 focus:ring-1 focus:ring-[#b2f432]/40 transition-all font-['Manrope']"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#c2caaf] hover:text-[#b2f432] transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
                   </div>
                 </div>
               </div>
