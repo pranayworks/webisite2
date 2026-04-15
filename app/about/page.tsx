@@ -12,7 +12,7 @@ const teamMembers = [
     name: "Pranay",
     role: "Founder & Director",
     desc: "A visionary environmentalist with two decades of experience in conservation strategy and ecological restoration.",
-    img: "https://res.cloudinary.com/dqgqdszk2/image/upload/q_auto/f_auto/v1775438058/WhatsApp_Image_2026-04-06_at_6.38.31_AM_sxtmuk.jpg",
+    img: "https://res.cloudinary.com/dqgqdszk2/image/upload/q_auto/f_auto/v1776245601/WhatsApp_Image_2026-04-15_at_3.00.06_PM_wi71e8.jpg",
     mt: false
   }
 ]
