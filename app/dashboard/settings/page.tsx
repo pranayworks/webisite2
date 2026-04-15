@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { updateProfile } from '@/app/actions/impact'
 
 const MaterialIcon = ({ name, className = "" }: { name: string, className?: string }) => (
   <span className={`material-symbols-outlined shrink-0 ${className}`} style={{ fontSize: 'inherit' }}>
@@ -52,15 +51,21 @@ export default function SettingsPage() {
     if (!user) return
 
     setIsSaving(true)
-    const result = await updateProfile(user.id, { 
-      full_name: fullName,
-      phone: phone,
-      age: parseInt(age) || 0,
-      gender: gender
-    })
+    
+    // Perform update directly using the client-side session
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        full_name: fullName,
+        phone: phone,
+        age: parseInt(age) || 0,
+        gender: gender
+      }, { onConflict: 'id' })
+
     setIsSaving(false)
 
-    if (result.success) {
+    if (!updateError) {
       setUser({
         ...user,
         profile: {
@@ -73,7 +78,9 @@ export default function SettingsPage() {
       })
       toast.success('Saved successfully')
     } else {
-      toast.error('Failed to sync profile')
+      toast.error('Failed to sync profile', {
+        description: updateError.message
+      })
     }
   }
 
