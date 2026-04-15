@@ -29,16 +29,33 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // 1. Smart Check: Is this a new user?
+      // 1. Smart Check: Is this a new user? (Case-insensitive check)
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', formData.email)
+        .ilike('email', formData.email)
         .maybeSingle()
 
+      // 2. Only redirect if we are SURE they are new (no profile and no previous auth record)
       if (!profile) {
-        // User not found in profiles - treat as new user
-        router.push(`/signup?email=${encodeURIComponent(formData.email)}`)
+        // Double check: Try a quick sign in. If it fails with 'Invalid credentials', they exist but have no profile.
+        // For now, let's just proceed with login if no profile is found to avoid the loop.
+        const { error: probeError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        })
+
+        if (probeError) {
+          if (probeError.message.includes("Invalid login credentials")) {
+             // User exists but has no profile - this is an edge case, redirect to signup to 'finish' their profile
+             router.push(`/signup?email=${encodeURIComponent(formData.email)}`)
+             return
+          }
+          throw probeError
+        }
+        
+        // Success! They logged in even without a profile.
+        router.push('/dashboard')
         return
       }
 
