@@ -123,14 +123,14 @@ export default function DashboardPage() {
     if (!user) {
       router.push('/login')
     } else {
-      // Fetch profile to get name and plantings if metadata is missing
+      // CRITICAL: Always fetch the freshest profile state to reflect recent setting changes
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
       
-      setUser({ ...user, profile })
+      setUser({ ...user, profile: profile || user.user_metadata || {} })
       
       // Calculate and set dynamic metrics based on user's specific plantings
       const userTrees = profile?.trees_planted || 0

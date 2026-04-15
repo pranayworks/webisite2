@@ -61,9 +61,19 @@ export default function SettingsPage() {
     setIsSaving(false)
 
     if (result.success) {
-      toast.success('Profile updated successfully')
+      setUser({
+        ...user,
+        profile: {
+          ...user.profile,
+          full_name: fullName,
+          phone: phone,
+          age: parseInt(age) || 0,
+          gender: gender
+        }
+      })
+      toast.success('Profile established in database')
     } else {
-      toast.error('Failed to update profile')
+      toast.error('Failed to sync profile')
     }
   }
 
