@@ -21,15 +21,22 @@ export default function ForgotPasswordPage() {
       })
 
       if (error) {
-        console.error("Supabase Reset Error:", error)
+        if (error.status === 429) {
+          throw new Error("Security limit reached. Please wait 15 minutes before trying again, or check your Spam folder.")
+        }
         throw error
       }
 
       setSent(true)
-      toast.success("Recovery link sent! Check your inbox.")
+      toast.success("Recovery link dispatched!", {
+        description: "Please check your Inbox and Spam/Junk folders."
+      })
     } catch (err: any) {
       console.error("Forgot Password FAIL:", err)
-      toast.error(err.message || "Failed to send recovery link. Check your internet or SMTP settings.")
+      const errorMsg = err.message || "Failed to initiate recovery sequence."
+      toast.error("Recovery Halted", {
+        description: errorMsg
+      })
     } finally {
       setLoading(false)
     }
