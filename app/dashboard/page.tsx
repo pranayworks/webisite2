@@ -292,8 +292,9 @@ export default function DashboardPage() {
           <div className="flex items-center gap-6">
 
             <div className="flex items-center gap-4">
-              <Link href="/">
-                <span className="material-symbols-outlined text-[#c2caaf] cursor-pointer hover:text-[#b2f432] transition-colors">home</span>
+              <Link href="/" className="flex items-center gap-2 text-[#c2caaf] hover:text-[#b2f432] transition-colors">
+                <span className="text-[10px] uppercase font-bold tracking-widest">Back to home</span>
+                <span className="material-symbols-outlined cursor-pointer">home</span>
               </Link>
             </div>
           </div>
