@@ -57,6 +57,7 @@ export default function SettingsPage() {
       .from('profiles')
       .upsert({
         id: user.id,
+        email: user.email,
         full_name: fullName,
         phone: phone,
         age: parseInt(age) || 0,
