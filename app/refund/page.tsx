@@ -1,8 +1,8 @@
 import React from "react"
 import Link from "next/link"
 
-const MaterialIcon = ({ name }: { name: string }) => (
-  <span className="material-symbols-outlined shrink-0" style={{ fontSize: 'inherit' }}>
+const MaterialIcon = ({ name, className = "" }: { name: string, className?: string }) => (
+  <span className={`material-symbols-outlined shrink-0 ${className}`} style={{ fontSize: 'inherit' }}>
     {name}
   </span>
 )

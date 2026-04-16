@@ -27,10 +27,10 @@ const programs = [
 
 const support = [
   { label: "Contact Us", href: "/contact" },
-  { label: "FAQs", href: "/contact#faq" },
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms & Conditions", href: "#" },
-  { label: "Refund Policy", href: "#" },
+  { label: "FAQs", href: "/faqs" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms & Conditions", href: "/terms" },
+  { label: "Refund Policy", href: "/refund" },
 ]
 
 const socials = [

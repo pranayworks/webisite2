@@ -761,10 +761,10 @@ export default function DashboardPage() {
           <div className="max-w-7xl mx-auto flex flex-col items-center gap-4 text-center">
             <p className="font-['Manrope'] text-xs text-[#e3e3db]/40">© 2026 Green Legacy. Dedicated to a greener future.</p>
             <div className="flex flex-wrap justify-center gap-6">
-              <a className="text-[#e3e3db]/40 text-xs hover:text-[#b2f432] transition-colors duration-300" href="#">Privacy Policy</a>
-              <a className="text-[#e3e3db]/40 text-xs hover:text-[#b2f432] transition-colors duration-300" href="#">Terms of Service</a>
-              <a className="text-[#e3e3db]/40 text-xs hover:text-[#b2f432] transition-colors duration-300" href="#">Annual Report</a>
-              <a className="text-[#e3e3db]/40 text-xs hover:text-[#b2f432] transition-colors duration-300" href="/contact">Contact</a>
+              <a className="text-[#e3e3db]/40 text-xs hover:text-[#b2f432] transition-colors duration-300" href="/privacy">Privacy Policy</a> | 
+              <a className="text-[#e3e3db]/40 text-xs hover:text-[#b2f432] transition-colors duration-300" href="/terms">Terms</a> | 
+              <a className="text-[#e3e3db]/40 text-xs hover:text-[#b2f432] transition-colors duration-300" href="/faqs">FAQs</a> | 
+              <a className="text-[#e3e3db]/40 text-xs hover:text-[#b2f432] transition-colors duration-300" href="/refund">Refund</a>
             </div>
           </div>
         </footer>
