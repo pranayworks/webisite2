@@ -236,7 +236,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="flex items-center justify-between px-1 pt-2">
-                  <Link href="/forgot-password" in-title="Recover your access key" className="text-sm font-['Manrope'] text-[#c2caaf] hover:text-[#b2f432] transition-colors duration-300">
+                  <Link href="/forgot-password" title="Recover your access key" className="text-sm font-['Manrope'] text-[#c2caaf] hover:text-[#b2f432] transition-colors duration-300">
                     Forgotten Key?
                   </Link>
                 </div>
