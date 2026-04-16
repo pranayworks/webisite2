@@ -290,10 +290,20 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-6">
-
             <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2 text-[#c2caaf] hover:text-[#b2f432] transition-colors">
-                <span className="text-[10px] uppercase font-bold tracking-widest">Back to home</span>
+              <Link href="/dashboard/settings" className="relative group shrink-0">
+                <div className="w-10 h-10 rounded-full border border-[#b2f432]/30 overflow-hidden bg-[#1a1c18] hover:border-[#b2f432] transition-all">
+                  {user?.profile?.avatar_url ? (
+                    <img src={user.profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[#c2caaf]/30">
+                      <MaterialIcon name="person" className="text-xl" />
+                    </div>
+                  )}
+                </div>
+              </Link>
+              <Link href="/" className="flex items-center gap-2 text-[#c2caaf] hover:text-[#b2f432] transition-colors pr-2 border-l border-[#424935]/20 pl-4">
+                <span className="text-[10px] uppercase font-bold tracking-widest hidden sm:inline">Back to home</span>
                 <span className="material-symbols-outlined cursor-pointer">home</span>
               </Link>
             </div>
