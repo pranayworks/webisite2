@@ -103,7 +103,24 @@ export default function RootLayout({
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange={false}>
           <LoadingScreen />
-          {children}
+          {/* Google Site Name Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Green Legacy",
+              "url": "https://greenlegacy.in",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://greenlegacy.in/search?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+        {children}
           <Toaster position="top-right" richColors theme="dark" />
         </ThemeProvider>
       </body>
