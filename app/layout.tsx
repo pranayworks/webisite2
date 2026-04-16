@@ -25,38 +25,33 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: {
-    default: "Arboretum | Your Digital Ecological Legacy",
-    template: "%s | Arboretum",
+    default: "Green Legacy | Grow Your Botanical Heritage",
+    template: "%s | Green Legacy"
   },
-  description: "Plant a tree, grow your legacy. A sustainable platform for digital stewardship and ecological restoration.",
-  keywords: ["Arboretum", "Nature", "Digital Stewardship", "Sustainability", "Reforestation"],
+  description: "Plant a tree, create a legacy. Join the Green Legacy community for ecological restoration and digital stewardship.",
+  keywords: ["Green Legacy", "Nature", "Tree Plantation", "Sustainability", "Reforestation"],
   authors: [{ name: "Green Legacy Team" }],
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://arboretum.green",
-    siteName: "Arboretum",
-    title: "Arboretum | Plant Your Legacy",
-    description: "Join the digital wilderness. Every tree you plant fosters a new era of stewardship.",
+    url: "https://greenlegacy.in",
+    siteName: "Green Legacy",
+    title: "Green Legacy | Plant Your Future",
+    description: "Your ecological legacy starts here. Every tree matters.",
     images: [
       {
         url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1200",
         width: 1200,
         height: 630,
-        alt: "Arboretum Visual Legacy",
+        alt: "Green Legacy Nature",
       },
     ],
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Arboretum | Digital Stewardship",
-    description: "Your ecological legacy starts with a single seed.",
-    images: ["https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1200"],
-  },
   icons: {
-    icon: "/favicon.ico",
+    icon: "https://cdn-icons-png.flaticon.com/512/892/892926.png", // High-quality Leaf Icon
+    apple: "https://cdn-icons-png.flaticon.com/512/892/892926.png",
   },
-}
+};
 
 export const viewport: Viewport = {
   themeColor: "#121410",
