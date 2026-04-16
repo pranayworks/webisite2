@@ -21,6 +21,8 @@ export default function SettingsPage() {
   const [gender, setGender] = useState('Other')
   const [loading, setLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     async function fetchUser() {
@@ -41,10 +43,40 @@ export default function SettingsPage() {
       setPhone(profile?.phone || '')
       setAge(profile?.age?.toString() || '')
       setGender(profile?.gender || 'Other')
+      setAvatarUrl(profile?.avatar_url || '')
       setLoading(false)
     }
     fetchUser()
   }, [router])
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true)
+      const file = e.target.files?.[0]
+      if (!file || !user) return
+
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${user.id}-${Math.random()}.${fileExt}`
+      const filePath = `avatars/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath)
+
+      setAvatarUrl(publicUrl)
+      toast.success('Avatar uploaded!')
+    } catch (error: any) {
+      toast.error('Upload failed: ' + error.message)
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,7 +84,6 @@ export default function SettingsPage() {
 
     setIsSaving(true)
     
-    // Perform update directly using the client-side session
     const { error: updateError } = await supabase
       .from('profiles')
       .upsert({
@@ -61,7 +92,8 @@ export default function SettingsPage() {
         full_name: fullName,
         phone: phone,
         age: parseInt(age) || 0,
-        gender: gender
+        gender: gender,
+        avatar_url: avatarUrl
       }, { onConflict: 'id' })
 
     setIsSaving(false)
@@ -74,10 +106,11 @@ export default function SettingsPage() {
           full_name: fullName,
           phone: phone,
           age: parseInt(age) || 0,
-          gender: gender
+          gender: gender,
+          avatar_url: avatarUrl
         }
       })
-      toast.success('Saved successfully')
+      toast.success('Profile synced successfully')
     } else {
       toast.error('Failed to sync profile', {
         description: updateError.message
@@ -104,9 +137,32 @@ export default function SettingsPage() {
 
       <main className="pt-32 pb-20 px-4 max-w-2xl mx-auto">
         <div className="space-y-12">
-          <header>
-            <h1 className="font-['Noto_Serif'] text-5xl font-bold">Settings</h1>
-            <p className="text-[#c2caaf] mt-4 text-lg">Manage your stewardship profile and preferences.</p>
+          <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-4">
+              <h1 className="font-['Noto_Serif'] text-5xl font-bold">Settings</h1>
+              <p className="text-[#c2caaf] text-lg">Manage your stewardship profile and preferences.</p>
+            </div>
+            
+            <div className="relative group shrink-0">
+              <div className="w-24 h-24 rounded-full border-2 border-[#b2f432]/20 overflow-hidden bg-[#1a1c18] relative">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#c2caaf]/30">
+                    <MaterialIcon name="person" className="text-4xl" />
+                  </div>
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-[#121410]/80 flex items-center justify-center">
+                    <div className="h-5 w-5 border-2 border-[#b2f432] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+              </div>
+              <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#b2f432] rounded-full flex items-center justify-center text-[#233600] cursor-pointer hover:scale-110 active:scale-95 transition-all shadow-lg">
+                <MaterialIcon name="photo_camera" className="text-sm" />
+                <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} />
+              </label>
+            </div>
           </header>
 
           <form onSubmit={handleSave} className="space-y-8">
@@ -117,8 +173,8 @@ export default function SettingsPage() {
                   <MaterialIcon name="mail" className="text-sm" />
                   <span>{user?.email}</span>
                 </div>
-                <p className="text-[10px] text-[#c2caaf]/40 italic pl-1">Email changes are restricted to ensure stewardship chain-of-title.</p>
               </div>
+              
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-[#c2caaf]">Full Name</label>
                 <div className="relative group">
@@ -180,24 +236,14 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <button 
-                type="submit"
-                disabled={isSaving}
-                className="flex-1 bg-[#b2f432] text-[#233600] py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
-              >
-                {isSaving ? (
-                  <div className="h-4 w-4 border-2 border-[#233600] border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <MaterialIcon name="check" className="text-sm" />
-                    Save Changes
-                  </>
-                )}
-              </button>
-            </div>
+            <button 
+              type="submit"
+              disabled={isSaving}
+              className="w-full bg-[#b2f432] text-[#233600] py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
+            >
+              {isSaving ? 'Syncing...' : 'Save Steward Identity'}
+            </button>
           </form>
-
         </div>
       </main>
     </div>
