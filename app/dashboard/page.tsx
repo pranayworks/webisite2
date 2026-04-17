@@ -129,11 +129,16 @@ export default function DashboardPage() {
   }, [user?.id])
 
   async function checkUser() {
-    const { data: { user } } = await supabase.auth.getUser()
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!user) {
-      router.push('/login')
-    } else {
+      if (authError || !user) {
+        // If no user is found after a few retries, send back to login
+        console.error("Auth Error:", authError)
+        router.push('/login')
+        return
+      }
+
       // CRITICAL: Always fetch the freshest profile state to reflect recent setting changes
       const { data: profile } = await supabase
         .from('profiles')
@@ -154,8 +159,11 @@ export default function DashboardPage() {
         energy: (userTrees * 15).toFixed(0),
         daysRemaining: 30 - new Date().getDate()
       })
+    } catch (error) {
+      console.error("Dashboard Check Error:", error)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleShareImpact = async () => {
