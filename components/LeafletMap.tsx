@@ -23,7 +23,8 @@ export default function LeafletMap({ sites }: LeafletMapProps) {
         TileLayer: reactLeaflet.TileLayer,
         Marker: reactLeaflet.Marker,
         Popup: reactLeaflet.Popup,
-        ZoomControl: reactLeaflet.ZoomControl
+        ZoomControl: reactLeaflet.ZoomControl,
+        LayersControl: reactLeaflet.LayersControl
       })
     })
   }, [])
@@ -69,20 +70,32 @@ export default function LeafletMap({ sites }: LeafletMapProps) {
     )
   }
 
-  const { MapContainer, TileLayer, Marker, Popup, ZoomControl } = libs
+  // Map Layers and Libs
+  const { MapContainer, TileLayer, Marker, Popup, ZoomControl, LayersControl } = libs
 
   return (
     <MapContainer
       center={[20.5937, 78.9629]}
       zoom={5}
-      style={{ width: "100%", height: "100%", borderRadius: "16px" }}
+      style={{ width: "100%", height: "100%", borderRadius: "16px", background: "#1a1c18" }}
       zoomControl={false}
     >
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer name="Street View">
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer checked name="Satellite View">
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; <a href="https://www.esri.com/">Esri</a>, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+          />
+        </LayersControl.BaseLayer>
+      </LayersControl>
+
       <ZoomControl position="bottomright" />
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      />
 
       {(Array.isArray(sites) ? sites : []).map((site) => (
         <Marker
