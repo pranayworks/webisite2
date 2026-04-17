@@ -46,7 +46,18 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setMounted(true)
+    
+    // Initial check
     checkUser()
+
+    // Listen for auth state changes (crucial for OAuth flows)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        checkUser()
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
