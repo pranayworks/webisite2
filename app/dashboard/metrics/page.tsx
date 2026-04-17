@@ -26,7 +26,7 @@ export default function MetricsPage() {
         .select('*')
         .eq('id', user.id)
         .single()
-      
+
       setUser({ ...user, profile })
       setMetrics(calculateImpact(profile?.trees_planted || 0))
     }
@@ -156,10 +156,8 @@ export default function MetricsPage() {
         <section className="mb-16">
           <div className="bg-surface-container-low rounded-2xl overflow-hidden shadow-[0_40px_40px_-5px_rgba(13,15,11,0.08)]">
             <div className="p-8 border-b border-outline-variant/10 flex justify-between items-end">
-              <div>
                 <h2 className="font-serif text-3xl font-bold text-on-surface mb-2">Cumulative Carbon Offset Over Time</h2>
                 <p className="font-body text-sm text-on-surface-variant">Metric tons of CO2 sequestered through active reforestation</p>
-              </div>
               <div className="flex gap-4">
                 <button className="bg-surface-container-highest px-4 py-1.5 rounded-full text-xs font-medium text-on-surface">YTD</button>
                 <button className="px-4 py-1.5 rounded-full text-xs font-medium text-on-surface-variant hover:text-on-surface">ALL TIME</button>
@@ -283,7 +281,7 @@ export default function MetricsPage() {
               <div className="space-y-12">
                 <div>
                   <div className="flex justify-between items-end mb-4">
-                    <span className="font-body text-lg font-bold text-primary">Your Stewardship</span>
+                    <span className="font-body text-lg font-bold text-primary">Your Dashboard</span>
                     <span className="font-serif text-2xl">1,248 Trees</span>
                   </div>
                   <div className="h-4 bg-surface-container-highest rounded-full">
@@ -316,7 +314,7 @@ export default function MetricsPage() {
       <footer className="md:ml-72 bg-[#121410] border-t border-white/5 flex flex-col md:flex-row justify-between items-center px-12 py-16 mt-auto pb-32 md:pb-16">
         <div className="mb-8 md:mb-0 text-center md:text-left">
           <span className="font-serif italic text-on-surface text-xl mb-2 block">Green Legacy</span>
-          <p className="font-sans text-on-surface-variant text-xs">© 2026 Green Legacy. Dedicated to the Digital Arboretum.</p>
+          <p className="font-sans text-on-surface-variant text-xs">© 2026 Green Legacy. Dedicated to a greener future.</p>
         </div>
         <div className="flex gap-8">
           <Link href="#" className="text-on-surface-variant hover:text-[#b2f432] transition-colors text-xs uppercase tracking-widest font-medium">Privacy Policy</Link>

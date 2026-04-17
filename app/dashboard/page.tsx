@@ -148,7 +148,7 @@ export default function DashboardPage() {
   }
 
   const handleShareImpact = async () => {
-    const shareText = `I am officially a ${rank.title} at Arboretum! My grove has produced ${monthlyStats.oxygen}kg of Oxygen this month alone. Join the restoration: ${window.location.origin}`
+    const shareText = `I am officially a ${rank.title} at Green Legacy! My grove has produced ${monthlyStats.oxygen}kg of Oxygen this month alone. Join the restoration: ${window.location.origin}`
     
     if (navigator.share) {
       try {

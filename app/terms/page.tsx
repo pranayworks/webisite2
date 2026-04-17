@@ -46,7 +46,7 @@ export default function TermsPage() {
 
            <div className="space-y-4">
             <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">4. Prohibited Conduct</h3>
-            <p>Users must not interfere with the biological or digital integrity of the Arboretum. This includes fraudulent GPS manipulation, unauthorized access to other stewardship files, or any activity that compromises the community's trust.</p>
+            <p>Users must not interfere with the biological or digital integrity of the Green Legacy. This includes fraudulent GPS manipulation, unauthorized access to other stewardship files, or any activity that compromises the community's trust.</p>
           </div>
 
           <div className="space-y-4">

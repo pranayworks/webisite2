@@ -46,7 +46,7 @@ export default function PrivacyPage() {
 
            <div className="space-y-4">
             <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">4. Your Rights</h3>
-            <p>As a steward of the Arboretum, you have the right to request a full transcript of your data or permanently delete your account sequence. To exercise these rights, please contact our Registry Team.</p>
+            <p>As a steward of Green Legacy, you have the right to request a full transcript of your data or permanently delete your account sequence. To exercise these rights, please contact our Registry Team.</p>
           </div>
         </section>
 

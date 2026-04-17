@@ -1,16 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { sendWelcomeEmail } from '@/app/actions/welcome'
+
+const carouselItems = [
+  {
+    image: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=2000",
+    title: "Planting Perpetuity",
+    description: "Your digital presence begins as a seed. Every entry fosters a new era of stewardship.",
+    icon: "park"
+  },
+  {
+    image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=2000",
+    title: "Eco-Legacy",
+    description: "Build a forest that outlives our generation. Sustainable impact starts here.",
+    icon: "eco"
+  },
+  {
+    image: "https://images.unsplash.com/photo-1511497584788-c76fc42c9545?auto=format&fit=crop&q=80&w=2000",
+    title: "Nature Sync",
+    description: "Connecting the digital world with the biological heartbeat of our planet.",
+    icon: "spa"
+  }
+]
 
 export default function SignUpPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [currentSlide, setCurrentSlide] = useState(0)
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -19,11 +41,35 @@ export default function SignUpPage() {
   })
   const [showPassword, setShowPassword] = useState(false)
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % carouselItems.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
+  }
+
+  const handleGoogleSignUp = async () => {
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+      if (error) throw error
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,7 +85,6 @@ export default function SignUpPage() {
     setLoading(true)
 
     try {
-      // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -58,7 +103,6 @@ export default function SignUpPage() {
 
       await new Promise(resolve => setTimeout(resolve, 500))
 
-      // Create profile entry
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -72,11 +116,10 @@ export default function SignUpPage() {
         console.error('Profile creation error:', profileError)
       }
 
-      // Send welcome email (non-blocking)
       sendWelcomeEmail(formData.fullName, formData.email).catch(console.warn)
 
       setSuccess(true)
-      
+
       setTimeout(() => {
         router.push('/login')
       }, 2000)
@@ -97,54 +140,88 @@ export default function SignUpPage() {
   return (
     <div className="bg-[#121410] text-[#e3e3db] font-['Manrope'] overflow-hidden selection:bg-[#b2f432] selection:text-[#233600]">
       <main className="flex min-h-screen w-full">
-        {/* Left Section: Visual Legacy Area */}
         <section className="relative hidden lg:flex flex-1 items-center justify-center bg-[#121410] overflow-hidden">
-          <div 
-            className="absolute inset-0 opacity-20" 
-            style={{ 
-              backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAg9f36xGiM4LqW74MvntHxoRmqb2QULQejNuvlKzsk7h1dvnyBmXBrbQRiADvcFwOL_ZIl6JGTamVAntT-fUtuA0ZCiovmZu6oS8NfC6C9Cj99cLGopENgpdhAo9RPLPF4-C1Ay9cwQ96X7kb-zasy6nRKdcG_WxyCvaYfYWzrMkBr5jiLbmi-F7EtBRm5WEJTBvdOa3XiWKmMMjdZ3yTHzFBiE-p9Fnc252m54NcdehLReXqNWlNZCZRta5UO0W90Te-aCwT2dI2s')",
-              backgroundSize: "cover",
-              backgroundPosition: "center"
-            }}
-          />
+          {carouselItems.map((item, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-30' : 'opacity-0'}`}
+              style={{
+                backgroundImage: `url('${item.image}')`,
+                backgroundSize: "cover",
+                backgroundPosition: "center"
+              }}
+            />
+          ))}
+          
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(178,244,50,0.1),transparent)]"></div>
 
-          <div className="relative z-10 text-center space-y-12">
+          <div className="relative z-10 text-center space-y-12 w-full px-12">
             <div className="relative w-96 h-96 mx-auto flex items-center justify-center">
               <div className="absolute inset-0 opacity-10 blur-xl scale-110">
-                <span className="material-symbols-outlined text-[300px] text-[#b2f432]" style={{ fontVariationSettings: "'FILL' 1" }}>park</span>
+                <span className="material-symbols-outlined text-[300px] text-[#b2f432]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                   {carouselItems[currentSlide].icon}
+                </span>
               </div>
               <div className="relative flex flex-col items-center">
                 <div className="w-16 h-16 rounded-full bg-[#b2f432]/20 flex items-center justify-center animate-pulse">
-                  <span className="material-symbols-outlined text-4xl text-[#b2f432]" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
+                  <span className="material-symbols-outlined text-4xl text-[#b2f432]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    {carouselItems[currentSlide].icon === 'park' ? 'spa' : carouselItems[currentSlide].icon === 'eco' ? 'nature' : 'water_drop'}
+                  </span>
                 </div>
                 <div className="mt-8">
-                  <h2 className="font-['Noto_Serif'] text-4xl italic font-bold tracking-tight text-[#e3e3db]">Planting Perpetuity</h2>
-                  <p className="mt-4 font-['Manrope'] text-[#c2caaf] max-w-sm mx-auto">Your digital presence begins as a seed. Every entry fosters a new era of stewardship.</p>
+                  <h2 className="font-['Noto_Serif'] text-4xl italic font-bold tracking-tight text-[#e3e3db] animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    {carouselItems[currentSlide].title}
+                  </h2>
+                  <p className="mt-4 font-['Manrope'] text-[#c2caaf] max-w-sm mx-auto opacity-80 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                    {carouselItems[currentSlide].description}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4 max-w-md mx-auto">
-              <div className="h-1 bg-[#b2f432] rounded-full"></div>
-              <div className="h-1 bg-[#343530] rounded-full"></div>
-              <div className="h-1 bg-[#343530] rounded-full"></div>
-              <div className="h-1 bg-[#343530] rounded-full"></div>
+            <div className="flex justify-center gap-3">
+              {carouselItems.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${index === currentSlide ? 'w-8 bg-[#b2f432]' : 'w-2 bg-[#343530]'}`}
+                />
+              ))}
             </div>
+            
+            <p className="text-[#c2caaf]/60 text-sm font-light tracking-[0.2em] uppercase">Plant a tree , Grow Your Legacy</p>
           </div>
 
           <div className="absolute top-12 left-12">
-            <span className="font-['Noto_Serif'] text-2xl font-bold italic text-[#e3e3db]">Arboretum</span>
+             <h1 className="font-['Noto_Serif'] text-2xl font-bold italic text-[#e3e3db] tracking-tight">
+               Green Legacy <span className="text-[#b2f432]">Sign Up</span>
+             </h1>
           </div>
         </section>
 
-        {/* Right Section: Minimalist Form Area */}
         <section className="flex-1 flex items-center justify-center bg-[#1a1c18] px-8 md:px-24 relative z-10">
           <div className="w-full max-w-md space-y-10">
             <header className="space-y-4">
               <h1 className="font-['Noto_Serif'] text-5xl font-bold text-[#e3e3db] tracking-tighter">Grow Your Legacy</h1>
               <p className="font-['Manrope'] text-lg text-[#c2caaf] font-light">Join the circle of stewards in the digital wilderness.</p>
             </header>
+
+            <div className="space-y-4">
+              <button
+                onClick={handleGoogleSignUp}
+                disabled={loading}
+                className="w-full py-4 border border-[#424935] rounded-full flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-widest text-[#e3e3db] hover:bg-[#b2f432]/5 hover:border-[#b2f432]/30 transition-all duration-300 disabled:opacity-50"
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                Continue with Google
+              </button>
+              
+              <div className="flex items-center gap-4 py-2">
+                <div className="h-[1px] flex-1 bg-[#424935]/30"></div>
+                <span className="text-[10px] uppercase tracking-widest text-[#c2caaf]/40">or use ancestral identifier</span>
+                <div className="h-[1px] flex-1 bg-[#424935]/30"></div>
+              </div>
+            </div>
 
             {error && (
               <div className="bg-red-950/50 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm">
@@ -158,81 +235,75 @@ export default function SignUpPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2 group">
                 <label className="font-['Manrope'] text-xs uppercase tracking-widest text-[#c2caaf] group-focus-within:text-[#b2f432] transition-colors" htmlFor="steward-name">
-                  Steward Name
+                  Full Name
                 </label>
-                <div className="relative">
-                  <input 
-                    id="steward-name" 
-                    name="fullName"
-                    type="text" 
-                    required
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    disabled={loading || success}
-                    placeholder="Full identity name" 
-                    className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
-                  />
-                </div>
+                <input
+                  id="steward-name"
+                  name="fullName"
+                  type="text"
+                  required
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  disabled={loading || success}
+                  placeholder="Full identity name"
+                  className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
+                />
               </div>
 
               <div className="space-y-2 group">
                 <label className="font-['Manrope'] text-xs uppercase tracking-widest text-[#c2caaf] group-focus-within:text-[#b2f432] transition-colors" htmlFor="email">
-                  Digital Node
+                   Gmail Id
                 </label>
-                <div className="relative">
-                  <input 
-                    id="email" 
-                    name="email"
-                    type="email" 
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    disabled={loading || success}
-                    placeholder="email@node.arboretum" 
-                    className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
-                  />
-                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={loading || success}
+                  placeholder="@gmail.com"
+                  className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
+                />
               </div>
 
               <div className="space-y-2 group">
                 <label className="font-['Manrope'] text-xs uppercase tracking-widest text-[#c2caaf] group-focus-within:text-[#b2f432] transition-colors" htmlFor="phone">
-                  Liaison Number
+                  Mobile Number
                 </label>
-                <div className="relative">
-                  <input 
-                    id="phone" 
-                    name="phone"
-                    type="tel" 
-                    value={formData.phone}
-                    onChange={handleChange}
-                    disabled={loading || success}
-                    placeholder="+91 XXXXX XXXXX" 
-                    className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
-                  />
-                </div>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  disabled={loading || success}
+                  placeholder="+91 XXXXX XXXXX"
+                  className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
+                />
               </div>
 
               <div className="space-y-2 group">
                 <label className="font-['Manrope'] text-xs uppercase tracking-widest text-[#c2caaf] group-focus-within:text-[#b2f432] transition-colors" htmlFor="password">
-                  Encryption Key
+                  Password
                 </label>
                 <div className="relative">
-                  <input 
-                    id="password" 
+                  <input
+                    id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
                     required
                     value={formData.password}
                     onChange={handleChange}
                     disabled={loading || success}
-                    placeholder="••••••••••••" 
+                    placeholder="••••••••••••"
                     className="w-full bg-[#343530] border-none rounded-none py-4 px-4 focus:ring-0 text-[#e3e3db] font-['Manrope'] text-lg placeholder:text-[#c2caaf]/30 border-b border-[#424935] focus:border-[#b2f432] transition-all"
                   />
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-4 text-[#c2caaf] hover:text-[#b2f432] transition-colors"
                   >
@@ -242,33 +313,32 @@ export default function SignUpPage() {
               </div>
 
               <div className="pt-6 space-y-6">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={loading || success}
                   className="w-full py-5 bg-[#b2f432] text-[#233600] font-['Manrope'] font-extrabold uppercase tracking-widest text-sm rounded-full hover:bg-[#97d700] transition-all duration-300 transform active:scale-[0.98] shadow-xl shadow-[#b2f432]/10 disabled:opacity-50 disabled:active:scale-100"
                 >
                   {loading ? 'Initializing...' : 'Establish Legacy'}
                 </button>
                 <p className="text-center font-['Manrope'] text-sm text-[#c2caaf]">
-                  Already a Steward? <Link href="/login" className="text-[#b2f432] hover:underline underline-offset-4 decoration-1">Authenticate Identity</Link>
+                  Already a user? <Link href="/login" className="text-[#b2f432] hover:underline underline-offset-4 decoration-1">Authenticate Identity</Link>
                 </p>
               </div>
             </form>
 
-            <footer className="pt-12 text-center">
+            <footer className="pt-12 text-center border-t border-[#424935]/10">
               <div className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-[0.2em] text-[#c2caaf]/40">
                 <span>Encrypted Protocol</span>
                 <span className="w-1 h-1 bg-[#c2caaf]/40 rounded-full"></span>
                 <span>Zero-Footprint Carbon</span>
                 <span className="w-1 h-1 bg-[#c2caaf]/40 rounded-full"></span>
-                <span>V. 2.0.4</span>
+                <span>V. 2.1.0</span>
               </div>
             </footer>
           </div>
         </section>
       </main>
 
-      {/* Overlay Grain for texture */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-50 mix-blend-overlay"></div>
     </div>
   )
