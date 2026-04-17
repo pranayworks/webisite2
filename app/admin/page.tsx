@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { addGrowthUpdate } from '@/app/actions/impact'
 import { testTelegramAction, testEmailAction, testInquiryEmailAction, testGrowthEmailAction, testOrderConfirmationEmailAction } from '@/app/actions/diagnostics'
 
-// Material Symbols mapping for consistent look with their design
+// Material Symbols mapping for consistent look  with their design
 const MaterialIcon = ({ name, className = "", style = {} }: { name: string, className?: string, style?: any }) => (
   <span
     className={`material-symbols-outlined shrink-0 ${className}`}
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
       const { data: { session } } = await supabase.auth.getSession()
       const user = session?.user
       const isAuthorizedAdmin = user?.email === 'mamidipranay07@gmail.com' || user?.user_metadata?.role === 'admin'
-      
+
       if (!session || !isAuthorizedAdmin) {
         toast.error("Unauthorized Access", { description: "You do not have permission to view the stewardship portal." })
         router.push('/login')
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
       ]
 
       const formattedHistory = (historyData || []).map(o => ({
-        id: `TR-${o.id.slice(0,4)}`,
+        id: `TR-${o.id.slice(0, 4)}`,
         steward: o.steward_name,
         species: o.species || 'Neem',
         date: new Date(o.created_at).toLocaleDateString(),
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
       (position) => {
         const coords = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
         if (target === 'new') setGpsCoordinates(coords)
-        else setProofData({...proofData, gps: coords})
+        else setProofData({ ...proofData, gps: coords })
         toast.dismiss()
         toast.success("GPS Synchronized")
       },
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
     try {
       const { error: updateError } = await supabase
         .from('planting_orders')
-        .update({ 
+        .update({
           status: 'Completed',
           species: selectedSpecies,
           location: locationContext,
@@ -264,7 +264,7 @@ export default function AdminDashboard() {
   const handleTestEmail = async () => {
     const toastId = toast.loading("Sending test diagnostic email...")
     // In a real app, this would come from env, but we'll try to find it or use a default
-    const result = await testEmailAction('mamidipranay07@gmail.com') 
+    const result = await testEmailAction('mamidipranay07@gmail.com')
     if (result.success) {
       toast.success("Diagnostic Email Sent!", { id: toastId })
     } else {
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
 
         {/* Main Content Area */}
         <main className="flex-1 ml-0 md:ml-72 overflow-y-auto p-8 space-y-12 no-scrollbar">
-          
+
           {activeTab === 'queue' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-12">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -428,8 +428,8 @@ export default function AdminDashboard() {
                               <td className="px-6 py-5 text-xs text-[#b2f432]/80">{order.occasion || 'General'}</td>
                               <td className="px-6 py-5"><span className="text-[9px] bg-[#233600] text-[#b2f432] px-2 py-0.5 rounded uppercase font-bold">{order.status}</span></td>
                               <td className="px-6 py-5 text-right">
-                                <button 
-                                  onClick={() => { setVerifyingOrder(order); setShowVerifyModal(true); }} 
+                                <button
+                                  onClick={() => { setVerifyingOrder(order); setShowVerifyModal(true); }}
                                   className="text-[10px] font-bold uppercase px-4 py-2 bg-[#b2f432] text-[#233600] rounded-full hover:scale-105 transition-transform"
                                 >
                                   Fulfill
@@ -478,14 +478,14 @@ export default function AdminDashboard() {
                       <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-wider text-[#c2caaf]">GPS Coordinates</label>
                         <div className="flex gap-2">
-                          <input 
-                            value={gpsCoordinates} 
-                            onChange={(e) => setGpsCoordinates(e.target.value)} 
-                            className="flex-1 bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none" 
-                            placeholder="Awaiting Sync..." 
-                            required 
+                          <input
+                            value={gpsCoordinates}
+                            onChange={(e) => setGpsCoordinates(e.target.value)}
+                            className="flex-1 bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none"
+                            placeholder="Awaiting Sync..."
+                            required
                           />
-                          <button 
+                          <button
                             type="button"
                             onClick={() => syncGPS('new')}
                             className="px-4 bg-[#b2f432]/10 text-[#b2f432] rounded-xl border border-[#b2f432]/10 hover:bg-[#b2f432] hover:text-[#233600] transition-all"
@@ -542,7 +542,7 @@ export default function AdminDashboard() {
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <div className="flex justify-between items-center">
                 <h2 className="font-['Noto_Serif'] text-3xl font-bold">Offerings & Subscriptions</h2>
-                <button 
+                <button
                   onClick={() => setEditingProduct({ name: '', price_in_cents: 0, trees: 1, mode: 'payment', features: [] })}
                   className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2"
                 >
@@ -583,34 +583,34 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Plan Name</label>
-                      <input 
-                        value={editingProduct.name} 
-                        onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none" 
+                      <input
+                        value={editingProduct.name}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none"
                       />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Price (INR)</label>
-                      <input 
+                      <input
                         type="number"
-                        value={editingProduct.price_in_cents / 100} 
-                        onChange={(e) => setEditingProduct({...editingProduct, price_in_cents: Number(e.target.value) * 100, price_display: `₹${e.target.value}`})}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none" 
+                        value={editingProduct.price_in_cents / 100}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, price_in_cents: Number(e.target.value) * 100, price_display: `₹${e.target.value}` })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none"
                       />
                     </div>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Trees Provided</label>
-                    <input 
+                    <input
                       type="number"
-                      value={editingProduct.trees} 
-                      onChange={(e) => setEditingProduct({...editingProduct, trees: Number(e.target.value)})}
-                      className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none" 
+                      value={editingProduct.trees}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, trees: Number(e.target.value) })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none"
                     />
                   </div>
                 </div>
                 <div className="flex gap-4 pt-4">
-                   <button 
+                  <button
                     onClick={async () => {
                       const { error } = await supabase.from('site_products').upsert(editingProduct)
                       if (!error) {
@@ -634,7 +634,7 @@ export default function AdminDashboard() {
           {activeTab === 'diagnostics' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <h2 className="font-['Noto_Serif'] text-3xl font-bold">System Health & Diagnostics</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-[#1a1c18] p-8 rounded-2xl border border-[#424935]/10 space-y-6">
                   <div className="flex items-center gap-4">
@@ -646,7 +646,7 @@ export default function AdminDashboard() {
                       <p className="text-xs text-[#c2caaf]">Operational • Monitoring active orders</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={handleTestTelegram}
                     className="w-full py-4 bg-blue-500 text-white rounded-2xl font-bold uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-blue-500/20"
                   >
@@ -664,27 +664,27 @@ export default function AdminDashboard() {
                       <p className="text-xs text-[#c2caaf]">Operational • Resend Infrastructure</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={handleTestEmail}
                     className="w-full py-4 bg-[#b2f432] text-[#233600] rounded-2xl font-bold uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-[#b2f432]/20"
                   >
                     <MaterialIcon name="mark_email_read" className="text-xs" /> Verify Status
                   </button>
                   <div className="grid grid-cols-2 gap-4">
-                    <button 
+                    <button
                       onClick={handlePreviewInquiry}
                       className="py-3 bg-[#343530] text-[#c2caaf] rounded-xl text-[10px] font-bold uppercase tracking-widest hover:text-white transition-all border border-[#424935]/20"
                     >
                       Preview Inquiry
                     </button>
-                    <button 
+                    <button
                       onClick={handlePreviewGrowth}
                       className="py-3 bg-[#343530] text-[#c2caaf] rounded-xl text-[10px] font-bold uppercase tracking-widest hover:text-white transition-all border border-[#424935]/20"
                     >
                       Preview Growth
                     </button>
                   </div>
-                  <button 
+                  <button
                     onClick={handlePreviewOrder}
                     className="w-full py-3 mt-4 bg-[#343530] text-[#c2caaf] rounded-xl text-[10px] font-bold uppercase tracking-widest hover:text-white transition-all border border-[#424935]/20"
                   >
@@ -793,14 +793,14 @@ export default function AdminDashboard() {
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Planting GPS (Lat, Long)</label>
                   <div className="flex gap-2">
-                    <input 
-                      required 
+                    <input
+                      required
                       value={proofData.gps}
-                      onChange={(e) => setProofData({...proofData, gps: e.target.value})}
+                      onChange={(e) => setProofData({ ...proofData, gps: e.target.value })}
                       placeholder="Latitude, Longitude"
-                      className="flex-1 bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none focus:border-[#b2f432]/50 transition-colors" 
+                      className="flex-1 bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none focus:border-[#b2f432]/50 transition-colors"
                     />
-                    <button 
+                    <button
                       type="button"
                       onClick={() => syncGPS('proof')}
                       className="px-4 bg-[#b2f432]/10 text-[#b2f432] rounded-2xl border border-[#b2f432]/20 hover:bg-[#b2f432] hover:text-[#233600] transition-all"
@@ -812,9 +812,9 @@ export default function AdminDashboard() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Botanical Species</label>
-                  <select 
+                  <select
                     value={proofData.species}
-                    onChange={(e) => setProofData({...proofData, species: e.target.value})}
+                    onChange={(e) => setProofData({ ...proofData, species: e.target.value })}
                     className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none"
                   >
                     {['Neem', 'Peepal', 'Banyan', 'Teak', 'Mango', 'Bamboo', 'Gulmohar'].map(s => <option key={s} value={s}>{s}</option>)}
@@ -825,12 +825,12 @@ export default function AdminDashboard() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Photo Evidence (URL)</label>
-                  <input 
-                    required 
+                  <input
+                    required
                     value={proofData.photo}
-                    onChange={(e) => setProofData({...proofData, photo: e.target.value})}
+                    onChange={(e) => setProofData({ ...proofData, photo: e.target.value })}
                     placeholder="https://..."
-                    className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none focus:border-[#b2f432]/50 transition-colors" 
+                    className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none focus:border-[#b2f432]/50 transition-colors"
                   />
                 </div>
                 <div className="space-y-4 pt-4">
@@ -840,7 +840,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </form>
-            
+
             <p className="text-[9px] text-[#c2caaf]/40 text-center uppercase tracking-widest">Confirmation will be sent to the steward instantly</p>
           </div>
         </div>
