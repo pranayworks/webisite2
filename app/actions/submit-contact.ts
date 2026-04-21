@@ -20,14 +20,14 @@ export async function submitContact(formData: FormData) {
 
     // 2. Dynamic Routing Logic
     const routingMap: Record<string, string> = {
-      'General': 'contact@greenlegacy.in',
-      'Partnership': 'partnerships@greenlegacy.in',
-      'Media': 'media@greenlegacy.in',
-      'Campus': 'campus@greenlegacy.in',
-      'Support': 'contact@greenlegacy.in'
+      'General': process.env.EMAIL_GENERAL || 'contact.greenlegacy@gmail.com',
+      'Partnership': process.env.EMAIL_PARTNERSHIP || 'partnershipsgreenlegacy@gmail.com',
+      'Media': process.env.EMAIL_MEDIA || 'mediagreenlegacy@gmail.com',
+      'Campus': process.env.EMAIL_CAMPUS || 'campusgreenlegacy@gmail.com',
+      'Support': process.env.EMAIL_SUPPORT || 'contact.greenlegacy@gmail.com'
     }
 
-    const targetEmail = routingMap[subject as keyof typeof routingMap] || 'contact@greenlegacy.in'
+    const targetEmail = routingMap[subject as keyof typeof routingMap] || 'contact.greenlegacy@gmail.com'
     const adminEmail = process.env.ADMIN_EMAIL || 'mamidipranay07@gmail.com'
 
     // 3. Send Notifications (Target Department + Admin Archive)
