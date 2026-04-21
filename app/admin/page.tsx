@@ -51,10 +51,11 @@ export default function AdminDashboard() {
   const [eventsData, setEventsData] = useState<any[]>([])
   const [editingEvent, setEditingEvent] = useState<any>(null)
   const [siteConfig, setSiteConfig] = useState<Record<string, string>>({
-    'hero_headline': 'Plant a Tree, Leave a Legacy.',
-    'global_goal': '1000',
+    'hero_headline': 'Plant a Tree, Create a Legacy.',
+    'global_goal': '500,000',
     'contact_email': 'hello@greenlegacy.in',
-    'contact_phone': '+91 98765 43210'
+    'contact_phone': '+91 98765 43210',
+    'global_carbon_sequestration': '42,850'
   })
   const [faqsData, setFaqsData] = useState<any[]>([])
   const [editingFaq, setEditingFaq] = useState<any>(null)
@@ -473,10 +474,10 @@ export default function AdminDashboard() {
                 <div className="md:col-span-2 bg-[#1a1c18] p-8 rounded-2xl flex flex-col justify-between border border-[#424935]/10 group overflow-hidden relative">
                   <div className="relative z-10">
                     <p className="text-[#c2caaf] font-medium text-sm tracking-wide uppercase">Global Carbon Sequestration</p>
-                    <h3 className="font-['Noto_Serif'] text-5xl font-bold mt-4 leading-tight">42,850 <span className="text-[#b2f432] text-3xl italic">Metric Tons</span></h3>
+                    <h3 className="font-['Noto_Serif'] text-5xl font-bold mt-4 leading-tight">{siteConfig['global_carbon_sequestration']} <span className="text-[#b2f432] text-3xl italic">Metric Tons</span></h3>
                   </div>
                   <div className="mt-8 flex gap-4 items-center relative z-10">
-                    <button className="text-[#b2f432] font-semibold flex items-center gap-2 hover:translate-x-1 transition-transform">
+                    <button onClick={() => setActiveTab('settings')} className="text-[#b2f432] font-semibold flex items-center gap-2 hover:translate-x-1 transition-transform">
                       Edit Impact Metrics <MaterialIcon name="arrow_forward" />
                     </button>
                   </div>
@@ -867,14 +868,26 @@ export default function AdminDashboard() {
                       className="w-full bg-[#343530] rounded-xl px-4 py-3 text-lg outline-none text-[#e3e3db]"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Global Reforestation Goal (Trees)</label>
-                    <input 
-                      type="number"
-                      value={siteConfig['global_goal']}
-                      onChange={(e) => setSiteConfig({...siteConfig, global_goal: e.target.value})}
-                      className="w-full bg-[#343530] rounded-xl px-4 py-3 outline-none text-[#b2f432] font-mono text-xl font-bold"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Global Reforestation Goal (Trees)</label>
+                      <input 
+                        type="number"
+                        value={siteConfig['global_goal']}
+                        onChange={(e) => setSiteConfig({...siteConfig, global_goal: e.target.value})}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 outline-none text-[#b2f432] font-mono text-xl font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Global Carbon Sequestration (Metric Tons)</label>
+                      <input 
+                        type="text"
+                        value={siteConfig['global_carbon_sequestration']}
+                        onChange={(e) => setSiteConfig({...siteConfig, global_carbon_sequestration: e.target.value})}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 outline-none text-[#b2f432] font-mono text-xl font-bold"
+                        placeholder="e.g. 42,850"
+                      />
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
