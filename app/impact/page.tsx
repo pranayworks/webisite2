@@ -210,23 +210,23 @@ export default function ImpactPage() {
           </div>
         </section>
 
-        <section ref={liveRef} className="bg-foreground py-16">
+        <section ref={liveRef} className="bg-[#1a1c18] py-16 border-y border-[#b2f432]/5">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {liveStatsDynamic.map((stat, i) => (
                 <div
                   key={stat.label}
                   className={cn(
-                    "rounded-2xl border border-background/10 bg-background/5 p-6 text-center backdrop-blur-sm transition-all duration-500",
+                    "rounded-2xl border border-[#b2f432]/10 bg-[#121410]/50 p-6 text-center backdrop-blur-sm transition-all duration-500 hover:border-[#b2f432]/30",
                     liveVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
                   )}
                   style={{ transitionDelay: `${i * 100}ms` }}
                 >
                   <stat.icon className={cn("mx-auto h-6 w-6 mb-3", stat.color)} />
-                  <div className="text-2xl font-bold text-white mb-1">
+                  <div className="text-2xl font-bold text-[#e3e3db] mb-1">
                     {liveCountUps[i]}
                   </div>
-                  <p className="text-[10px] uppercase tracking-wider text-background/40 font-bold">{stat.label}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-[#c2caaf]/40 font-bold">{stat.label}</p>
                 </div>
               ))}
             </div>
