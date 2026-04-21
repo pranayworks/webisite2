@@ -418,44 +418,46 @@ export default function AdminDashboard() {
       <div className="flex pt-20 h-screen">
         {/* SideNavBar */}
         <aside className="fixed left-0 top-20 h-[calc(100vh-5rem)] w-72 bg-[#0d0f0b] flex flex-col py-8 gap-1 hidden md:flex border-r border-[#424935]/10">
-          <div className="px-8 mb-8">
+          <div className="px-8 mb-4 shrink-0">
             <h2 className="font-['Manrope'] font-bold text-[#c2caaf] text-xs uppercase tracking-widest opacity-60">Field Operations</h2>
             <p className="text-[#b2f432] font-medium text-sm">Active Stewardship</p>
           </div>
-          <button onClick={() => setActiveTab('queue')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'queue' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="list_alt" /> <span>Order Queue</span>
-          </button>
-          <button onClick={() => setActiveTab('history')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'history' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="history" /> <span>Planting History</span>
-          </button>
-          <button onClick={() => setActiveTab('users')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'users' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="group" /> <span>Steward Directory</span>
-          </button>
-          <button onClick={() => setActiveTab('stories')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'stories' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="menu_book" /> <span>Impact Stories</span>
-          </button>
-          <button onClick={() => setActiveTab('events')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'events' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="event" /> <span>Campaigns & Events</span>
-          </button>
-          <button onClick={() => setActiveTab('testimonials')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'testimonials' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="chat_bubble" /> <span>Testimonials</span>
-          </button>
-          <button onClick={() => setActiveTab('faqs')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'faqs' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="help" /> <span>Help & FAQs</span>
-          </button>
-          <button onClick={() => setActiveTab('settings')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'settings' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="settings" /> <span>Global Settings</span>
-          </button>
-          <button onClick={() => setActiveTab('products')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'products' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="inventory_2" /> <span>Inventory & Plans</span>
-          </button>
-          <button onClick={() => setActiveTab('diagnostics')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'diagnostics' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="analytics" /> <span>Diagnostics</span>
-          </button>
-          <button onClick={() => setActiveTab('inquiries')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'inquiries' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-            <MaterialIcon name="mail" /> <span>Inquiries</span>
-          </button>
-          <div className="mt-auto px-8">
+          <nav className="flex-1 overflow-y-auto flex flex-col gap-1 w-full pb-8 custom-scrollbar">
+            <button onClick={() => setActiveTab('queue')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'queue' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="list_alt" /> <span>Order Queue</span>
+            </button>
+            <button onClick={() => setActiveTab('history')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'history' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="history" /> <span>Planting History</span>
+            </button>
+            <button onClick={() => setActiveTab('users')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'users' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="group" /> <span>Steward Directory</span>
+            </button>
+            <button onClick={() => setActiveTab('stories')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'stories' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="menu_book" /> <span>Impact Stories</span>
+            </button>
+            <button onClick={() => setActiveTab('events')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'events' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="event" /> <span>Campaigns & Events</span>
+            </button>
+            <button onClick={() => setActiveTab('testimonials')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'testimonials' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="chat_bubble" /> <span>Testimonials</span>
+            </button>
+            <button onClick={() => setActiveTab('faqs')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'faqs' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="help" /> <span>Help & FAQs</span>
+            </button>
+            <button onClick={() => setActiveTab('settings')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'settings' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="settings" /> <span>Global Settings</span>
+            </button>
+            <button onClick={() => setActiveTab('products')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'products' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="inventory_2" /> <span>Inventory & Plans</span>
+            </button>
+            <button onClick={() => setActiveTab('diagnostics')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'diagnostics' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="analytics" /> <span>Diagnostics</span>
+            </button>
+            <button onClick={() => setActiveTab('inquiries')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'inquiries' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="mail" /> <span>Inquiries</span>
+            </button>
+          </nav>
+          <div className="px-8 pt-4 border-t border-[#424935]/10 mt-auto shrink-0 bg-[#0d0f0b]">
             <button onClick={() => document.getElementById('new-planting-form')?.scrollIntoView({ behavior: 'smooth' })} className="w-full py-4 bg-[#b2f432] text-[#233600] rounded-full font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg">
               <MaterialIcon name="add" className="text-sm" /> New Report
             </button>
