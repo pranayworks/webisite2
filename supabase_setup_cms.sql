@@ -132,3 +132,25 @@ ALTER TABLE media_assets ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view media" ON media_assets FOR SELECT USING (true);
 CREATE POLICY "Admins can manage media" ON media_assets USING (auth.role() = 'authenticated');
 
+
+-- 7. Contact Messages (Inquiries) Table
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  name text NOT NULL,
+  email text NOT NULL,
+  phone text,
+  subject text NOT NULL,
+  message text NOT NULL,
+  status text DEFAULT 'Unread',
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS
+ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
+
+-- Important: Allow anyone to insert (so they can send queries from the contact page)
+CREATE POLICY "Anyone can send inquiries" ON contact_messages FOR INSERT WITH CHECK (true);
+
+-- Only authenticated admins can view and manage inquiries
+CREATE POLICY "Admins can view inquiries" ON contact_messages FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage inquiries" ON contact_messages USING (auth.role() = 'authenticated');
