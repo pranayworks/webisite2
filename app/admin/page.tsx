@@ -37,7 +37,8 @@ export default function AdminDashboard() {
   const [selectedSpecies, setSelectedSpecies] = useState('Neem')
   const [searchQuery, setSearchQuery] = useState('')
   const [growthNote, setGrowthNote] = useState('')
-
+  const [growthDate, setGrowthDate] = useState(new Date().toISOString().split('T')[0])
+  const [growthImage, setGrowthImage] = useState<string | null>(null)
   const [orders, setOrders] = useState<any[]>([])
   const [usersDirectory, setUsersDirectory] = useState<any[]>([])
   const [dbProducts, setDbProducts] = useState<any[]>([])
@@ -484,7 +485,7 @@ export default function AdminDashboard() {
                           <p className="font-bold text-sm">{rem.user}</p>
                           <p className="text-[9px] uppercase tracking-widest text-[#c2caaf]">{rem.type}</p>
                         </div>
-                        <button className="text-[10px] font-bold px-3 py-1.5 bg-orange-500/10 text-orange-400 rounded-lg">Update</button>
+                        <button onClick={() => { setSelectedOrder({ name: rem.user, id: rem.id }); setShowUpdateModal(true); }} className="text-[10px] font-bold px-3 py-1.5 bg-orange-500/10 text-orange-400 rounded-lg hover:bg-orange-500/20 transition-colors">Update</button>
                       </div>
                     ))}
                   </div>
@@ -846,14 +847,44 @@ export default function AdminDashboard() {
               <button onClick={() => setShowUpdateModal(false)} className="material-symbols-outlined text-[#c2caaf] hover:text-white">close</button>
             </div>
             <div className="p-8 space-y-8 flex-1">
-              <form className="space-y-8" onSubmit={handleGrowthUpdate}>
+              <form className="space-y-6" onSubmit={handleGrowthUpdate}>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#c2caaf]">Growth Observations</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#c2caaf]">Observation Date</label>
+                  <input
+                    type="date"
+                    value={growthDate}
+                    onChange={(e) => setGrowthDate(e.target.value)}
+                    className="w-full bg-[#343530] border-none rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#c2caaf]">Growth Image proof</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setGrowthImage(URL.createObjectURL(e.target.files[0]))
+                      }
+                    }}
+                    className="w-full text-sm text-[#c2caaf] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#b2f432]/10 file:text-[#b2f432] hover:file:bg-[#b2f432]/20 outline-none cursor-pointer"
+                  />
+                  {growthImage && (
+                    <div className="mt-4 rounded-xl overflow-hidden border border-[#424935]/20 aspect-video relative">
+                      <img src={growthImage} alt="Growth" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setGrowthImage(null)} className="absolute top-2 right-2 h-8 w-8 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors">
+                        <MaterialIcon name="close" className="text-sm" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#c2caaf]">Detailed Description</label>
                   <textarea
                     value={growthNote}
                     onChange={(e) => setGrowthNote(e.target.value)}
-                    className="w-full bg-[#343530] border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-[#b2f432]/40 text-sm min-h-[160px] outline-none"
-                    placeholder="e.g. Healthy new growth visible..."
+                    className="w-full bg-[#343530] border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-[#b2f432]/40 text-sm min-h-[120px] outline-none"
+                    placeholder="e.g. Healthy new canopy forming. Measured width is 40cm..."
                   />
                 </div>
                 <button type="submit" className="w-full py-4 bg-[#b2f432] text-[#233600] rounded-full font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform">
