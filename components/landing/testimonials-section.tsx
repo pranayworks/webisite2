@@ -4,8 +4,9 @@ import { useState, useEffect } from "react"
 import { Star, ChevronLeft, ChevronRight } from "lucide-react"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
 
-const testimonials = [
+const defaultTestimonials = [
   {
     name: "Priya Sharma",
     role: "Individual Donor",
@@ -43,6 +44,13 @@ export function TestimonialsSection() {
   const [current, setCurrent] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [visibleCount, setVisibleCount] = useState(1)
+  const [testimonials, setTestimonials] = useState<any[]>(defaultTestimonials)
+
+  useEffect(() => {
+    supabase.from('testimonials').select('*').order('created_at', { ascending: false }).then(({ data, error }) => {
+      if (data && data.length > 0) setTestimonials(data)
+    })
+  }, [])
 
   useEffect(() => {
     const updateVisibleCount = () => {

@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'stories' | 'products' | 'diagnostics' | 'inquiries'>('queue')
+  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'stories' | 'testimonials' | 'products' | 'diagnostics' | 'inquiries'>('queue')
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [selectedSteward, setSelectedSteward] = useState('')
@@ -46,6 +46,8 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState<any[]>([])
   const [stories, setStories] = useState<any[]>([])
   const [editingStory, setEditingStory] = useState<any>(null)
+  const [testimonials, setTestimonials] = useState<any[]>([])
+  const [editingTestimonial, setEditingTestimonial] = useState<any>(null)
   const [showVerifyModal, setShowVerifyModal] = useState(false)
   const [verifyingOrder, setVerifyingOrder] = useState<any>(null)
   const [proofData, setProofData] = useState({ gps: '', species: 'Neem', photo: '', date: new Date().toISOString().split('T')[0] })
@@ -183,6 +185,13 @@ export default function AdminDashboard() {
         console.warn("CMS table 'impact_stories' might not be instantiated yet.");
       }
 
+      // 7. Fetch Testimonials
+      const { data: testData, error: testError } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false })
+      if (!testError && testData) {
+        setTestimonials(testData)
+      } else {
+        console.warn("CMS table 'testimonials' might not be instantiated yet.");
+      }
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
       toast.error("Database connection issue. Showing dummy data.")
@@ -398,6 +407,9 @@ export default function AdminDashboard() {
           </button>
           <button onClick={() => setActiveTab('stories')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'stories' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="menu_book" /> <span>Impact Stories</span>
+          </button>
+          <button onClick={() => setActiveTab('testimonials')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'testimonials' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+            <MaterialIcon name="chat_bubble" /> <span>Testimonials</span>
           </button>
           <button onClick={() => setActiveTab('products')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'products' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="inventory_2" /> <span>Inventory & Plans</span>
@@ -688,6 +700,44 @@ export default function AdminDashboard() {
             </section>
           )}
 
+          {activeTab === 'testimonials' && (
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+              <div className="flex justify-between items-center">
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Endorsements Engine</h2>
+                <button
+                  onClick={() => setEditingTestimonial({ name: '', role: '', text: '', rating: 5 })}
+                  className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] transition-transform"
+                >
+                  <MaterialIcon name="add" /> Add Endorsement
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(testimonials.length > 0 ? testimonials : [
+                  { name: "Demo User", role: "Corporate Partner", text: "No database records yet. Run setup.sql to populate.", id: 'mock', rating: 5 }
+                ]).map(test => (
+                  <div key={test.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all flex flex-col">
+                    <div className="flex gap-1 mb-4 text-[#b2f432]">
+                      {Array.from({ length: test.rating || 5 }).map((_, i) => <MaterialIcon key={i} name="star" className="text-sm fill-current" />)}
+                    </div>
+                    <p className="text-[#e3e3db] text-sm italic mb-6 leading-relaxed flex-1">&ldquo;{test.text}&rdquo;</p>
+                    <div className="mt-auto">
+                      <h4 className="font-bold">{test.name}</h4>
+                      <p className="text-[10px] text-[#c2caaf] uppercase tracking-widest">{test.role}</p>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-[#424935]/10 flex gap-2">
+                      <button onClick={() => setEditingTestimonial(test)} className="flex-1 bg-[#343530] text-[#e3e3db] py-2 rounded-lg text-xs font-bold hover:bg-[#424935]">Edit</button>
+                      <button onClick={async () => {
+                        const { error } = await supabase.from('testimonials').delete().eq('id', test.id)
+                        if (!error) { toast.success("Deleted!"); fetchDashboardData() } else { toast.error(error.message) }
+                      }} className="h-8 w-8 bg-[#343530] text-red-500/80 rounded-lg flex items-center justify-center hover:bg-red-500/10"><MaterialIcon name="delete" className="text-sm" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {activeTab === 'products' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <div className="flex justify-between items-center">
@@ -846,6 +896,76 @@ export default function AdminDashboard() {
                     Publish to Website
                   </button>
                   <button onClick={() => setEditingStory(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {editingTestimonial && (
+            <div className="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md">
+              <div className="bg-[#1a1c18] w-full max-w-lg rounded-3xl border border-[#424935]/20 p-8 space-y-6">
+                <h3 className="font-['Noto_Serif'] text-2xl font-bold">{editingTestimonial.id ? 'Edit Endorsement' : 'Add Endorsement'}</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Name</label>
+                      <input
+                        value={editingTestimonial.name}
+                        onChange={(e) => setEditingTestimonial({ ...editingTestimonial, name: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                        placeholder="e.g. John Doe"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Role or Title</label>
+                      <input
+                        value={editingTestimonial.role}
+                        onChange={(e) => setEditingTestimonial({ ...editingTestimonial, role: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                        placeholder="e.g. CEO, TechCorp"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Rating (1-5)</label>
+                    <input
+                      type="number" min="1" max="5"
+                      value={editingTestimonial.rating}
+                      onChange={(e) => setEditingTestimonial({ ...editingTestimonial, rating: parseInt(e.target.value) || 5 })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Quote / Testimonial</label>
+                    <textarea
+                      value={editingTestimonial.text}
+                      onChange={(e) => setEditingTestimonial({ ...editingTestimonial, text: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] min-h-[100px]"
+                      placeholder="Type their exact quote..."
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4 pt-4 border-t border-[#424935]/10">
+                  <button
+                    onClick={async () => {
+                      const dataPayload = { name: editingTestimonial.name, role: editingTestimonial.role, text: editingTestimonial.text, rating: editingTestimonial.rating }
+                      const op = editingTestimonial.id 
+                        ? supabase.from('testimonials').update(dataPayload).eq('id', editingTestimonial.id)
+                        : supabase.from('testimonials').insert(dataPayload)
+                      const { error } = await op
+                      if (!error) {
+                        toast.success("Testimonial Published!")
+                        setEditingTestimonial(null)
+                        fetchDashboardData()
+                      } else {
+                        toast.error(error.message)
+                      }
+                    }}
+                    className="flex-1 bg-[#b2f432] text-[#233600] py-3 rounded-xl font-bold hover:scale-[1.01] transition-transform"
+                  >
+                    Save Endorsement
+                  </button>
+                  <button onClick={() => setEditingTestimonial(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
                 </div>
               </div>
             </div>
