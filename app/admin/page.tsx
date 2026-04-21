@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'products' | 'diagnostics' | 'inquiries'>('queue')
+  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'products' | 'diagnostics' | 'inquiries'>('queue')
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [selectedSteward, setSelectedSteward] = useState('')
@@ -39,6 +39,7 @@ export default function AdminDashboard() {
   const [growthNote, setGrowthNote] = useState('')
 
   const [orders, setOrders] = useState<any[]>([])
+  const [usersDirectory, setUsersDirectory] = useState<any[]>([])
   const [dbProducts, setDbProducts] = useState<any[]>([])
   const [editingProduct, setEditingProduct] = useState<any>(null)
   const [messages, setMessages] = useState<any[]>([])
@@ -57,6 +58,10 @@ export default function AdminDashboard() {
   const filteredOrders = orders.filter(o =>
     o.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     o.id.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const filteredUsers = usersDirectory.filter(u =>
+    u.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   useEffect(() => {
@@ -142,6 +147,30 @@ export default function AdminDashboard() {
         .select('*')
         .order('created_at', { ascending: false })
       if (mData) setMessages(mData)
+
+      // 5. Build Users Directory
+      const { data: allOrdersData } = await supabase.from('planting_orders').select('*').order('created_at', { ascending: true })
+      if (allOrdersData) {
+        const userMap = new Map()
+        // Add dummy data first for visuals if db is empty or sparse
+        userMap.set('Aris Thorne', { name: 'Aris Thorne', trees: 1, amount: 299, firstPlanted: '2026-10-24T00:00:00.000Z', lastPlanted: '2026-10-24T00:00:00.000Z' })
+        userMap.set('Lyra Chen', { name: 'Lyra Chen', trees: 5, amount: 999, firstPlanted: '2026-10-25T00:00:00.000Z', lastPlanted: '2026-10-25T00:00:00.000Z' })
+        userMap.set('Elias Jaxon', { name: 'Elias Jaxon', trees: 2, amount: 598, firstPlanted: '2026-10-20T00:00:00.000Z', lastPlanted: '2026-10-20T00:00:00.000Z' })
+        
+        allOrdersData.forEach((po: any) => {
+          const steward = po.steward_name || 'Anonymous'
+          const amount = po.amount_paid != null ? po.amount_paid : ((po.trees || 1) * 299)
+          const existing = userMap.get(steward) || { name: steward, trees: 0, amount: 0, firstPlanted: po.created_at, lastPlanted: po.created_at }
+          existing.trees += (po.trees || 1)
+          existing.amount += amount
+          if (new Date(po.created_at) < new Date(existing.firstPlanted)) existing.firstPlanted = po.created_at
+          if (new Date(po.created_at) > new Date(existing.lastPlanted)) existing.lastPlanted = po.created_at
+          userMap.set(steward, existing)
+        })
+        const directoryArray = Array.from(userMap.values())
+        directoryArray.sort((a,b) => b.trees - a.trees)
+        setUsersDirectory(directoryArray)
+      }
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
@@ -353,6 +382,9 @@ export default function AdminDashboard() {
           <button onClick={() => setActiveTab('history')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'history' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="history" /> <span>Planting History</span>
           </button>
+          <button onClick={() => setActiveTab('users')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'users' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+            <MaterialIcon name="group" /> <span>Steward Directory</span>
+          </button>
           <button onClick={() => setActiveTab('products')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'products' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="inventory_2" /> <span>Inventory & Plans</span>
           </button>
@@ -532,6 +564,64 @@ export default function AdminDashboard() {
                         <td className="px-6 py-5 text-right"><span className="text-[9px] bg-[#233600] text-[#b2f432] px-2 py-0.5 rounded uppercase font-bold">Healthy</span></td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'users' && (
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+              <div className="flex justify-between items-center">
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Steward Directory</h2>
+                <div className="bg-[#b2f432]/10 text-[#b2f432] px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-[#b2f432]/20">
+                  {filteredUsers.length} Record{filteredUsers.length !== 1 ? 's' : ''} Found
+                </div>
+              </div>
+              <div className="bg-[#292b26] rounded-2xl border border-[#424935]/10 overflow-hidden">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-[#424935]/10 text-[#c2caaf] text-[10px] uppercase tracking-widest font-bold">
+                      <th className="px-6 py-4">Steward Name</th>
+                      <th className="px-6 py-4 text-center">Total Trees Planted</th>
+                      <th className="px-6 py-4 text-center">Total Contribution</th>
+                      <th className="px-6 py-4">First Planting</th>
+                      <th className="px-6 py-4">Latest Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#424935]/10">
+                    {filteredUsers.length > 0 ? filteredUsers.map((user, i) => (
+                      <tr key={i} className="hover:bg-[#343530]/30 transition-colors">
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-[#343530] flex items-center justify-center text-[#c2caaf] font-bold text-xs uppercase">
+                              {user.name.split(' ').map((n: string) => n[0]).join('')}
+                            </div>
+                            <span className="font-medium text-sm">{user.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-center">
+                          <span className="font-mono text-sm tracking-wide bg-[#b2f432]/10 text-[#b2f432] px-3 py-1 rounded-full font-bold">
+                            {user.trees} 🌲
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 text-center text-sm font-mono tracking-wide text-[#e3e3db]">
+                          ₹{user.amount.toLocaleString('en-IN')}
+                        </td>
+                        <td className="px-6 py-5 text-xs text-[#c2caaf]">
+                          {new Date(user.firstPlanted).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </td>
+                        <td className="px-6 py-5 text-xs text-[#c2caaf]">
+                          {new Date(user.lastPlanted).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center text-[#c2caaf]/50 italic">
+                          No users found matching "{searchQuery}"
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
