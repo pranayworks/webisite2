@@ -58,10 +58,11 @@ export default function GetInvolvedPage() {
   const [loading, setLoading] = useState(true)
   const [activeModal, setActiveModal] = useState<string | null>(null)
   const [formSubmitted, setFormSubmitted] = useState(false)
-  const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
-  const { ref: pathRef, isVisible: pathVisible } = useScrollAnimation()
-  const { ref: eventRef, isVisible: eventVisible } = useScrollAnimation()
-  const { ref: partnerRef, isVisible: partnerVisible } = useScrollAnimation()
+  // EMERGENCY VISIBILITY OVERRIDE
+  const heroRef = null; const heroVisible = true;
+  const pathRef = null; const pathVisible = true;
+  const eventRef = null; const eventVisible = true;
+  const partnerRef = null; const partnerVisible = true;
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 

@@ -134,11 +134,12 @@ export default function ImpactPage() {
     fetchData()
   }, [])
 
-  const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
-  const { ref: liveRef, isVisible: liveVisible } = useScrollAnimation()
-  const { ref: tabRef, isVisible: tabVisible } = useScrollAnimation()
-  const { ref: fundRef, isVisible: fundVisible } = useScrollAnimation()
-  const { ref: storiesRef, isVisible: storiesVisible } = useScrollAnimation()
+  // EMERGENCY VISIBILITY OVERRIDE
+  const heroRef = null; const heroVisible = true;
+  const liveRef = null; const liveVisible = true;
+  const tabRef = null; const tabVisible = true;
+  const fundRef = null; const fundVisible = true;
+  const storiesRef = null; const storiesVisible = true;
 
   const liveStatsDynamic = useMemo(() => [
     { icon: TreePine, label: "Trees Planted Today", value: stats.today, color: "text-green-500" },
