@@ -134,10 +134,7 @@ export default function GetInvolvedPage() {
         {/* Hero */}
         <section ref={heroRef} className="relative overflow-hidden bg-background pt-28 pb-16 md:pt-36">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.06)_0%,transparent_60%)]" />
-          <div className={cn(
-            "relative z-10 mx-auto max-w-4xl px-4 text-center transition-all duration-700 lg:px-8",
-            heroVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          )}>
+          <div className="relative z-10 mx-auto max-w-4xl px-4 text-center transition-all duration-700 lg:px-8 opacity-100 translate-y-0">
             <p className="text-sm font-medium uppercase tracking-widest text-accent">Get Involved</p>
             <h1 className="mt-3 font-serif text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl text-balance">
               Grow With Us
@@ -155,11 +152,8 @@ export default function GetInvolvedPage() {
               {pathways.map((p, i) => (
                 <div
                   key={p.title}
-                  className={cn(
-                    "group relative flex flex-col rounded-2xl border border-border bg-card p-8 transition-all duration-500 hover:shadow-xl hover:-translate-y-2",
-                    pathVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-                  )}
-                  style={{ transitionDelay: pathVisible ? `${i * 150}ms` : "0ms" }}
+                  className="group relative flex flex-col rounded-2xl border border-border bg-card p-8 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 opacity-100 translate-y-0"
+                  style={{ transitionDelay: `${i * 150}ms` }}
                 >
                   <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
                     <p.icon className="h-7 w-7" />
@@ -190,10 +184,7 @@ export default function GetInvolvedPage() {
         {/* Upcoming Events */}
         <section ref={eventRef} className="bg-muted/30 py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
-            <div className={cn(
-              "text-center transition-all duration-700",
-              eventVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            )}>
+            <div className="text-center transition-all duration-700 opacity-100 translate-y-0">
               <p className="text-sm font-medium uppercase tracking-widest text-accent">Events</p>
               <h2 className="mt-3 font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">
                 Upcoming Planting Events
@@ -203,11 +194,8 @@ export default function GetInvolvedPage() {
               {events.map((e, i) => (
                 <div
                   key={e.title}
-                  className={cn(
-                    "group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:shadow-lg sm:flex-row sm:items-center sm:gap-6",
-                    eventVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-                  )}
-                  style={{ transitionDelay: eventVisible ? `${i * 100}ms` : "0ms" }}
+                  className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:shadow-lg sm:flex-row sm:items-center sm:gap-6 opacity-100 translate-y-0"
+                  style={{ transitionDelay: `${i * 100}ms` }}
                 >
                   <div className="flex-1">
                     <h3 className="font-semibold text-card-foreground">{e.title}</h3>
@@ -233,10 +221,7 @@ export default function GetInvolvedPage() {
         {/* Partner Showcase */}
         <section ref={partnerRef} className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
-            <div className={cn(
-              "text-center transition-all duration-700",
-              partnerVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            )}>
+            <div className="text-center transition-all duration-700 opacity-100 translate-y-0">
               <p className="text-sm font-medium uppercase tracking-widest text-accent">Partners</p>
               <h2 className="mt-3 font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">
                 Corporate Partners Making a Difference
@@ -246,11 +231,8 @@ export default function GetInvolvedPage() {
               {partners.map((p, i) => (
                 <div
                   key={p.name}
-                  className={cn(
-                    "rounded-2xl border border-border bg-card p-8 transition-all duration-500 hover:shadow-lg",
-                    partnerVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-                  )}
-                  style={{ transitionDelay: partnerVisible ? `${i * 100}ms` : "0ms" }}
+                  className="rounded-2xl border border-border bg-card p-8 transition-all duration-500 hover:shadow-lg opacity-100 translate-y-0"
+                  style={{ transitionDelay: `${i * 100}ms` }}
                 >
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-sm font-bold text-foreground">
                     {p.name.split(" ").map(w => w[0]).join("")}

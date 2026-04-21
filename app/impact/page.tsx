@@ -187,10 +187,7 @@ export default function ImpactPage() {
         {/* Hero */}
         <section ref={heroRef} className="relative overflow-hidden bg-background pt-28 pb-16 md:pt-36">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.06)_0%,transparent_60%)]" />
-          <div className={cn(
-            "relative z-10 mx-auto max-w-4xl px-4 text-center transition-all duration-700 lg:px-8",
-            heroVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          )}>
+          <div className="relative z-10 mx-auto max-w-4xl px-4 text-center transition-all duration-700 lg:px-8 opacity-100 translate-y-0">
             <p className="text-sm font-medium uppercase tracking-widest text-accent">Impact Dashboard</p>
             <h1 className="mt-3 font-serif text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl text-balance">
               Measurable Impact, Complete Transparency
@@ -207,10 +204,7 @@ export default function ImpactPage() {
               {liveStatsDynamic.map((stat, i) => (
                 <div
                   key={stat.label}
-                  className={cn(
-                    "rounded-2xl border border-[#b2f432]/10 bg-[#121410]/50 p-6 text-center backdrop-blur-sm transition-all duration-500 hover:border-[#b2f432]/30",
-                    liveVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-                  )}
+                  className="rounded-2xl border border-[#b2f432]/10 bg-[#121410]/50 p-6 text-center backdrop-blur-sm transition-all duration-500 hover:border-[#b2f432]/30 opacity-100 translate-y-0"
                   style={{ transitionDelay: `${i * 100}ms` }}
                 >
                   <stat.icon className={cn("mx-auto h-6 w-6 mb-3", stat.color)} />
@@ -330,11 +324,8 @@ export default function ImpactPage() {
               {stories.map((s, i) => (
                 <div
                   key={s.title}
-                  className={cn(
-                    "group rounded-2xl border border-border bg-card p-8 transition-all duration-500 hover:shadow-lg hover:-translate-y-1",
-                    storiesVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-                  )}
-                  style={{ transitionDelay: storiesVisible ? `${i * 100}ms` : "0ms" }}
+                  className="group rounded-2xl border border-border bg-card p-8 transition-all duration-500 hover:shadow-lg hover:-translate-y-1 opacity-100 translate-y-0"
+                  style={{ transitionDelay: `${i * 100}ms` }}
                 >
                   <p className="text-xs font-medium uppercase tracking-wider text-accent">{s.location}</p>
                   <h3 className="mt-2 text-lg font-semibold text-card-foreground">{s.title}</h3>
