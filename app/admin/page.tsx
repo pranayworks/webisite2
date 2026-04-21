@@ -1028,13 +1028,29 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Thumbnail / Header Image (URL)</label>
-                    <input
-                      value={editingStory.image_url || ''}
-                      onChange={(e) => setEditingStory({ ...editingStory, image_url: e.target.value })}
-                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
-                      placeholder="https://..."
-                    />
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Thumbnail / Header Image (Upload)</label>
+                    <div className="flex items-center gap-4">
+                      {editingStory.image_url && (
+                        <div className="h-12 w-12 rounded-lg overflow-hidden shrink-0 border border-[#424935]/30">
+                          <img src={editingStory.image_url} alt="Preview" className="h-full w-full object-cover bg-[#343530]" />
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const reader = new FileReader()
+                            reader.onloadend = () => {
+                              setEditingStory({ ...editingStory, image_url: reader.result as string })
+                            }
+                            reader.readAsDataURL(file)
+                          }
+                        }}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none text-[#e3e3db] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#b2f432] file:text-[#233600] hover:file:opacity-90 cursor-pointer"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Story Excerpt (Website Body)</label>
