@@ -115,3 +115,20 @@ INSERT INTO faq_manager (question, answer, display_order) VALUES
 ('How do I get my certificate?', 'Certificates are generated instantly once your steward identity is verified. You can find and download your high-resolution official PDF certificates directly from your Dashboard.', 4),
 ('What happens if a tree doesn''t survive?', 'We guarantee survival. If a sapling fails during the first 3 years of its growth, our field partners automatically replace it with a new healthy specimen at no extra cost to the steward.', 5)
 ON CONFLICT DO NOTHING;
+
+-- 6. Media Manager Table
+CREATE TABLE IF NOT EXISTS media_assets (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  asset_type text NOT NULL CHECK (asset_type IN ('press_release', 'media_coverage', 'gallery_image', 'video')),
+  title text NOT NULL,
+  date_published text,
+  excerpt_or_headline text,
+  publisher_or_location text,
+  media_url text,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE media_assets ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view media" ON media_assets FOR SELECT USING (true);
+CREATE POLICY "Admins can manage media" ON media_assets USING (auth.role() = 'authenticated');
+

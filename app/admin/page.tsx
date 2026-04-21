@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'stories' | 'events' | 'testimonials' | 'faqs' | 'settings' | 'products' | 'diagnostics' | 'inquiries'>('queue')
+  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'stories' | 'events' | 'testimonials' | 'faqs' | 'media' | 'settings' | 'products' | 'diagnostics' | 'inquiries'>('queue')
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [selectedSteward, setSelectedSteward] = useState('')
@@ -59,6 +59,8 @@ export default function AdminDashboard() {
   })
   const [faqsData, setFaqsData] = useState<any[]>([])
   const [editingFaq, setEditingFaq] = useState<any>(null)
+  const [mediaData, setMediaData] = useState<any[]>([])
+  const [editingMedia, setEditingMedia] = useState<any>(null)
   const [showVerifyModal, setShowVerifyModal] = useState(false)
   const [verifyingOrder, setVerifyingOrder] = useState<any>(null)
   const [proofData, setProofData] = useState({ gps: '', species: 'Neem', photo: '', date: new Date().toISOString().split('T')[0] })
@@ -218,6 +220,10 @@ export default function AdminDashboard() {
       // 9. Fetch FAQs
       const { data: faqsRes } = await supabase.from('faq_manager').select('*').order('display_order', { ascending: true })
       if (faqsRes) setFaqsData(faqsRes)
+
+      // 10. Fetch Media
+      const { data: mediaRes } = await supabase.from('media_assets').select('*').order('created_at', { ascending: false })
+      if (mediaRes) setMediaData(mediaRes)
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
@@ -444,6 +450,9 @@ export default function AdminDashboard() {
             </button>
             <button onClick={() => setActiveTab('faqs')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'faqs' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
               <MaterialIcon name="help" /> <span>Help & FAQs</span>
+            </button>
+            <button onClick={() => setActiveTab('media')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'media' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="perm_media" /> <span>Media Library</span>
             </button>
             <button onClick={() => setActiveTab('settings')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'settings' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
               <MaterialIcon name="settings" /> <span>Global Settings</span>
@@ -848,6 +857,56 @@ export default function AdminDashboard() {
                          const { error } = await supabase.from('faq_manager').delete().eq('id', faq.id)
                          if (!error) { toast.success("Question Removed"); fetchDashboardData() } else { toast.error(error.message) }
                        }} className="h-8 w-8 bg-[#343530] text-red-500/80 rounded-lg flex items-center justify-center hover:bg-red-500/10"><MaterialIcon name="delete" className="text-sm" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'media' && (
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+              <div className="flex justify-between items-center">
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Media & PR Explorer</h2>
+                <button
+                  onClick={() => setEditingMedia({ asset_type: 'gallery_image', title: '', date_published: '', excerpt_or_headline: '', publisher_or_location: '', media_url: '' })}
+                  className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] transition-transform"
+                >
+                  <MaterialIcon name="add" /> Upload Media
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(mediaData.length > 0 ? mediaData : [
+                  { title: "Run SQL script", asset_type: "gallery_image", publisher_or_location: "To enable Media assets", id: 'mock' }
+                ]).map(media => (
+                  <div key={media.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all flex flex-col">
+                    <div className="flex justify-between items-start mb-4">
+                      <span className="text-[10px] bg-[#343530] text-[#b2f432] px-3 py-1 rounded-full uppercase tracking-widest font-bold">
+                        {media.asset_type.replace('_', ' ')}
+                      </span>
+                      {media.media_url && (
+                        <MaterialIcon name={media.asset_type === 'video' ? 'play_circle' : 'image'} className="text-[#c2caaf] opacity-50" />
+                      )}
+                    </div>
+                    {media.media_url && media.asset_type === 'gallery_image' && (
+                      <div className="w-full h-32 rounded-xl mb-4 overflow-hidden">
+                        <img src={media.media_url} className="w-full h-full object-cover" alt="" />
+                      </div>
+                    )}
+                    <h4 className="font-bold text-lg mb-2 text-[#e3e3db] leading-snug">{media.title}</h4>
+                    {media.publisher_or_location && (
+                      <p className="text-sm text-[#b2f432] mb-1">{media.publisher_or_location}</p>
+                    )}
+                    {media.excerpt_or_headline && (
+                      <p className="text-[#c2caaf] text-xs leading-relaxed mb-4 line-clamp-3">{media.excerpt_or_headline}</p>
+                    )}
+                    <div className="mt-auto pt-4 border-t border-[#424935]/10 flex gap-2">
+                      <button onClick={() => setEditingMedia(media)} className="flex-1 bg-[#343530] text-[#e3e3db] py-2 rounded-lg text-xs font-bold hover:bg-[#424935]">Edit File</button>
+                      <button onClick={async () => {
+                        const { error } = await supabase.from('media_assets').delete().eq('id', media.id)
+                        if (!error) { toast.success("Asset Deleted"); fetchDashboardData() } else { toast.error(error.message) }
+                      }} className="h-8 w-8 bg-[#343530] text-red-500/80 rounded-lg flex items-center justify-center hover:bg-red-500/10"><MaterialIcon name="delete" className="text-sm" /></button>
                     </div>
                   </div>
                 ))}
@@ -1299,6 +1358,136 @@ export default function AdminDashboard() {
                     Publish FAQ
                   </button>
                   <button onClick={() => setEditingFaq(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {editingMedia && (
+            <div className="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md">
+              <div className="bg-[#1a1c18] w-full max-w-2xl rounded-3xl border border-[#424935]/20 p-8 space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <h3 className="font-['Noto_Serif'] text-2xl font-bold">{editingMedia.id ? 'Edit Media Asset' : 'Upload New Asset'}</h3>
+                
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Asset Type</label>
+                    <select
+                      value={editingMedia.asset_type}
+                      onChange={(e) => setEditingMedia({ ...editingMedia, asset_type: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#b2f432] font-bold uppercase tracking-widest"
+                    >
+                      <option value="press_release">Press Release (News)</option>
+                      <option value="media_coverage">Media Coverage (Articles)</option>
+                      <option value="gallery_image">Gallery Image</option>
+                      <option value="video">Video Highlights</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Title / Headline</label>
+                      <input
+                        value={editingMedia.title}
+                        onChange={(e) => setEditingMedia({ ...editingMedia, title: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                        placeholder="e.g. Mega Drive 2026"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Date / Duration</label>
+                      <input
+                        value={editingMedia.date_published || ''}
+                        onChange={(e) => setEditingMedia({ ...editingMedia, date_published: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                        placeholder="e.g. Jan 2026 or 4:32"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Publisher / Location / Category</label>
+                    <input
+                      value={editingMedia.publisher_or_location || ''}
+                      onChange={(e) => setEditingMedia({ ...editingMedia, publisher_or_location: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      placeholder="e.g. NDTV Green or Chennai"
+                    />
+                  </div>
+
+                  {editingMedia.asset_type === 'gallery_image' && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Upload Image File</label>
+                    <div className="flex items-center gap-4">
+                      {editingMedia.media_url && (
+                        <div className="h-12 w-12 rounded-lg overflow-hidden shrink-0 border border-[#424935]/30">
+                          <img src={editingMedia.media_url} alt="Preview" className="h-full w-full object-cover bg-[#343530]" />
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const reader = new FileReader()
+                            reader.onloadend = () => {
+                              setEditingMedia({ ...editingMedia, media_url: reader.result as string })
+                            }
+                            reader.readAsDataURL(file)
+                          }
+                        }}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none text-[#e3e3db] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#b2f432] file:text-[#233600] hover:file:opacity-90 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  )}
+
+                  {editingMedia.asset_type === 'video' && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Video URL (YouTube/Vimeo)</label>
+                    <input
+                      value={editingMedia.media_url || ''}
+                      onChange={(e) => setEditingMedia({ ...editingMedia, media_url: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      placeholder="e.g. https://youtube.com/watch?v=..."
+                    />
+                  </div>
+                  )}
+
+                  {(editingMedia.asset_type === 'press_release' || editingMedia.asset_type === 'media_coverage') && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Excerpt or Short Summary</label>
+                    <textarea
+                      value={editingMedia.excerpt_or_headline || ''}
+                      onChange={(e) => setEditingMedia({ ...editingMedia, excerpt_or_headline: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] min-h-[100px]"
+                      placeholder="Summary of the article..."
+                    />
+                  </div>
+                  )}
+
+                </div>
+                
+                <div className="flex gap-4 pt-4 border-t border-[#424935]/10">
+                  <button
+                    onClick={async () => {
+                      const op = editingMedia.id 
+                        ? supabase.from('media_assets').update(editingMedia).eq('id', editingMedia.id)
+                        : supabase.from('media_assets').insert(editingMedia)
+                      const { error } = await op
+                      if (!error) {
+                        toast.success("Media Saved successfully!")
+                        setEditingMedia(null)
+                        fetchDashboardData()
+                      } else {
+                        toast.error(error.message)
+                      }
+                    }}
+                    className="flex-1 bg-[#b2f432] text-[#233600] py-3 rounded-xl font-bold hover:scale-[1.01] transition-transform"
+                  >
+                    Publish Asset
+                  </button>
+                  <button onClick={() => setEditingMedia(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
                 </div>
               </div>
             </div>

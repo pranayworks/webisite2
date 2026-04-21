@@ -10,43 +10,37 @@ import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 
-const pressReleases = [
-  { title: "Green Legacy Reaches 5,000 Trees Milestone", date: "January 15, 2026", excerpt: "A landmark achievement as Green Legacy plants its 5,000th tree across 18 states in India, marking a significant step in our environmental mission." },
-  { title: "Partnership with 10 New Agriculture Colleges", date: "December 8, 2025", excerpt: "Expanding our campus network to 42 colleges, bringing hands-on environmental education to thousands more students." },
-  { title: "Green Legacy Wins Social Impact Award 2025", date: "November 20, 2025", excerpt: "Recognized at the National Social Enterprise Awards for innovative approach to environmental conservation and education." },
-  { title: "Launch of Corporate CSR Program", date: "October 5, 2025", excerpt: "New program enables companies to fulfill CSR mandates while creating measurable environmental and social impact." },
-]
-
-const mediaCoverage = [
-  { publication: "The Hindu", headline: "Startup bridges gap between donors and agriculture colleges", date: "Jan 2026", type: "Print" },
-  { publication: "NDTV Green", headline: "How Green Legacy is revolutionizing tree plantation in India", date: "Dec 2025", type: "TV" },
-  { publication: "YourStory", headline: "This startup lets you gift trees for special occasions", date: "Nov 2025", type: "Online" },
-  { publication: "The Economic Times", headline: "Green Legacy: Making CSR meaningful for corporates", date: "Oct 2025", type: "Print" },
-  { publication: "Radio Mirchi", headline: "Plant a tree, track it forever - Green Legacy founder interview", date: "Sep 2025", type: "Radio" },
-  { publication: "Business Standard", headline: "The green tech startup connecting education with environment", date: "Aug 2025", type: "Online" },
-]
-
-const galleryItems = [
-  { title: "Mega Planting Drive, Chennai", location: "TNAU Campus", date: "Jan 2026" },
-  { title: "Corporate Planting Event", location: "Bengaluru", date: "Dec 2025" },
-  { title: "Student Training Workshop", location: "PAU, Ludhiana", date: "Nov 2025" },
-  { title: "World Environment Day", location: "Multiple Locations", date: "Jun 2025" },
-  { title: "Campus Ambassador Meet", location: "New Delhi", date: "May 2025" },
-  { title: "Award Ceremony", location: "Mumbai", date: "Nov 2025" },
-]
-
-const videos = [
-  { title: "Our Impact Story 2025", category: "Impact Stories", duration: "4:32" },
-  { title: "How We Plant Trees", category: "How-To", duration: "3:15" },
-  { title: "Student Voices from TNAU", category: "Testimonials", duration: "2:48" },
-  { title: "Mega Drive Highlights", category: "Events", duration: "5:10" },
-]
-
-const filterTypes = ["All", "Print", "Online", "TV", "Radio"] as const
-
 export default function MediaPage() {
+  const [pressReleases, setPressReleases] = useState<any[]>([])
+  const [mediaCoverage, setMediaCoverage] = useState<any[]>([])
+  const [galleryItems, setGalleryItems] = useState<any[]>([])
+  const [videos, setVideos] = useState<any[]>([])
   const [coverageFilter, setCoverageFilter] = useState<string>("All")
-  const [lightbox, setLightbox] = useState<number | null>(null)
+  const [lightbox, setLightbox] = useState<any>(null)
+  const [filterTypes, setFilterTypes] = useState<string[]>(["All"])
+
+  useEffect(() => {
+    async function fetchMedia() {
+      const { data } = await supabase.from('media_assets').select('*').order('created_at', { ascending: false })
+      if (data) {
+        setPressReleases(data.filter(m => m.asset_type === 'press_release'))
+        
+        const coverage = data.filter(m => m.asset_type === 'media_coverage')
+        setMediaCoverage(coverage)
+        
+        // Dynamically build filter types based on location / category field
+        const types = new Set(["All"])
+        coverage.forEach(c => c.publisher_or_location && types.add(c.publisher_or_location))
+        setFilterTypes(Array.from(types))
+
+        setGalleryItems(data.filter(m => m.asset_type === 'gallery_image'))
+        setVideos(data.filter(m => m.asset_type === 'video'))
+      }
+    }
+    fetchMedia()
+  }, [])
+
+
   const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
   const { ref: pressRef, isVisible: pressVisible } = useScrollAnimation()
   const { ref: coverageRef, isVisible: coverageVisible } = useScrollAnimation()
@@ -56,7 +50,7 @@ export default function MediaPage() {
 
   const filteredCoverage = coverageFilter === "All"
     ? mediaCoverage
-    : mediaCoverage.filter((m) => m.type === coverageFilter)
+    : mediaCoverage.filter((m) => m.publisher_or_location === coverageFilter)
 
   return (
     <>
@@ -85,13 +79,13 @@ export default function MediaPage() {
             <h2 className="mb-8 text-center font-serif text-2xl font-bold text-foreground">In the News</h2>
             <div className="grid gap-6 md:grid-cols-3">
               {mediaCoverage.slice(0, 3).map((item, i) => (
-                <div key={item.headline} className="group rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:shadow-lg hover:-translate-y-1 animate-fade-in-up" style={{ animationDelay: `${i * 150}ms` }}>
-                  <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{item.type}</span>
-                  <h3 className="mt-3 font-semibold text-card-foreground leading-snug">{item.headline}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.publication} &middot; {item.date}</p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:text-accent transition-colors">
+                <div key={item.id || item.title} className="group rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:shadow-lg hover:-translate-y-1 animate-fade-in-up" style={{ animationDelay: `${i * 150}ms` }}>
+                  <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{item.publisher_or_location}</span>
+                  <h3 className="mt-3 font-semibold text-card-foreground leading-snug">{item.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.date_published}</p>
+                  <a href={item.media_url || '#'} target="_blank" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:text-accent transition-colors">
                     Read article <ExternalLink className="h-3 w-3" />
-                  </span>
+                  </a>
                 </div>
               ))}
             </div>
@@ -120,10 +114,10 @@ export default function MediaPage() {
                   <div className="absolute -left-2 top-0 h-4 w-4 rounded-full border-2 border-primary bg-background" />
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-3.5 w-3.5" />
-                    {pr.date}
+                    {pr.date_published}
                   </div>
                   <h3 className="mt-2 text-lg font-semibold text-foreground">{pr.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{pr.excerpt}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{pr.excerpt_or_headline}</p>
                   <div className="mt-3 flex gap-3">
                     <button className="text-sm font-medium text-primary hover:text-accent transition-colors">Read More</button>
                     <button className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -164,16 +158,15 @@ export default function MediaPage() {
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredCoverage.map((item, i) => (
                 <div
-                  key={item.headline}
+                  key={item.id}
                   className="group rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-lg animate-fade-in"
                   style={{ animationDelay: `${i * 80}ms` }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-accent">{item.publication}</span>
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{item.type}</span>
+                    <span className="text-xs font-medium text-accent">{item.publisher_or_location}</span>
                   </div>
-                  <h3 className="mt-2 text-sm font-semibold leading-snug text-card-foreground">{item.headline}</h3>
-                  <p className="mt-2 text-xs text-muted-foreground">{item.date}</p>
+                  <h3 className="mt-2 text-sm font-semibold leading-snug text-card-foreground">{item.title}</h3>
+                  <p className="mt-2 text-xs text-muted-foreground">{item.date_published}</p>
                 </div>
               ))}
             </div>
@@ -192,8 +185,8 @@ export default function MediaPage() {
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {galleryItems.map((item, i) => (
                 <button
-                  key={item.title}
-                  onClick={() => setLightbox(i)}
+                  key={item.id}
+                  onClick={() => setLightbox(item)}
                   className={cn(
                     "group relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted transition-all duration-500 hover:shadow-xl",
                     galleryVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"
@@ -201,13 +194,17 @@ export default function MediaPage() {
                   style={{ transitionDelay: galleryVisible ? `${i * 100}ms` : "0ms" }}
                   aria-label={`View ${item.title}`}
                 >
-                  <div className="absolute inset-0 flex items-center justify-center bg-primary/10">
-                    <ImageIcon className="h-12 w-12 text-primary/40" />
-                  </div>
+                  {item.media_url ? (
+                    <img src={item.media_url} className="absolute inset-0 h-full w-full object-cover" alt={item.title} />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-primary/10">
+                      <ImageIcon className="h-12 w-12 text-primary/40" />
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-foreground/0 transition-all duration-300 group-hover:bg-foreground/40" />
-                  <div className="absolute inset-x-0 bottom-0 translate-y-full p-4 transition-transform duration-300 group-hover:translate-y-0">
+                  <div className="absolute inset-x-0 bottom-0 translate-y-full p-4 transition-transform duration-300 group-hover:translate-y-0 text-left">
                     <p className="text-sm font-semibold text-background">{item.title}</p>
-                    <p className="text-xs text-background/80">{item.location} &middot; {item.date}</p>
+                    <p className="text-xs text-background/80">{item.publisher_or_location} &middot; {item.date_published}</p>
                   </div>
                 </button>
               ))}
@@ -227,24 +224,27 @@ export default function MediaPage() {
             <div className="mt-12 grid gap-6 sm:grid-cols-2">
               {videos.map((v, i) => (
                 <div
-                  key={v.title}
+                  key={v.id}
                   className={cn(
-                    "group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-500 hover:shadow-lg",
+                    "group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-500 hover:shadow-lg block",
                     videoVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
                   )}
                   style={{ transitionDelay: videoVisible ? `${i * 100}ms` : "0ms" }}
                 >
-                  <div className="relative aspect-video bg-muted flex items-center justify-center">
-                    <Video className="h-12 w-12 text-muted-foreground/40" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                  <a href={v.media_url || '#'} target="_blank" className="block relative aspect-video bg-muted flex items-center justify-center overflow-hidden">
+                    {v.media_url && typeof v.media_url === 'string' && v.media_url.includes('youtube') && (
+                        <img src={`https://img.youtube.com/vi/${new URL(v.media_url).searchParams.get('v')}/maxresdefault.jpg`} className="absolute inset-0 h-full w-full object-cover" />
+                    )}
+                    <Video className="h-12 w-12 text-muted-foreground/40 z-10" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 z-10">
                       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform group-hover:scale-110">
                         <Play className="h-6 w-6 ml-0.5" />
                       </div>
                     </div>
-                    <span className="absolute bottom-2 right-2 rounded bg-foreground/80 px-2 py-0.5 text-xs text-background">{v.duration}</span>
-                  </div>
+                    <span className="absolute bottom-2 right-2 rounded bg-foreground/80 px-2 py-0.5 text-xs text-background z-10">{v.date_published}</span>
+                  </a>
                   <div className="p-5">
-                    <span className="text-xs font-medium text-accent">{v.category}</span>
+                    <span className="text-xs font-medium text-accent">{v.publisher_or_location}</span>
                     <h3 className="mt-1 font-semibold text-card-foreground">{v.title}</h3>
                   </div>
                 </div>
@@ -296,11 +296,17 @@ export default function MediaPage() {
             >
               <X className="h-6 w-6" />
             </button>
-            <div className="aspect-[16/9] rounded-2xl bg-muted flex items-center justify-center">
-              <div className="text-center">
-                <ImageIcon className="mx-auto h-16 w-16 text-muted-foreground/40" />
-                <p className="mt-4 text-lg font-semibold text-foreground">{galleryItems[lightbox].title}</p>
-                <p className="text-sm text-muted-foreground">{galleryItems[lightbox].location} &middot; {galleryItems[lightbox].date}</p>
+            <div className="aspect-[16/9] rounded-2xl bg-muted flex items-center justify-center overflow-hidden relative">
+              {lightbox.media_url ? (
+                <img src={lightbox.media_url} alt={lightbox.title} className="w-full h-full object-contain" />
+              ) : (
+                <div className="text-center">
+                  <ImageIcon className="mx-auto h-16 w-16 text-muted-foreground/40" />
+                </div>
+              )}
+              <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 text-center text-white">
+                <p className="mt-4 text-lg font-semibold">{lightbox.title}</p>
+                <p className="text-sm opacity-80">{lightbox.publisher_or_location} &middot; {lightbox.date_published}</p>
               </div>
             </div>
           </div>
