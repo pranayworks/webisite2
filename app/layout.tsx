@@ -99,6 +99,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${notoSerif.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" />
+        <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange={false}>
