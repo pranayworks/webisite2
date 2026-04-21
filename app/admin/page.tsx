@@ -435,9 +435,9 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-4">
                 <MaterialIcon name="mail" /> <span className="font-bold">Inquiries</span>
               </div>
-              {messages.filter(m => m.status === 'Unread').length > 0 && (
+              {messages.filter(m => m.status.toLowerCase() === 'unread').length > 0 && (
                 <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
-                  {messages.filter(m => m.status === 'Unread').length} New
+                  {messages.filter(m => m.status.toLowerCase() === 'unread').length} New
                 </span>
               )}
             </button>
@@ -1578,41 +1578,136 @@ export default function AdminDashboard() {
 
           {activeTab === 'inquiries' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
-              <h2 className="font-['Noto_Serif'] text-3xl font-bold">Steward Inquiries</h2>
-              <div className="grid grid-cols-1 gap-4">
-                {messages.length > 0 ? messages.map(msg => (
-                  <button 
-                    key={msg.id} 
-                    onClick={() => {
-                        setSelectedInquiry(msg);
-                        if (msg.status === 'Unread') {
-                            supabase.from('contact_messages').update({ status: 'Read' }).eq('id', msg.id).then(() => fetchDashboardData())
-                        }
-                    }} 
-                    className="w-full text-left bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl hover:border-[#b2f432]/30 transition-all flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-6">
-                      <div className={`h-12 w-12 rounded-full flex items-center justify-center shrink-0 ${msg.status === 'Unread' ? 'bg-orange-500/10 text-orange-400' : 'bg-[#343530] text-[#c2caaf]'}`}>
-                        <MaterialIcon name="mail" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-lg text-[#e3e3db] flex items-center gap-3">
-                            {msg.name} 
-                            <span className="text-xs bg-[#b2f432]/10 text-[#b2f432] px-2 py-0.5 rounded-full uppercase tracking-widest">{msg.subject}</span>
-                        </h4>
-                        <p className="text-sm text-[#c2caaf] truncate max-w-xl mt-1">{msg.message}</p>
-                      </div>
-                    </div>
-                    <div className="text-right flex flex-col items-end gap-2 shrink-0">
-                      <p className="text-xs text-[#c2caaf]">{new Date(msg.created_at).toLocaleString()}</p>
-                      <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${msg.status === 'Unread' ? 'bg-orange-500 text-white' : 'bg-[#343530] text-[#c2caaf]'}`}>
-                        {msg.status}
-                      </span>
-                    </div>
-                  </button>
-                )) : (
-                  <div className="bg-[#1a1c18] p-12 rounded-2xl text-center text-[#c2caaf]/40 italic">No inquiries found.</div>
-                )}
+              <div className="flex justify-between items-center">
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Steward Inquiries</h2>
+                <div className="bg-[#b2f432]/10 text-[#b2f432] px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-[#b2f432]/20">
+                  {messages.length} Message{messages.length !== 1 ? 's' : ''} Database
+                </div>
+              </div>
+              
+              <div className="bg-[#292b26] rounded-2xl border border-[#424935]/10 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-[#424935]/10 text-[#c2caaf] text-[10px] uppercase tracking-widest font-bold">
+                        <th className="px-6 py-4 w-16">S.No</th>
+                        <th className="px-6 py-4">Sender Info</th>
+                        <th className="px-6 py-4">Contact Details</th>
+                        <th className="px-6 py-4">Query Related To</th>
+                        <th className="px-6 py-4">Description</th>
+                        <th className="px-6 py-4 text-center">Status</th>
+                        <th className="px-6 py-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#424935]/10">
+                      {messages.length > 0 ? messages.map((msg, index) => (
+                        <tr key={msg.id} className={`transition-colors ${msg.status.toLowerCase() === 'unread' ? 'bg-orange-500/5 hover:bg-orange-500/10' : 'hover:bg-[#343530]/30'}`}>
+                          {/* S.No */}
+                          <td className="px-6 py-5 font-mono text-xs text-[#c2caaf]">{messages.length - index}</td>
+                          
+                          {/* Sender Info */}
+                          <td className="px-6 py-5">
+                            <p className={`font-bold text-sm ${msg.status.toLowerCase() === 'unread' ? 'text-orange-400' : 'text-[#e3e3db]'}`}>
+                              {msg.name}
+                            </p>
+                            <p className="text-[10px] text-[#c2caaf] uppercase mt-1">
+                              {new Date(msg.created_at).toLocaleDateString()}
+                            </p>
+                          </td>
+
+                          {/* Contact Details */}
+                          <td className="px-6 py-5 text-xs text-[#c2caaf] space-y-1">
+                            <p className="flex items-center gap-2"><MaterialIcon name="mail" className="text-[14px]" /> {msg.email}</p>
+                            {msg.phone && <p className="flex items-center gap-2"><MaterialIcon name="phone" className="text-[14px]" /> {msg.phone}</p>}
+                          </td>
+
+                          {/* Query Topic */}
+                          <td className="px-6 py-5">
+                            <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-[#b2f432]/10 text-[#b2f432] border border-[#b2f432]/20">
+                              {msg.subject}
+                            </span>
+                          </td>
+
+                          {/* Description (Truncated) */}
+                          <td className="px-6 py-5">
+                            <p className="text-sm text-[#c2caaf] line-clamp-2 max-w-xs" title={msg.message}>
+                              {msg.message}
+                            </p>
+                          </td>
+
+                          {/* Status Badge */}
+                          <td className="px-6 py-5 text-center">
+                            <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${
+                              msg.status.toLowerCase() === 'unread' 
+                                ? 'bg-orange-500 text-white' 
+                                : msg.status.toLowerCase() === 'resolved' 
+                                  ? 'bg-[#b2f432]/20 text-[#b2f432]' 
+                                  : 'bg-[#343530] text-[#c2caaf]'
+                            }`}>
+                              {msg.status}
+                            </span>
+                          </td>
+
+                          {/* Action Buttons */}
+                          <td className="px-6 py-5">
+                            <div className="flex items-center justify-end gap-2">
+                              {/* Open Modal Button */}
+                              <button 
+                                onClick={() => {
+                                  setSelectedInquiry(msg)
+                                  if (msg.status.toLowerCase() === 'unread') {
+                                    supabase.from('contact_messages').update({ status: 'Read' }).eq('id', msg.id).then(() => fetchDashboardData())
+                                  }
+                                }}
+                                className="h-8 w-8 bg-[#343530] text-[#e3e3db] rounded-lg flex items-center justify-center hover:bg-[#b2f432] hover:text-[#233600] transition-colors"
+                                title="View Full Message"
+                              >
+                                <MaterialIcon name="visibility" className="text-sm" />
+                              </button>
+
+                              {/* Toggle Read/Unread Status Buttons */}
+                              {msg.status.toLowerCase() !== 'unread' && (
+                                <button
+                                  onClick={async (e) => {
+                                    e.stopPropagation(); // prevent modal opening
+                                    await supabase.from('contact_messages').update({ status: 'Unread' }).eq('id', msg.id);
+                                    toast.success("Marked as Unread");
+                                    fetchDashboardData();
+                                  }}
+                                  className="h-8 w-8 bg-orange-500/10 text-orange-400 rounded-lg flex items-center justify-center hover:bg-orange-500 hover:text-white transition-colors"
+                                  title="Mark as Unread"
+                                >
+                                  <MaterialIcon name="mark_email_unread" className="text-sm" />
+                                </button>
+                              )}
+
+                              {msg.status.toLowerCase() === 'unread' && (
+                                <button
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    await supabase.from('contact_messages').update({ status: 'Read' }).eq('id', msg.id);
+                                    toast.success("Marked as Read");
+                                    fetchDashboardData();
+                                  }}
+                                  className="h-8 w-8 bg-[#b2f432]/10 text-[#b2f432] rounded-lg flex items-center justify-center hover:bg-[#b2f432] hover:text-[#233600] transition-colors"
+                                  title="Mark as Read"
+                                >
+                                  <MaterialIcon name="mark_email_read" className="text-sm" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )) : (
+                        <tr>
+                          <td colSpan={7} className="px-6 py-12 text-center text-[#c2caaf]/40 italic">
+                            No inquiries found in the database.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </section>
           )}
