@@ -1,5 +1,8 @@
-import React from "react"
+"use client"
+
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
+import { supabase } from "@/lib/supabase"
 
 const MaterialIcon = ({ name }: { name: string }) => (
   <span className="material-symbols-outlined shrink-0" style={{ fontSize: 'inherit' }}>
@@ -8,7 +11,9 @@ const MaterialIcon = ({ name }: { name: string }) => (
 )
 
 export default function FAQPage() {
-  const faqs = [
+  const [faqs, setFaqs] = useState<any[]>([])
+  
+  const defaultFaqs = [
     {
       q: "How does my tree plantation contribute to the environment?",
       a: "Every tree planted through Green Legacy is a verified biological asset. One mature tree can absorb approximately 22kg of CO2 per year and produce enough oxygen for two people. Your contribution directly offsets carbon and restores local biodiversity."
@@ -31,6 +36,17 @@ export default function FAQPage() {
     }
   ]
 
+  useEffect(() => {
+    supabase.from('faq_manager').select('*').order('display_order', { ascending: true })
+      .then(({data}) => {
+        if(data && data.length > 0) {
+          setFaqs(data.map(d => ({ q: d.question, a: d.answer })))
+        } else {
+          setFaqs(defaultFaqs)
+        }
+      })
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#121410] text-[#e3e3db] font-['Manrope'] selection:bg-[#b2f432] selection:text-[#233600]">
       {/* Header */}
@@ -51,7 +67,7 @@ export default function FAQPage() {
         </header>
 
         <div className="space-y-6">
-          {faqs.map((faq, index) => (
+          {(faqs.length > 0 ? faqs : defaultFaqs).map((faq, index) => (
             <div key={index} className="bg-[#1a1c18] border border-[#424935]/10 rounded-2xl p-8 hover:border-[#b2f432]/30 transition-all group">
               <h3 className="font-['Noto_Serif'] text-xl font-bold mb-4 flex gap-4 text-[#e3e3db] group-hover:text-[#b2f432] transition-colors">
                 <span className="text-sm border border-[#b2f432]/30 rounded-full h-8 w-8 flex items-center justify-center shrink-0">0{index + 1}</span>

@@ -94,3 +94,24 @@ INSERT INTO site_config (key, value) VALUES
 ('contact_email', 'hello@greenlegacy.in'),
 ('contact_phone', '+91 98765 43210')
 ON CONFLICT DO NOTHING;
+
+-- 5. FAQ Manager Table
+CREATE TABLE IF NOT EXISTS faq_manager (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  question text NOT NULL,
+  answer text NOT NULL,
+  display_order integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE faq_manager ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view FAQs" ON faq_manager FOR SELECT USING (true);
+CREATE POLICY "Admins can manage FAQs" ON faq_manager USING (auth.role() = 'authenticated');
+
+INSERT INTO faq_manager (question, answer, display_order) VALUES
+('How does my tree plantation contribute to the environment?', 'Every tree planted through Green Legacy is a verified biological asset. One mature tree can absorb approximately 22kg of CO2 per year and produce enough oxygen for two people. Your contribution directly offsets carbon and restores local biodiversity.', 1),
+('Can I visit my tree in person?', 'Yes! We encourage ''Physical Stewardship.'' After your tree reaches its 6-month establishment milestone, we provide precise GPS coordinates and can facilitate guided visits to our partner agriculture college sites.', 2),
+('What species of trees are planted?', 'We prioritize native species such as Neem, Peepal, Banyan, and Gulmohar. These species are selected for their high survival rates, ecological compatibility, and cultural significance in the Indian landscape.', 3),
+('How do I get my certificate?', 'Certificates are generated instantly once your steward identity is verified. You can find and download your high-resolution official PDF certificates directly from your Dashboard.', 4),
+('What happens if a tree doesn''t survive?', 'We guarantee survival. If a sapling fails during the first 3 years of its growth, our field partners automatically replace it with a new healthy specimen at no extra cost to the steward.', 5)
+ON CONFLICT DO NOTHING;

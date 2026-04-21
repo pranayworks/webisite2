@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'stories' | 'events' | 'testimonials' | 'settings' | 'products' | 'diagnostics' | 'inquiries'>('queue')
+  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'stories' | 'events' | 'testimonials' | 'faqs' | 'settings' | 'products' | 'diagnostics' | 'inquiries'>('queue')
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [selectedSteward, setSelectedSteward] = useState('')
@@ -56,6 +56,8 @@ export default function AdminDashboard() {
     'contact_email': 'hello@greenlegacy.in',
     'contact_phone': '+91 98765 43210'
   })
+  const [faqsData, setFaqsData] = useState<any[]>([])
+  const [editingFaq, setEditingFaq] = useState<any>(null)
   const [showVerifyModal, setShowVerifyModal] = useState(false)
   const [verifyingOrder, setVerifyingOrder] = useState<any>(null)
   const [proofData, setProofData] = useState({ gps: '', species: 'Neem', photo: '', date: new Date().toISOString().split('T')[0] })
@@ -211,6 +213,10 @@ export default function AdminDashboard() {
         configRes.forEach(c => configMap[c.key] = c.value)
         setSiteConfig(configMap)
       }
+
+      // 9. Fetch FAQs
+      const { data: faqsRes } = await supabase.from('faq_manager').select('*').order('display_order', { ascending: true })
+      if (faqsRes) setFaqsData(faqsRes)
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
@@ -433,6 +439,9 @@ export default function AdminDashboard() {
           </button>
           <button onClick={() => setActiveTab('testimonials')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'testimonials' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="chat_bubble" /> <span>Testimonials</span>
+          </button>
+          <button onClick={() => setActiveTab('faqs')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'faqs' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+            <MaterialIcon name="help" /> <span>Help & FAQs</span>
           </button>
           <button onClick={() => setActiveTab('settings')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'settings' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="settings" /> <span>Global Settings</span>
@@ -806,6 +815,43 @@ export default function AdminDashboard() {
             </section>
           )}
 
+          {activeTab === 'faqs' && (
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+              <div className="flex justify-between items-center">
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Frequently Asked Questions</h2>
+                <button
+                  onClick={() => setEditingFaq({ question: '', answer: '', display_order: faqsData.length + 1 })}
+                  className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] transition-transform"
+                >
+                  <MaterialIcon name="add" /> Add Question
+                </button>
+              </div>
+              
+              <div className="space-y-4 max-w-4xl">
+                {(faqsData.length > 0 ? faqsData : [
+                  { question: "Run DB script?", answer: "Apply the schema directly.", display_order: 1, id: 'mock' }
+                ]).map(faq => (
+                  <div key={faq.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group flex gap-6 hover:border-[#b2f432]/30 transition-all items-start">
+                    <div className="w-10 h-10 shrink-0 bg-[#343530] rounded-full flex items-center justify-center font-bold text-[#b2f432]">
+                      {faq.display_order}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-['Noto_Serif'] font-bold text-lg text-[#e3e3db] mb-2">{faq.question}</h4>
+                      <p className="text-[#c2caaf] text-sm leading-relaxed">{faq.answer}</p>
+                    </div>
+                    <div className="flex gap-2">
+                       <button onClick={() => setEditingFaq(faq)} className="h-8 w-8 bg-[#343530] text-[#e3e3db] rounded-lg flex items-center justify-center hover:bg-[#424935]"><MaterialIcon name="edit" className="text-sm" /></button>
+                       <button onClick={async () => {
+                         const { error } = await supabase.from('faq_manager').delete().eq('id', faq.id)
+                         if (!error) { toast.success("Question Removed"); fetchDashboardData() } else { toast.error(error.message) }
+                       }} className="h-8 w-8 bg-[#343530] text-red-500/80 rounded-lg flex items-center justify-center hover:bg-red-500/10"><MaterialIcon name="delete" className="text-sm" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {activeTab === 'settings' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <h2 className="font-['Noto_Serif'] text-3xl font-bold">Global Site Configuration</h2>
@@ -1161,6 +1207,67 @@ export default function AdminDashboard() {
                     Save Event
                   </button>
                   <button onClick={() => setEditingEvent(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {editingFaq && (
+            <div className="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md">
+              <div className="bg-[#1a1c18] w-full max-w-2xl rounded-3xl border border-[#424935]/20 p-8 space-y-6">
+                <h3 className="font-['Noto_Serif'] text-2xl font-bold">{editingFaq.id ? 'Edit FAQ' : 'New Knowledge Base Question'}</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-[1fr_100px] gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">User Question</label>
+                      <input
+                        value={editingFaq.question}
+                        onChange={(e) => setEditingFaq({ ...editingFaq, question: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] font-['Noto_Serif'] font-bold"
+                        placeholder="e.g. Can I visit my tree?"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Order ID</label>
+                      <input
+                        type="number"
+                        value={editingFaq.display_order}
+                        onChange={(e) => setEditingFaq({ ...editingFaq, display_order: parseInt(e.target.value) || 0 })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-center outline-none text-[#b2f432] font-bold"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Detailed Answer</label>
+                    <textarea
+                      value={editingFaq.answer}
+                      onChange={(e) => setEditingFaq({ ...editingFaq, answer: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] min-h-[120px]"
+                      placeholder="Type the comprehensive response here..."
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4 pt-4 border-t border-[#424935]/10">
+                  <button
+                    onClick={async () => {
+                      const dataPayload = { question: editingFaq.question, answer: editingFaq.answer, display_order: editingFaq.display_order }
+                      const op = editingFaq.id 
+                        ? supabase.from('faq_manager').update(dataPayload).eq('id', editingFaq.id)
+                        : supabase.from('faq_manager').insert(dataPayload)
+                      const { error } = await op
+                      if (!error) {
+                        toast.success("FAQ Saved")
+                        setEditingFaq(null)
+                        fetchDashboardData()
+                      } else {
+                        toast.error(error.message)
+                      }
+                    }}
+                    className="flex-1 bg-[#b2f432] text-[#233600] py-3 rounded-xl font-bold hover:scale-[1.01] transition-transform"
+                  >
+                    Publish FAQ
+                  </button>
+                  <button onClick={() => setEditingFaq(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
                 </div>
               </div>
             </div>
