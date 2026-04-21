@@ -425,12 +425,25 @@ export default function AdminDashboard() {
       {/* SideNavBar & Main Content Wrapper */}
       <div className="flex pt-20 h-screen">
         {/* SideNavBar */}
-        <aside className="fixed left-0 top-20 h-[calc(100vh-5rem)] w-72 bg-[#0d0f0b] flex flex-col py-8 gap-1 hidden md:flex border-r border-[#424935]/10">
+        <aside className="fixed left-0 top-20 h-[calc(100vh-80px)] w-72 bg-[#0d0f0b] flex flex-col py-6 gap-1 hidden md:flex border-r border-[#424935]/10 overflow-y-auto custom-scrollbar z-40">
           <div className="px-8 mb-4 shrink-0">
             <h2 className="font-['Manrope'] font-bold text-[#c2caaf] text-xs uppercase tracking-widest opacity-60">Field Operations</h2>
-            <p className="text-[#b2f432] font-medium text-sm">Active Stewardship</p>
+            <p className="text-[#b2f432] font-medium text-sm">Active Stewardship Dashboard</p>
           </div>
-          <nav className="flex-1 overflow-y-auto flex flex-col gap-1 w-full pb-8 custom-scrollbar">
+          <nav className="flex-1 flex flex-col gap-1 w-full pb-8">
+            <button onClick={() => setActiveTab('inquiries')} className={`relative flex items-center justify-between px-8 py-4 transition-all w-full text-left ${activeTab === 'inquiries' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <div className="flex items-center gap-4">
+                <MaterialIcon name="mail" /> <span className="font-bold">Inquiries</span>
+              </div>
+              {messages.filter(m => m.status === 'Unread').length > 0 && (
+                <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                  {messages.filter(m => m.status === 'Unread').length} New
+                </span>
+              )}
+            </button>
+            <button onClick={() => setActiveTab('media')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'media' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <MaterialIcon name="perm_media" /> <span>Media Library</span>
+            </button>
             <button onClick={() => setActiveTab('queue')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'queue' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
               <MaterialIcon name="list_alt" /> <span>Order Queue</span>
             </button>
@@ -452,19 +465,6 @@ export default function AdminDashboard() {
             <button onClick={() => setActiveTab('faqs')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'faqs' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
               <MaterialIcon name="help" /> <span>Help & FAQs</span>
             </button>
-            <button onClick={() => setActiveTab('media')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'media' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-              <MaterialIcon name="perm_media" /> <span>Media Library</span>
-            </button>
-            <button onClick={() => setActiveTab('inquiries')} className={`relative flex items-center justify-between px-8 py-4 transition-all w-full text-left ${activeTab === 'inquiries' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-              <div className="flex items-center gap-4">
-                <MaterialIcon name="mail" /> <span className="font-bold">Inquiries</span>
-              </div>
-              {messages.filter(m => m.status === 'Unread').length > 0 && (
-                <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
-                  {messages.filter(m => m.status === 'Unread').length} New
-                </span>
-              )}
-            </button>
             <button onClick={() => setActiveTab('settings')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'settings' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
               <MaterialIcon name="settings" /> <span>Global Settings</span>
             </button>
@@ -475,7 +475,7 @@ export default function AdminDashboard() {
               <MaterialIcon name="analytics" /> <span>Diagnostics</span>
             </button>
           </nav>
-          <div className="px-8 pt-4 border-t border-[#424935]/10 mt-auto shrink-0 bg-[#0d0f0b]">
+          <div className="px-8 py-4 border-t border-[#424935]/10 shrink-0 bg-[#0d0f0b]">
             <button onClick={() => document.getElementById('new-planting-form')?.scrollIntoView({ behavior: 'smooth' })} className="w-full py-4 bg-[#b2f432] text-[#233600] rounded-full font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg">
               <MaterialIcon name="add" className="text-sm" /> New Report
             </button>
