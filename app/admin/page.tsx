@@ -44,6 +44,7 @@ export default function AdminDashboard() {
   const [dbProducts, setDbProducts] = useState<any[]>([])
   const [editingProduct, setEditingProduct] = useState<any>(null)
   const [messages, setMessages] = useState<any[]>([])
+  const [selectedInquiry, setSelectedInquiry] = useState<any>(null)
   const [stories, setStories] = useState<any[]>([])
   const [editingStory, setEditingStory] = useState<any>(null)
   const [testimonials, setTestimonials] = useState<any[]>([])
@@ -463,8 +464,15 @@ export default function AdminDashboard() {
             <button onClick={() => setActiveTab('diagnostics')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'diagnostics' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
               <MaterialIcon name="analytics" /> <span>Diagnostics</span>
             </button>
-            <button onClick={() => setActiveTab('inquiries')} className={`flex items-center gap-4 px-8 py-4 transition-all w-full text-left ${activeTab === 'inquiries' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
-              <MaterialIcon name="mail" /> <span>Inquiries</span>
+            <button onClick={() => setActiveTab('inquiries')} className={`relative flex items-center justify-between px-8 py-4 transition-all w-full text-left ${activeTab === 'inquiries' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+              <div className="flex items-center gap-4">
+                <MaterialIcon name="mail" /> <span>Inquiries</span>
+              </div>
+              {messages.filter(m => m.status === 'Unread').length > 0 && (
+                <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                  {messages.filter(m => m.status === 'Unread').length}
+                </span>
+              )}
             </button>
           </nav>
           <div className="px-8 pt-4 border-t border-[#424935]/10 mt-auto shrink-0 bg-[#0d0f0b]">
@@ -1571,31 +1579,37 @@ export default function AdminDashboard() {
           {activeTab === 'inquiries' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <h2 className="font-['Noto_Serif'] text-3xl font-bold">Steward Inquiries</h2>
-              <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 gap-4">
                 {messages.length > 0 ? messages.map(msg => (
-                  <div key={msg.id} className="bg-[#1a1c18] border border-[#424935]/10 p-8 rounded-2xl space-y-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-[#b2f432]/10 flex items-center justify-center text-[#b2f432]">
-                          <MaterialIcon name="person" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold">{msg.name}</h4>
-                          <p className="text-xs text-[#c2caaf]">{msg.email} • {new Date(msg.created_at).toLocaleString()}</p>
-                        </div>
+                  <button 
+                    key={msg.id} 
+                    onClick={() => {
+                        setSelectedInquiry(msg);
+                        if (msg.status === 'Unread') {
+                            supabase.from('contact_messages').update({ status: 'Read' }).eq('id', msg.id).then(() => fetchDashboardData())
+                        }
+                    }} 
+                    className="w-full text-left bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl hover:border-[#b2f432]/30 transition-all flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-6">
+                      <div className={`h-12 w-12 rounded-full flex items-center justify-center shrink-0 ${msg.status === 'Unread' ? 'bg-orange-500/10 text-orange-400' : 'bg-[#343530] text-[#c2caaf]'}`}>
+                        <MaterialIcon name="mail" />
                       </div>
-                      <span className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full ${msg.status === 'Unread' ? 'bg-orange-500/10 text-orange-400' : 'bg-[#233600] text-[#b2f432]'}`}>
+                      <div>
+                        <h4 className="font-bold text-lg text-[#e3e3db] flex items-center gap-3">
+                            {msg.name} 
+                            <span className="text-xs bg-[#b2f432]/10 text-[#b2f432] px-2 py-0.5 rounded-full uppercase tracking-widest">{msg.subject}</span>
+                        </h4>
+                        <p className="text-sm text-[#c2caaf] truncate max-w-xl mt-1">{msg.message}</p>
+                      </div>
+                    </div>
+                    <div className="text-right flex flex-col items-end gap-2 shrink-0">
+                      <p className="text-xs text-[#c2caaf]">{new Date(msg.created_at).toLocaleString()}</p>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${msg.status === 'Unread' ? 'bg-orange-500 text-white' : 'bg-[#343530] text-[#c2caaf]'}`}>
                         {msg.status}
                       </span>
                     </div>
-                    <div className="py-4 border-y border-[#424935]/5">
-                      <p className="text-[#c2caaf] whitespace-pre-wrap">{msg.message}</p>
-                    </div>
-                    <div className="flex gap-4">
-                      <button className="text-xs font-bold text-[#b2f432] hover:underline">Mark as Replied</button>
-                      <button className="text-xs font-bold text-red-400 hover:underline">Archive</button>
-                    </div>
-                  </div>
+                  </button>
                 )) : (
                   <div className="bg-[#1a1c18] p-12 rounded-2xl text-center text-[#c2caaf]/40 italic">No inquiries found.</div>
                 )}
@@ -1605,6 +1619,45 @@ export default function AdminDashboard() {
 
         </main>
       </div>
+
+      {/* Selected Inquiry Modal */}
+      {selectedInquiry && (
+        <div className="fixed inset-0 z-[150] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md">
+          <div className="bg-[#1a1c18] w-full max-w-2xl rounded-[2.5rem] border border-[#424935]/20 p-10 space-y-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-['Noto_Serif'] text-3xl font-bold mb-2">Inquiry: {selectedInquiry.subject}</h3>
+                <p className="text-[#c2caaf] text-sm">From: <span className="text-white font-medium">{selectedInquiry.name}</span> ({selectedInquiry.email})</p>
+                {selectedInquiry.phone && <p className="text-[#c2caaf] text-sm mt-1">Phone: <span className="text-white font-medium">{selectedInquiry.phone}</span></p>}
+              </div>
+              <button onClick={() => setSelectedInquiry(null)} className="h-10 w-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
+                <MaterialIcon name="close" />
+              </button>
+            </div>
+            
+            <div className="bg-[#0d0f0b] rounded-2xl p-6 border border-[#424935]/20">
+              <p className="text-[#e3e3db] whitespace-pre-wrap leading-relaxed">{selectedInquiry.message}</p>
+            </div>
+
+            <div className="flex gap-4 pt-4 border-t border-[#424935]/10">
+              <a href={`mailto:${selectedInquiry.email}?subject=RE: ${selectedInquiry.subject} - Green Legacy`} className="flex-1 bg-[#b2f432] text-[#233600] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform">
+                <MaterialIcon name="reply" /> Reply via Email
+              </a>
+              <button 
+                onClick={async () => {
+                  await supabase.from('contact_messages').update({ status: 'Resolved' }).eq('id', selectedInquiry.id);
+                  toast.success("Marked as Resolved");
+                  setSelectedInquiry(null);
+                  fetchDashboardData();
+                }}
+                className="flex-1 bg-white/5 text-[#c2caaf] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors"
+              >
+                <MaterialIcon name="check_circle" /> Mark Resolved
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Growth Update Modal */}
       {showUpdateModal && (
