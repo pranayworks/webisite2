@@ -42,7 +42,7 @@ const fundBreakdown = [
   { label: "Operations", pct: 10, color: "bg-amber-500" },
 ]
 
-const stories = [
+const fallbackStories = [
   { title: "From Barren Land to Green Campus", location: "Tamil Nadu Agricultural University", excerpt: "How 500 trees transformed the campus landscape and created a biodiversity corridor that now hosts 23 bird species." },
   { title: "A Father's Legacy Lives On", location: "Anand, Gujarat", excerpt: "Rajesh planted 25 trees in memory of his father. Two years later, the small grove has become a community gathering space." },
   { title: "Corporate Impact at Scale", location: "TechCorp India, Bengaluru", excerpt: "500 trees across 5 colleges. Their CSR initiative engaged 200 employees in planting drives and environmental education." },
@@ -54,6 +54,7 @@ export default function ImpactPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"environmental" | "social" | "economic">("environmental")
+  const [cmsStories, setCmsStories] = useState<any[]>([])
   const [stats, setStats] = useState({
     today: 0,
     month: 124,
@@ -128,6 +129,11 @@ export default function ImpactPage() {
 
         setSpeciesStats(newSpecies)
       }
+
+      // Fetch dynamic Impact Stories
+      const { data: dbStories } = await supabase.from('impact_stories').select('*').order('created_at', { ascending: false })
+      if (dbStories && dbStories.length > 0) setCmsStories(dbStories)
+
       setLoading(false)
     }
 
@@ -322,7 +328,7 @@ export default function ImpactPage() {
               </h2>
             </div>
             <div className="mt-12 grid gap-6 sm:grid-cols-2">
-              {stories.map((s, i) => (
+              {(cmsStories.length > 0 ? cmsStories : fallbackStories).map((s, i) => (
                 <div
                   key={s.title}
                   className="group rounded-2xl border border-border bg-card p-8 transition-all duration-500 hover:shadow-lg hover:-translate-y-1 opacity-100 translate-y-0"
@@ -330,6 +336,11 @@ export default function ImpactPage() {
                 >
                   <p className="text-xs font-medium uppercase tracking-wider text-accent">{s.location}</p>
                   <h3 className="mt-2 text-lg font-semibold text-card-foreground">{s.title}</h3>
+                  {s.image_url && (
+                    <div className="mt-4 mb-4 h-48 w-full rounded-xl overflow-hidden border border-border">
+                      <img src={s.image_url} alt="" className="h-full w-full object-cover" />
+                    </div>
+                  )}
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{s.excerpt}</p>
                   <span className="mt-4 inline-block text-sm font-medium text-primary transition-colors group-hover:text-accent">
                     Read full story &rarr;

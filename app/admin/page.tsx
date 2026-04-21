@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'products' | 'diagnostics' | 'inquiries'>('queue')
+  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'stories' | 'products' | 'diagnostics' | 'inquiries'>('queue')
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [selectedSteward, setSelectedSteward] = useState('')
@@ -44,6 +44,8 @@ export default function AdminDashboard() {
   const [dbProducts, setDbProducts] = useState<any[]>([])
   const [editingProduct, setEditingProduct] = useState<any>(null)
   const [messages, setMessages] = useState<any[]>([])
+  const [stories, setStories] = useState<any[]>([])
+  const [editingStory, setEditingStory] = useState<any>(null)
   const [showVerifyModal, setShowVerifyModal] = useState(false)
   const [verifyingOrder, setVerifyingOrder] = useState<any>(null)
   const [proofData, setProofData] = useState({ gps: '', species: 'Neem', photo: '', date: new Date().toISOString().split('T')[0] })
@@ -171,6 +173,14 @@ export default function AdminDashboard() {
         const directoryArray = Array.from(userMap.values())
         directoryArray.sort((a,b) => b.trees - a.trees)
         setUsersDirectory(directoryArray)
+      }
+
+      // 6. Fetch Impact Stories
+      const { data: storiesData, error: storiesError } = await supabase.from('impact_stories').select('*').order('created_at', { ascending: false })
+      if (!storiesError && storiesData) {
+        setStories(storiesData)
+      } else {
+        console.warn("CMS table 'impact_stories' might not be instantiated yet.");
       }
 
     } catch (error) {
@@ -385,6 +395,9 @@ export default function AdminDashboard() {
           </button>
           <button onClick={() => setActiveTab('users')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'users' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="group" /> <span>Steward Directory</span>
+          </button>
+          <button onClick={() => setActiveTab('stories')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'stories' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+            <MaterialIcon name="menu_book" /> <span>Impact Stories</span>
           </button>
           <button onClick={() => setActiveTab('products')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'products' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="inventory_2" /> <span>Inventory & Plans</span>
@@ -629,6 +642,52 @@ export default function AdminDashboard() {
             </section>
           )}
 
+          {activeTab === 'stories' && (
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+              <div className="flex justify-between items-center">
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Impact Stories Manager</h2>
+                <button
+                  onClick={() => setEditingStory({ title: '', location: '', excerpt: '', image_url: '' })}
+                  className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] transition-transform"
+                >
+                  <MaterialIcon name="add" /> Publish New Story
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {(stories.length > 0 ? stories : [
+                  { title: "Dashboard Ready", location: "Global", excerpt: "No database records yet. Run setup.sql to populate.", id: 'mock' }
+                ]).map(story => (
+                  <div key={story.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all">
+                    <div className="flex gap-4">
+                      {story.image_url ? (
+                        <div className="h-20 w-20 rounded-xl overflow-hidden shrink-0 border border-[#424935]/20">
+                          <img src={story.image_url} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="h-20 w-20 rounded-xl bg-[#343530] shrink-0 border border-[#424935]/20 flex items-center justify-center text-[#c2caaf]">
+                          <MaterialIcon name="image" className="text-xl" />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-bold text-lg leading-tight mb-1">{story.title}</h4>
+                        <p className="text-[10px] text-[#b2f432] uppercase font-bold tracking-widest mb-2">{story.location}</p>
+                        <p className="text-[#c2caaf] text-xs line-clamp-2 leading-relaxed">{story.excerpt}</p>
+                      </div>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-[#424935]/10 flex gap-2">
+                      <button onClick={() => setEditingStory(story)} className="flex-1 bg-[#343530] text-[#e3e3db] py-2 rounded-lg text-xs font-bold hover:bg-[#424935]">Edit</button>
+                      <button onClick={async () => {
+                        const { error } = await supabase.from('impact_stories').delete().eq('id', story.id)
+                        if (!error) { toast.success("Story deleted"); fetchDashboardData() } else { toast.error(error.message) }
+                      }} className="h-8 w-8 bg-[#343530] text-red-500/80 rounded-lg flex items-center justify-center hover:bg-red-500/10"><MaterialIcon name="delete" className="text-sm" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {activeTab === 'products' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <div className="flex justify-between items-center">
@@ -717,6 +776,76 @@ export default function AdminDashboard() {
                     Save Changes
                   </button>
                   <button onClick={() => setEditingProduct(null)} className="flex-1 bg-white/5 py-3 rounded-xl font-bold">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {editingStory && (
+            <div className="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md">
+              <div className="bg-[#1a1c18] w-full max-w-2xl rounded-3xl border border-[#424935]/20 p-8 space-y-6">
+                <h3 className="font-['Noto_Serif'] text-2xl font-bold">{editingStory.id ? 'Edit Story' : 'Publish New Story'}</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Headline / Title</label>
+                      <input
+                        value={editingStory.title}
+                        onChange={(e) => setEditingStory({ ...editingStory, title: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                        placeholder="e.g. 500 Trees in Delhi"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Location</label>
+                      <input
+                        value={editingStory.location}
+                        onChange={(e) => setEditingStory({ ...editingStory, location: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                        placeholder="e.g. North University"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Thumbnail / Header Image (URL)</label>
+                    <input
+                      value={editingStory.image_url || ''}
+                      onChange={(e) => setEditingStory({ ...editingStory, image_url: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Story Excerpt (Website Body)</label>
+                    <textarea
+                      value={editingStory.excerpt}
+                      onChange={(e) => setEditingStory({ ...editingStory, excerpt: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] min-h-[120px]"
+                      placeholder="Type the full story or impact update here..."
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4 pt-4 border-t border-[#424935]/10">
+                  <button
+                    onClick={async () => {
+                      const dataPayload = { title: editingStory.title, location: editingStory.location, excerpt: editingStory.excerpt, image_url: editingStory.image_url }
+                      const op = editingStory.id 
+                        ? supabase.from('impact_stories').update(dataPayload).eq('id', editingStory.id)
+                        : supabase.from('impact_stories').insert(dataPayload)
+                      const { error } = await op
+                      if (!error) {
+                        toast.success("Impact Story Live!")
+                        setEditingStory(null)
+                        fetchDashboardData()
+                      } else {
+                        toast.error(error.message)
+                      }
+                    }}
+                    className="flex-1 bg-[#b2f432] text-[#233600] py-3 rounded-xl font-bold hover:scale-[1.01] transition-transform"
+                  >
+                    Publish to Website
+                  </button>
+                  <button onClick={() => setEditingStory(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
                 </div>
               </div>
             </div>
