@@ -146,7 +146,8 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 );
 
 -- Enable RLS
-ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_messages DISABLE ROW LEVEL SECURITY;
+
 
 -- Important: Allow anyone to insert (so they can send queries from the contact page)
 CREATE POLICY "Anyone can send inquiries" ON contact_messages FOR INSERT WITH CHECK (true);

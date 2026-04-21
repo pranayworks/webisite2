@@ -10,13 +10,22 @@ export async function submitContact(formData: FormData) {
     const subject = formData.get('subject') as string
     const message = formData.get('message') as string
 
-    // 1. Record in Supabase (Central Archive)
-    const { supabase } = await import('@/lib/supabase')
-    const { error: dbError } = await supabase
+    // 1. Record in Supabase (Central Archive) - USING SERVICE ROLE FOR DIRECT ACCESS
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    
+    const { error: dbError } = await supabaseAdmin
       .from('contact_messages')
       .insert([{ name, email, phone, subject, message, status: 'Unread' }])
     
-    if (dbError) console.warn("Database save failed:", dbError)
+    if (dbError) {
+      console.error("CRITICAL: Database save failed:", dbError);
+    } else {
+      console.log("Database save successful for inquiry:", subject);
+    }
 
     // 2. Dynamic Routing Logic
     const routingMap: Record<string, string> = {
