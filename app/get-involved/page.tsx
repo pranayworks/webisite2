@@ -72,17 +72,13 @@ export default function GetInvolvedPage() {
   const [rsvpLoading, setRsvpLoading] = useState(false)
 
   useEffect(() => {
-    async function checkAuth() {
+    async function checkUser() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-      } else {
-        setUser(user)
-        setLoading(false)
-      }
+      setUser(user ?? null)
+      setLoading(false)
     }
-    checkAuth()
-  }, [router])
+    checkUser()
+  }, [])
 
   if (loading) {
     return (
@@ -91,8 +87,6 @@ export default function GetInvolvedPage() {
       </div>
     )
   }
-
-  if (!user) return null
 
   const handleRsvp = async (e: React.FormEvent) => {
     e.preventDefault()

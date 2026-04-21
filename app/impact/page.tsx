@@ -73,14 +73,7 @@ export default function ImpactPage() {
   ])
 
   useEffect(() => {
-    async function checkAuthAndFetch() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-      setUser(user)
-      
+    async function fetchData() {
       // Fetch Impact Logic
       const { data: allOrders } = await supabase
         .from('planting_orders')
@@ -138,7 +131,7 @@ export default function ImpactPage() {
       setLoading(false)
     }
 
-    checkAuthAndFetch()
+    fetchData()
   }, [])
 
   const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
@@ -186,8 +179,6 @@ export default function ImpactPage() {
       </div>
     )
   }
-
-  if (!user) return null
 
   return (
     <>
