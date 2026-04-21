@@ -6,6 +6,7 @@ import { ArrowDown, Play, TreePine, GraduationCap, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCountUp } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
 
 function Leaf({ className, delay }: { className?: string; delay: number }) {
   return (
@@ -23,9 +24,12 @@ function Leaf({ className, delay }: { className?: string; delay: number }) {
 export function HeroSection() {
   const [mounted, setMounted] = useState(false)
   const [videoOpen, setVideoOpen] = useState(false)
+  const [heroHeadline, setHeroHeadline] = useState("Plant a Tree, Create a Legacy")
 
   useEffect(() => {
     setMounted(true)
+    supabase.from('site_config').select('*').eq('key', 'hero_headline').single()
+      .then(({data}) => { if (data?.value) setHeroHeadline(data.value) })
   }, [])
 
   const treesPlanted = useCountUp(5847, 2500, mounted)
@@ -67,8 +71,12 @@ export function HeroSection() {
             mounted ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           )}
         >
-          Plant a Tree,{" "}
-          <span className="text-primary">Create a Legacy</span>
+          {heroHeadline.includes(',') ? (
+            <>
+              {heroHeadline.split(',')[0]},{" "}
+              <span className="text-primary">{heroHeadline.split(',').slice(1).join(',')}</span>
+            </>
+          ) : heroHeadline}
         </h1>
 
         <p

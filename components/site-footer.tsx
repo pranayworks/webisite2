@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { TreePine, Instagram, Linkedin, Twitter, Youtube, Facebook, ArrowUp, MessageCircle } from "lucide-react"
+import { TreePine, Instagram, Linkedin, Twitter, Youtube, Facebook, ArrowUp, MessageCircle, Mail, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
 
 const quickLinks = [
   { label: "About Us", href: "/about" },
@@ -44,8 +45,19 @@ const socials = [
 export function SiteFooter() {
   const { ref, isVisible } = useScrollAnimation(0.1)
   const [showTop, setShowTop] = useState(false)
+  const [contactEmail, setContactEmail] = useState("hello@greenlegacy.in")
+  const [contactPhone, setContactPhone] = useState("+91 98765 43210")
 
   useEffect(() => {
+    supabase.from('site_config').select('*').in('key', ['contact_email', 'contact_phone'])
+      .then(({data}) => {
+        if(data) {
+          const email = data.find(d => d.key === 'contact_email')?.value
+          const phone = data.find(d => d.key === 'contact_phone')?.value
+          if(email) setContactEmail(email)
+          if(phone) setContactPhone(phone)
+        }
+      })
     const handleScroll = () => setShowTop(window.scrollY > 500)
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
@@ -84,6 +96,10 @@ export function SiteFooter() {
                     <s.icon className="h-4 w-4" />
                   </a>
                 ))}
+              </div>
+              <div className="flex flex-col gap-1.5 text-sm text-muted-foreground mt-2 border-t border-border/50 pt-4">
+                <a href={`mailto:${contactEmail}`} className="hover:text-primary flex items-center gap-2 transition-colors"><Mail className="w-3.5 h-3.5"/> {contactEmail}</a>
+                <a href={`tel:${contactPhone}`} className="hover:text-primary flex items-center gap-2 transition-colors"><Phone className="w-3.5 h-3.5"/> {contactPhone}</a>
               </div>
             </div>
 

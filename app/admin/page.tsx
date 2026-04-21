@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'stories' | 'testimonials' | 'products' | 'diagnostics' | 'inquiries'>('queue')
+  const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'users' | 'stories' | 'events' | 'testimonials' | 'settings' | 'products' | 'diagnostics' | 'inquiries'>('queue')
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [selectedSteward, setSelectedSteward] = useState('')
@@ -48,6 +48,14 @@ export default function AdminDashboard() {
   const [editingStory, setEditingStory] = useState<any>(null)
   const [testimonials, setTestimonials] = useState<any[]>([])
   const [editingTestimonial, setEditingTestimonial] = useState<any>(null)
+  const [eventsData, setEventsData] = useState<any[]>([])
+  const [editingEvent, setEditingEvent] = useState<any>(null)
+  const [siteConfig, setSiteConfig] = useState<Record<string, string>>({
+    'hero_headline': 'Plant a Tree, Leave a Legacy.',
+    'global_goal': '1000',
+    'contact_email': 'hello@greenlegacy.in',
+    'contact_phone': '+91 98765 43210'
+  })
   const [showVerifyModal, setShowVerifyModal] = useState(false)
   const [verifyingOrder, setVerifyingOrder] = useState<any>(null)
   const [proofData, setProofData] = useState({ gps: '', species: 'Neem', photo: '', date: new Date().toISOString().split('T')[0] })
@@ -192,6 +200,18 @@ export default function AdminDashboard() {
       } else {
         console.warn("CMS table 'testimonials' might not be instantiated yet.");
       }
+
+      // 8. Fetch Events & Config
+      const { data: eventsRes } = await supabase.from('volunteer_events').select('*').order('created_at', { ascending: false })
+      if (eventsRes) setEventsData(eventsRes)
+
+      const { data: configRes } = await supabase.from('site_config').select('*')
+      if (configRes && configRes.length > 0) {
+        const configMap: Record<string, string> = {}
+        configRes.forEach(c => configMap[c.key] = c.value)
+        setSiteConfig(configMap)
+      }
+
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
       toast.error("Database connection issue. Showing dummy data.")
@@ -408,8 +428,14 @@ export default function AdminDashboard() {
           <button onClick={() => setActiveTab('stories')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'stories' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="menu_book" /> <span>Impact Stories</span>
           </button>
+          <button onClick={() => setActiveTab('events')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'events' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+            <MaterialIcon name="event" /> <span>Campaigns & Events</span>
+          </button>
           <button onClick={() => setActiveTab('testimonials')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'testimonials' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="chat_bubble" /> <span>Testimonials</span>
+          </button>
+          <button onClick={() => setActiveTab('settings')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'settings' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
+            <MaterialIcon name="settings" /> <span>Global Settings</span>
           </button>
           <button onClick={() => setActiveTab('products')} className={`flex items-center gap-4 px-8 py-4 transition-all ${activeTab === 'products' ? 'text-[#b2f432] border-r-2 border-[#b2f432] bg-[#b2f432]/5' : 'text-[#e3e3db]/50 hover:bg-[#343530]/30'}`}>
             <MaterialIcon name="inventory_2" /> <span>Inventory & Plans</span>
@@ -738,6 +764,105 @@ export default function AdminDashboard() {
             </section>
           )}
 
+          {activeTab === 'events' && (
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+              <div className="flex justify-between items-center">
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Campaigns & Events Tracker</h2>
+                <button
+                  onClick={() => setEditingEvent({ title: '', date: '', location: '', spots: 50 })}
+                  className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] transition-transform"
+                >
+                  <MaterialIcon name="add" /> Schedule Event
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(eventsData.length > 0 ? eventsData : [
+                  { title: "Demo Drive", date: "2026-11-05", location: "Run DB Setup", id: 'mock', spots: 25 }
+                ]).map(evt => (
+                  <div key={evt.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all flex flex-col">
+                    <h4 className="font-bold text-lg mb-2 text-[#b2f432]">{evt.title}</h4>
+                    <div className="flex items-center gap-2 text-sm text-[#c2caaf] mb-1">
+                      <MaterialIcon name="calendar_today" className="text-sm" /> <span>{evt.date}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-[#c2caaf] mb-4">
+                      <MaterialIcon name="location_on" className="text-sm" /> <span>{evt.location}</span>
+                    </div>
+                    <div className="mt-auto">
+                      <span className="text-[10px] bg-sky-500/10 text-sky-400 px-3 py-1 rounded-full uppercase tracking-widest font-bold">
+                        {evt.spots} Capacity
+                      </span>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-[#424935]/10 flex gap-2">
+                      <button onClick={() => setEditingEvent(evt)} className="flex-1 bg-[#343530] text-[#e3e3db] py-2 rounded-lg text-xs font-bold hover:bg-[#424935]">Edit</button>
+                      <button onClick={async () => {
+                        const { error } = await supabase.from('volunteer_events').delete().eq('id', evt.id)
+                        if (!error) { toast.success("Event Canceled"); fetchDashboardData() } else { toast.error(error.message) }
+                      }} className="h-8 w-8 bg-[#343530] text-red-500/80 rounded-lg flex items-center justify-center hover:bg-red-500/10"><MaterialIcon name="delete" className="text-sm" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'settings' && (
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+              <h2 className="font-['Noto_Serif'] text-3xl font-bold">Global Site Configuration</h2>
+              <div className="bg-[#1a1c18] rounded-3xl border border-[#424935]/20 p-8 space-y-8 max-w-3xl">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Hero Headline</label>
+                    <input 
+                      value={siteConfig['hero_headline']}
+                      onChange={(e) => setSiteConfig({...siteConfig, hero_headline: e.target.value})}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-lg outline-none text-[#e3e3db]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Global Reforestation Goal (Trees)</label>
+                    <input 
+                      type="number"
+                      value={siteConfig['global_goal']}
+                      onChange={(e) => setSiteConfig({...siteConfig, global_goal: e.target.value})}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 outline-none text-[#b2f432] font-mono text-xl font-bold"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Contact Email</label>
+                      <input 
+                        value={siteConfig['contact_email']}
+                        onChange={(e) => setSiteConfig({...siteConfig, contact_email: e.target.value})}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Contact Phone</label>
+                      <input 
+                        value={siteConfig['contact_phone']}
+                        onChange={(e) => setSiteConfig({...siteConfig, contact_phone: e.target.value})}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-6 border-t border-[#424935]/10">
+                  <button onClick={async () => {
+                    const promises = Object.entries(siteConfig).map(([key, value]) => 
+                      supabase.from('site_config').upsert({ key, value })
+                    )
+                    const results = await Promise.all(promises)
+                    if (results.every(r => !r.error)) { toast.success("Site Configuration Updated Live!") }
+                    else { toast.error("Some settings failed to save.") }
+                  }} className="w-full bg-[#b2f432] text-[#233600] py-4 rounded-xl font-bold hover:scale-[1.01] transition-transform text-lg flex items-center justify-center gap-2">
+                    DEPOY SETTINGS <MaterialIcon name="public" />
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
           {activeTab === 'products' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <div className="flex justify-between items-center">
@@ -966,6 +1091,76 @@ export default function AdminDashboard() {
                     Save Endorsement
                   </button>
                   <button onClick={() => setEditingTestimonial(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {editingEvent && (
+            <div className="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md">
+              <div className="bg-[#1a1c18] w-full max-w-lg rounded-3xl border border-[#424935]/20 p-8 space-y-6">
+                <h3 className="font-['Noto_Serif'] text-2xl font-bold">{editingEvent.id ? 'Edit Event' : 'Schedule Event'}</h3>
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Event Title</label>
+                    <input
+                      value={editingEvent.title}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, title: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      placeholder="e.g. MEGA Drive Chennai"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Date</label>
+                      <input
+                        type="date"
+                        value={editingEvent.date}
+                        onChange={(e) => setEditingEvent({ ...editingEvent, date: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Spots Allowed</label>
+                      <input
+                        type="number"
+                        value={editingEvent.spots}
+                        onChange={(e) => setEditingEvent({ ...editingEvent, spots: parseInt(e.target.value) || 0 })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Full Location</label>
+                    <input
+                      value={editingEvent.location}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, location: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      placeholder="Park Name, City..."
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4 pt-4 border-t border-[#424935]/10">
+                  <button
+                    onClick={async () => {
+                      const dataPayload = { title: editingEvent.title, date: editingEvent.date, location: editingEvent.location, spots: editingEvent.spots }
+                      const op = editingEvent.id 
+                        ? supabase.from('volunteer_events').update(dataPayload).eq('id', editingEvent.id)
+                        : supabase.from('volunteer_events').insert(dataPayload)
+                      const { error } = await op
+                      if (!error) {
+                        toast.success("Event Published!")
+                        setEditingEvent(null)
+                        fetchDashboardData()
+                      } else {
+                        toast.error(error.message)
+                      }
+                    }}
+                    className="flex-1 bg-[#b2f432] text-[#233600] py-3 rounded-xl font-bold hover:scale-[1.01] transition-transform"
+                  >
+                    Save Event
+                  </button>
+                  <button onClick={() => setEditingEvent(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
                 </div>
               </div>
             </div>

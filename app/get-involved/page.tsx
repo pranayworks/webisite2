@@ -39,7 +39,7 @@ const pathways = [
   },
 ]
 
-const events = [
+const defaultEvents = [
   { title: "Mega Planting Drive - Chennai", date: "March 15, 2026", location: "TNAU Campus", spots: 50 },
   { title: "World Environment Day Special", date: "June 5, 2026", location: "Multiple Locations", spots: 200 },
   { title: "Monsoon Planting Festival", date: "July 20, 2026", location: "PAU, Ludhiana", spots: 75 },
@@ -71,11 +71,16 @@ export default function GetInvolvedPage() {
   const [rsvpForm, setRsvpForm] = useState({ name: '', email: '', phone: '' })
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false)
   const [rsvpLoading, setRsvpLoading] = useState(false)
+  const [events, setEvents] = useState<any[]>(defaultEvents)
 
   useEffect(() => {
     async function checkUser() {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user ?? null)
+      
+      const { data: dbEvents } = await supabase.from('volunteer_events').select('*').order('date', { ascending: true })
+      if (dbEvents && dbEvents.length > 0) setEvents(dbEvents)
+      
       setLoading(false)
     }
     checkUser()

@@ -56,3 +56,41 @@ INSERT INTO testimonials (name, role, text, rating) VALUES
 ('Dr. Suresh Nair', 'College Dean, KAU', 'The partnership with Green Legacy has transformed our campus and provided unparalleled learning opportunities for students. A truly innovative model.', 5),
 ('Meera Joshi', 'Environmental Blogger', 'Finally, a tree planting organization that''s truly transparent. I can visit my trees, scan the QR code, and see exactly where my money went. This is how environmental work should be done.', 5)
 ON CONFLICT DO NOTHING;
+
+-- 3. Volunteer Events Table
+CREATE TABLE IF NOT EXISTS volunteer_events (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  title text NOT NULL,
+  date text NOT NULL,
+  location text NOT NULL,
+  spots integer DEFAULT 50,
+  status text DEFAULT 'Published',
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE volunteer_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view published events" ON volunteer_events FOR SELECT USING (status = 'Published');
+CREATE POLICY "Admins can manage events" ON volunteer_events USING (auth.role() = 'authenticated');
+
+INSERT INTO volunteer_events (title, date, location, spots) VALUES
+('Delhi Seedling Drive', '2026-11-05', 'Delhi Eco-Park', 25),
+('Mumbai Coastal Plantation', '2026-11-12', 'Versova Beach Area', 100)
+ON CONFLICT DO NOTHING;
+
+-- 4. Global Settings Table (Key-Value configuration)
+CREATE TABLE IF NOT EXISTS site_config (
+  key text PRIMARY KEY,
+  value text NOT NULL,
+  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE site_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view config" ON site_config FOR SELECT USING (true);
+CREATE POLICY "Admins can manage config" ON site_config USING (auth.role() = 'authenticated');
+
+INSERT INTO site_config (key, value) VALUES
+('hero_headline', 'Plant a Tree, Leave a Legacy.'),
+('global_goal', '1000'),
+('contact_email', 'hello@greenlegacy.in'),
+('contact_phone', '+91 98765 43210')
+ON CONFLICT DO NOTHING;
