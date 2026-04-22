@@ -1233,7 +1233,8 @@ export default function AdminDashboard() {
                 <div className="flex gap-4 pt-4">
                   <button
                     onClick={async () => {
-                      const { error } = await supabase.from('site_products').upsert(editingProduct)
+                      const { is_csr, ...saveData } = editingProduct
+                      const { error } = await supabase.from('site_products').upsert(saveData)
                       if (!error) {
                         toast.success("Catalog Updated")
                         setEditingProduct(null)
