@@ -52,7 +52,7 @@ export default function Checkout({
       }
 
       // 1. Create Order
-      const order = await createRazorpayOrder(productId, user.id, occasion)
+      const order = await createRazorpayOrder(productId, user.id, occasion, isCsr, companyName, gstNumber)
 
       // 2. Open Razorpay Checkout
       const options: any = {

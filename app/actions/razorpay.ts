@@ -5,7 +5,14 @@ import { supabase } from "@/lib/supabase"
 import { PRODUCTS, SUBSCRIPTIONS } from "@/lib/products"
 import crypto from "crypto"
 
-export async function createRazorpayOrder(productId: string, userId: string, occasion?: string | null) {
+export async function createRazorpayOrder(
+  productId: string, 
+  userId: string, 
+  occasion?: string | null,
+  isCsr?: boolean,
+  companyName?: string,
+  gstNumber?: string
+) {
   try {
     const { data: dbProduct } = await supabase
       .from('site_products')
@@ -24,7 +31,14 @@ export async function createRazorpayOrder(productId: string, userId: string, occ
         amount,
         currency: "INR",
         receipt: `receipt_${Date.now()}_${userId.slice(0, 5)}`,
-        notes: { userId, productId, occasion: occasion || "" },
+        notes: { 
+          userId, 
+          productId, 
+          occasion: occasion || "",
+          is_csr: isCsr ? 'true' : 'false',
+          company_name: companyName || "",
+          gst_number: gstNumber || ""
+        },
       }
       const order = await razorpay.orders.create(options)
       return { id: order.id, amount: order.amount, currency: order.currency, mode: 'payment' }
@@ -40,7 +54,14 @@ export async function createRazorpayOrder(productId: string, userId: string, occ
         plan_id: planId,
         total_count: 12, // Default to 1 year of impact
         quantity: 1,
-        notes: { userId, productId, occasion: occasion || "" },
+        notes: { 
+          userId, 
+          productId, 
+          occasion: occasion || "",
+          is_csr: isCsr ? 'true' : 'false',
+          company_name: companyName || "",
+          gst_number: gstNumber || ""
+        },
       })
       
       return { 

@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       const subscription = event.payload.subscription.entity
       const payment = event.payload.payment.entity
       
-      const { userId, productId, occasion } = subscription.notes || {}
+      const { userId, productId, occasion, is_csr, company_name, gst_number } = subscription.notes || {}
 
       if (!userId || !productId) {
         console.warn('Missing metadata in subscription notes')
@@ -67,7 +67,10 @@ export async function POST(req: Request) {
           status: "Pending",
           amount_paid: payment.amount / 100,
           payment_id: payment.id,
-          order_key: subscription.id
+          order_key: subscription.id,
+          is_csr: is_csr === 'true' || false,
+          company_name: company_name || null,
+          gst_number: gst_number || null
         })
 
       console.log(`Successfully processed recurring charge for ${userId}: +${treeCount} trees`)
