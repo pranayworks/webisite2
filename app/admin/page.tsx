@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { addGrowthUpdate } from '@/app/actions/impact'
 import { testTelegramAction, testEmailAction, testInquiryEmailAction, testGrowthEmailAction, testOrderConfirmationEmailAction } from '@/app/actions/diagnostics'
 import { 
@@ -1137,7 +1138,7 @@ export default function AdminDashboard() {
               <div className="flex justify-between items-center">
                 <h2 className="font-['Noto_Serif'] text-3xl font-bold">Offerings & Subscriptions</h2>
                 <button
-                  onClick={() => setEditingProduct({ name: '', price_in_cents: 0, trees: 1, mode: 'payment', features: [] })}
+                  onClick={() => setEditingProduct({ name: '', price_in_cents: 0, trees: 1, mode: 'payment', features: [], is_csr: false })}
                   className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2"
                 >
                   <MaterialIcon name="add" /> Add New Plan
@@ -1213,13 +1214,13 @@ export default function AdminDashboard() {
                       <div className="flex gap-2 p-1 bg-[#343530] rounded-xl">
                         <button 
                           onClick={() => setEditingProduct({...editingProduct, is_csr: false})}
-                          className={cn("flex-1 py-2 rounded-lg text-[10px] font-bold transition-all", !editingProduct.is_csr ? "bg-[#b2f432] text-[#233600]" : "text-[#c2caaf]")}
+                          className={cn("flex-1 py-2 rounded-lg text-[10px] font-bold transition-all", !editingProduct?.is_csr ? "bg-[#b2f432] text-[#233600]" : "text-[#c2caaf]")}
                         >
                           SOLO
                         </button>
                         <button 
                           onClick={() => setEditingProduct({...editingProduct, is_csr: true})}
-                          className={cn("flex-1 py-2 rounded-lg text-[10px] font-bold transition-all", editingProduct.is_csr ? "bg-accent text-black" : "text-[#c2caaf]")}
+                          className={cn("flex-1 py-2 rounded-lg text-[10px] font-bold transition-all", editingProduct?.is_csr ? "bg-accent text-black" : "text-[#c2caaf]")}
                         >
                           CSR
                         </button>
