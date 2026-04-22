@@ -113,7 +113,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-inter)'],
-        serif: ['var(--font-playfair)'],
+        serif: ['var(--font-noto-serif)'],
         headline: ['"Noto Serif"', "serif"],
         body: ['Manrope', "sans-serif"],
         label: ['Manrope', "sans-serif"],

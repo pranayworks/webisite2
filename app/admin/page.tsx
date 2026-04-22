@@ -171,7 +171,7 @@ export default function AdminDashboard() {
       // 3. Fetch Site Products
       const { data: pData } = await supabase
         .from('site_products')
-        .select('id, name, description, price_in_cents, price_display, trees, mode, features, popular, badge')
+        .select('id, name, description, price_in_cents, price_display, trees, mode, features, popular, badge, is_csr')
         .order('id', { ascending: true })
       if (pData) setDbProducts(pData)
 
@@ -1242,8 +1242,7 @@ export default function AdminDashboard() {
                 <div className="flex gap-4 pt-4">
                   <button
                     onClick={async () => {
-                      const { is_csr, ...saveData } = editingProduct
-                      const { error } = await supabase.from('site_products').upsert(saveData)
+                      const { error } = await supabase.from('site_products').upsert(editingProduct)
                       if (!error) {
                         toast.success("Catalog Updated")
                         setEditingProduct(null)

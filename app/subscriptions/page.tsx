@@ -48,7 +48,7 @@ function SubscriptionsContent() {
 
   useEffect(() => {
     async function fetchPlans() {
-      const { data } = await supabase.from('site_products').select('id, name, description, price_in_cents, price_display, trees, mode, features, popular, badge')
+      const { data } = await supabase.from('site_products').select('id, name, description, price_in_cents, price_display, trees, mode, features, popular, badge, is_csr')
       if (data) setDbProducts(data)
     }
     fetchPlans()

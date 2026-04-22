@@ -445,7 +445,7 @@ export default function DashboardPage() {
             <div className="w-full h-[420px] rounded-2xl overflow-hidden border border-[#424935]/20 bg-[#1a1c18] flex items-center justify-center">
               <div className="text-center">
                 <MaterialIcon name="map" className="text-4xl text-[#b2f432] mb-3 opacity-20" />
-                <p className="text-[#c2caaf] text-sm">Registry visualization currently being syncronized...</p>
+                <p className="text-[#c2caaf] text-sm">Registry visualization currently being synchronized...</p>
               </div>
             </div>
           </section>

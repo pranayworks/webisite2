@@ -11,6 +11,7 @@ export interface Product {
   points: number
   mode: "payment" | "subscription"
   interval?: "month" | "quarter" | "year"
+  is_csr?: boolean
 }
 
 export const PRODUCTS: Product[] = [

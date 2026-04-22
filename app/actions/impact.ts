@@ -7,7 +7,7 @@ import { sendEmail, generatePlantingEmailHtml } from "@/lib/email"
  * Historical Stripe verification (Deprecated)
  */
 export async function verifyAndRecordPlanting(sessionId: string) {
-  return { success: false, message: "Stripe migration active. Use Razorpay flow." }
+  return { success: false, message: "Stripe migration active. Use Razorpay flow.", error: "Migration active" }
 }
 
 export async function addGrowthUpdate(orderId: string, note: string, photoUrl?: string) {

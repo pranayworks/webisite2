@@ -144,9 +144,9 @@ export async function verifyRazorpayPayment(
         amount_paid: productPrice / 100,
         payment_id: paymentId,
         order_key: orderId,
-        is_csr: (metadata as any).is_csr || false,
-        company_name: (metadata as any).company_name || null,
-        gst_number: (metadata as any).gst_number || null
+        is_csr: metadata.is_csr || false,
+        company_name: metadata.company_name || null,
+        gst_number: metadata.gst_number || null
       })
 
     if (plantingError) throw plantingError
