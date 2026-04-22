@@ -1214,13 +1214,15 @@ export default function AdminDashboard() {
                       <div className="flex gap-2 p-1 bg-[#343530] rounded-xl">
                         <button 
                           onClick={() => setEditingProduct({...editingProduct, is_csr: false})}
-                          className={cn("flex-1 py-2 rounded-lg text-[10px] font-bold transition-all", !editingProduct?.is_csr ? "bg-[#b2f432] text-[#233600]" : "text-[#c2caaf]")}
+                          type="button"
+                          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-all ${!editingProduct?.is_csr ? "bg-[#b2f432] text-[#233600]" : "text-[#c2caaf]"}`}
                         >
                           SOLO
                         </button>
                         <button 
                           onClick={() => setEditingProduct({...editingProduct, is_csr: true})}
-                          className={cn("flex-1 py-2 rounded-lg text-[10px] font-bold transition-all", editingProduct?.is_csr ? "bg-accent text-black" : "text-[#c2caaf]")}
+                          type="button"
+                          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-all ${editingProduct?.is_csr ? "bg-accent text-black" : "text-[#c2caaf]"}`}
                         >
                           CSR
                         </button>
