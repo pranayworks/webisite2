@@ -196,9 +196,11 @@ export default function AdminDashboard() {
         allOrdersData.forEach((po: any) => {
           const steward = po.steward_name || 'Anonymous'
           const amount = po.amount_paid != null ? po.amount_paid : ((po.trees || 1) * 299)
-          const existing = userMap.get(steward) || { name: steward, trees: 0, amount: 0, firstPlanted: po.created_at, lastPlanted: po.created_at }
+          const isCsr = po.is_csr === true || po.trees >= 50
+          const existing = userMap.get(steward) || { name: steward, trees: 0, amount: 0, isCsr: false, firstPlanted: po.created_at, lastPlanted: po.created_at }
           existing.trees += (po.trees || 1)
           existing.amount += amount
+          if (isCsr) existing.isCsr = true
           if (new Date(po.created_at) < new Date(existing.firstPlanted)) existing.firstPlanted = po.created_at
           if (new Date(po.created_at) > new Date(existing.lastPlanted)) existing.lastPlanted = po.created_at
           userMap.set(steward, existing)
@@ -643,6 +645,7 @@ export default function AdminDashboard() {
                             <th className="px-6 py-4">Steward</th>
                             <th className="px-6 py-4">Occasion</th>
                             <th className="px-6 py-4">Status</th>
+                            <th className="px-6 py-4 text-center">Type</th>
                             <th className="px-6 py-4 text-right">Actions</th>
                           </tr>
                         </thead>
@@ -654,6 +657,13 @@ export default function AdminDashboard() {
                                 <p className="text-[10px] text-[#c2caaf] uppercase">{order.plan} • {order.quantity}</p>
                               </td>
                               <td className="px-6 py-5 text-xs text-[#b2f432]/80">{order.occasion || 'General'}</td>
+                              <td className="px-6 py-5 text-center">
+                                {parseInt(order.quantity) >= 50 || order.plan?.toLowerCase().includes('corporate') ? (
+                                  <span className="text-[8px] bg-accent/20 text-accent px-2 py-0.5 rounded-full font-black border border-accent/30">CORPORATE</span>
+                                ) : (
+                                  <span className="text-[8px] bg-white/5 text-[#c2caaf]/50 px-2 py-0.5 rounded-full font-bold">SOLO</span>
+                                )}
+                              </td>
                               <td className="px-6 py-5"><span className="text-[9px] bg-[#233600] text-[#b2f432] px-2 py-0.5 rounded uppercase font-bold">{order.status}</span></td>
                               <td className="px-6 py-5 text-right">
                                 <button
