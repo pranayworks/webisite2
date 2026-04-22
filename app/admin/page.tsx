@@ -122,7 +122,7 @@ export default function AdminDashboard() {
       // 1. Fetch Orders (Active Queue: Pending + Planted)
       const { data: ordersData, error: ordersError } = await supabase
         .from('planting_orders')
-        .select('*')
+        .select('id, created_at, steward_name, trees, status, occasion, plan_name, amount_paid')
         .in('status', ['Pending', 'Planted'])
         .order('created_at', { ascending: false })
 
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
       // 2. Fetch History (Finalized Queue: Completed)
       const { data: historyData, error: historyError } = await supabase
         .from('planting_orders')
-        .select('*')
+        .select('id, created_at, steward_name, species, location')
         .eq('status', 'Completed')
         .order('created_at', { ascending: false })
 
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
       // 3. Fetch Site Products
       const { data: pData } = await supabase
         .from('site_products')
-        .select('*')
+        .select('id, name, description, price_in_cents, price_display, trees, mode, features, popular, badge')
         .order('id', { ascending: true })
       if (pData) setDbProducts(pData)
 
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
       setMessages(mData || [])
 
       // 5. Build Users Directory
-      const { data: allOrdersData } = await supabase.from('planting_orders').select('*').order('created_at', { ascending: true })
+      const { data: allOrdersData } = await supabase.from('planting_orders').select('id, created_at, steward_name, trees, amount_paid').order('created_at', { ascending: true })
       if (allOrdersData) {
         const userMap = new Map()
         // Add dummy data first for visuals if db is empty or sparse
