@@ -1138,7 +1138,7 @@ export default function AdminDashboard() {
               <div className="flex justify-between items-center">
                 <h2 className="font-['Noto_Serif'] text-3xl font-bold">Offerings & Subscriptions</h2>
                 <button
-                  onClick={() => setEditingProduct({ name: '', price_in_cents: 0, trees: 1, mode: 'payment', features: [], is_csr: false })}
+                  onClick={() => setEditingProduct({ id: `plan-${Math.random().toString(36).substring(2, 7)}`, name: '', price_in_cents: 0, trees: 1, mode: 'payment', features: [], is_csr: false })}
                   className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2"
                 >
                   <MaterialIcon name="add" /> Add New Plan
@@ -1180,6 +1180,15 @@ export default function AdminDashboard() {
               <div className="bg-[#1a1c18] w-full max-w-lg rounded-3xl border border-[#424935]/20 p-8 space-y-6">
                 <h3 className="font-['Noto_Serif'] text-2xl font-bold">Edit Plan Details</h3>
                 <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Item ID (Primary Key - Use Slugs like 'basic-oak')</label>
+                    <input
+                      value={editingProduct.id}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, id: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none font-mono"
+                      placeholder="e.g. mega-forest-premium"
+                    />
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Plan Name</label>
