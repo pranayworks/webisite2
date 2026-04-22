@@ -40,6 +40,7 @@ function SubscriptionsContent() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(initialPlan)
   const [showCheckout, setShowCheckout] = useState(!!initialPlan)
   const [activeTab, setActiveTab] = useState<"one-time" | "subscription">("one-time")
+  const [customerType, setCustomerType] = useState<"individual" | "corporate">("individual")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null)
 
@@ -145,6 +146,40 @@ function SubscriptionsContent() {
           </div>
         </section>
 
+        {/* Global Toggle: Individual vs Corporate */}
+        <section className="bg-background pb-12">
+          <div className="mx-auto max-w-4xl px-4 text-center">
+            <div className="inline-flex items-center gap-3 bg-muted/50 p-1.5 rounded-2xl border border-border/50">
+              <button 
+                onClick={() => setCustomerType("individual")}
+                className={cn(
+                  "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all",
+                  customerType === "individual" ? "bg-card text-foreground shadow-lg scale-105" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Shield className="w-4 h-4" /> Stewardship (Solo)
+              </button>
+              <button 
+                onClick={() => setCustomerType("corporate")}
+                className={cn(
+                  "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all",
+                  customerType === "corporate" ? "bg-card text-accent shadow-lg scale-105" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Zap className="w-4 h-4" /> Corporate CSR (Bulk)
+              </button>
+            </div>
+            {customerType === "corporate" && (
+              <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                <p className="text-xs font-black text-accent tracking-[0.2em] uppercase">
+                  ⚡ Global CSR Discount Applied: 30% Off Bulk Sequestration
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1 font-medium italic">GST Invoicing & Corporate Impact Certificates unlocked.</p>
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* Pricing Cards */}
         <section className="bg-background pb-20">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
@@ -173,9 +208,13 @@ function SubscriptionsContent() {
                     <p className="mt-1 text-sm text-muted-foreground">{product.description}</p>
                   </div>
                   <div className="mb-6">
-                    <span className="text-4xl font-bold text-foreground">{product.priceDisplay}</span>
+                    <span className="text-4xl font-bold text-foreground">
+                      {customerType === "corporate" ? `₹${Math.floor(parseInt(product.priceDisplay.replace(/[^0-9]/g, '')) * 0.7)}` : product.priceDisplay}
+                    </span>
                     {product.mode === "payment" && (
-                      <span className="ml-1 text-sm text-muted-foreground">one-time</span>
+                      <span className="ml-1 text-sm text-muted-foreground">
+                        {customerType === "corporate" ? "/ block" : "one-time"}
+                      </span>
                     )}
                   </div>
                   <div className="mb-4 flex gap-4 text-sm text-muted-foreground">
@@ -268,7 +307,22 @@ function SubscriptionsContent() {
                 </div>
               )}
               <div className={cn("rounded-2xl border border-border bg-card p-6 shadow-lg transition-opacity", !selectedOccasion && "opacity-40 pointer-events-none")}>
-                <Checkout productId={selectedPlan} occasion={selectedOccasion} />
+                {customerType === "corporate" && (
+                  <div className="mb-8 p-6 bg-accent/5 rounded-2xl border border-accent/20 space-y-4">
+                    <h4 className="text-sm font-bold text-accent uppercase tracking-widest">CSR Validation Info</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] uppercase font-bold text-muted-foreground">Company Name</label>
+                        <input className="w-full bg-muted border-none rounded-lg px-4 py-2 text-sm outline-none" placeholder="Required for Tax Receipt" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] uppercase font-bold text-muted-foreground">GST Identification No.</label>
+                        <input className="w-full bg-muted border-none rounded-lg px-4 py-2 text-sm outline-none" placeholder="Required for B2B Benefits" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <Checkout productId={selectedPlan} occasion={selectedOccasion} isCsr={customerType === "corporate"} />
               </div>
             </div>
           </section>

@@ -7,6 +7,18 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { addGrowthUpdate } from '@/app/actions/impact'
 import { testTelegramAction, testEmailAction, testInquiryEmailAction, testGrowthEmailAction, testOrderConfirmationEmailAction } from '@/app/actions/diagnostics'
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell
+} from 'recharts'
 
 // Material Symbols mapping for consistent look  with their design
 const MaterialIcon = ({ name, className = "", style = {} }: { name: string, className?: string, style?: any }) => (
@@ -65,6 +77,8 @@ export default function AdminDashboard() {
   const [showVerifyModal, setShowVerifyModal] = useState(false)
   const [verifyingOrder, setVerifyingOrder] = useState<any>(null)
   const [proofData, setProofData] = useState({ gps: '', species: 'Neem', photo: '', date: new Date().toISOString().split('T')[0] })
+  const [chartData, setChartData] = useState<any[]>([])
+  const [revenueData, setRevenueData] = useState<any[]>([])
 
   // Dynamic Global Metrics
   const GLOBAL_GOAL = 1000
@@ -228,6 +242,39 @@ export default function AdminDashboard() {
       // 10. Fetch Media
       const { data: mediaRes } = await supabase.from('media_assets').select('*').order('created_at', { ascending: false })
       if (mediaRes) setMediaData(mediaRes)
+
+      // 11. Generate Analytics Data
+      const { data: allOrdersForCharts } = await supabase
+        .from('planting_orders')
+        .select('created_at, trees, amount_paid')
+        .order('created_at', { ascending: true })
+
+      if (allOrdersForCharts) {
+        const last30Days = [...Array(30)].map((_, i) => {
+          const d = new Date()
+          d.setDate(d.getDate() - (29 - i))
+          return d.toISOString().split('T')[0]
+        })
+
+        const dailyCounts: Record<string, number> = {}
+        const dailyRevenue: Record<string, number> = {}
+        
+        last30Days.forEach(day => {
+          dailyCounts[day] = 0
+          dailyRevenue[day] = 0
+        })
+
+        allOrdersForCharts.forEach(order => {
+          const day = new Date(order.created_at).toISOString().split('T')[0]
+          if (dailyCounts[day] !== undefined) {
+             dailyCounts[day] += (order.trees || 1)
+             dailyRevenue[day] += (order.amount_paid || (order.trees * 299))
+          }
+        })
+
+        setChartData(last30Days.map(day => ({ name: day.split('-').slice(1).join('/'), trees: dailyCounts[day] })))
+        setRevenueData(last30Days.map(day => ({ name: day.split('-').slice(1).join('/'), amount: dailyRevenue[day] })))
+      }
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
@@ -520,6 +567,71 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+              {/* Analytics Dashboard Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-[#1a1c18] p-8 rounded-2xl border border-[#424935]/10">
+                  <div className="flex justify-between items-center mb-8">
+                    <div>
+                      <h3 className="font-bold text-lg">Planting Velocity</h3>
+                      <p className="text-xs text-[#c2caaf]">Specimens established over last 30 days</p>
+                    </div>
+                    <div className="h-10 w-10 bg-[#b2f432]/10 rounded-xl flex items-center justify-center text-[#b2f432]">
+                      <MaterialIcon name="show_chart" />
+                    </div>
+                  </div>
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData}>
+                        <defs>
+                          <linearGradient id="colorTrees" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#b2f432" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#b2f432" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#424935" vertical={false} opacity={0.1} />
+                        <XAxis dataKey="name" stroke="#c2caaf" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#c2caaf" fontSize={10} tickLine={false} axisLine={false} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#1a1c18', border: '1px solid #424935', borderRadius: '12px' }}
+                          itemStyle={{ color: '#b2f432', fontWeight: 'bold' }}
+                        />
+                        <Area type="monotone" dataKey="trees" stroke="#b2f432" strokeWidth={3} fillOpacity={1} fill="url(#colorTrees)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <div className="bg-[#1a1c18] p-8 rounded-2xl border border-[#424935]/10">
+                  <div className="flex justify-between items-center mb-8">
+                    <div>
+                      <h3 className="font-bold text-lg">Revenue Stream</h3>
+                      <p className="text-xs text-[#c2caaf]">Contribution volume (INR) relative to time</p>
+                    </div>
+                    <div className="h-10 w-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400">
+                      <MaterialIcon name="payments" />
+                    </div>
+                  </div>
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={revenueData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#424935" vertical={false} opacity={0.1} />
+                        <XAxis dataKey="name" stroke="#c2caaf" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#c2caaf" fontSize={10} tickLine={false} axisLine={false} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#1a1c18', border: '1px solid #424935', borderRadius: '12px' }}
+                          cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                        />
+                        <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                          {revenueData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#b2f432' : '#86b325'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 <section className="lg:col-span-3 space-y-6">
                   <h2 className="font-['Noto_Serif'] text-2xl font-bold">Deployment Queue</h2>
@@ -635,6 +747,7 @@ export default function AdminDashboard() {
                       <th className="px-6 py-4">Steward</th>
                       <th className="px-6 py-4">Species</th>
                       <th className="px-6 py-4">Location</th>
+                      <th className="px-6 py-4 text-center">Certificate</th>
                       <th className="px-6 py-4 text-right">Status</th>
                     </tr>
                   </thead>
@@ -645,6 +758,11 @@ export default function AdminDashboard() {
                         <td className="px-6 py-5 text-sm">{item.steward}</td>
                         <td className="px-6 py-5 text-sm">{item.species}</td>
                         <td className="px-6 py-5 text-sm text-[#c2caaf]">{item.loc}</td>
+                        <td className="px-6 py-5 text-center">
+                          <span className={`text-[9px] px-2 py-1 rounded-full font-bold uppercase tracking-widest ${item.certificate_issued ? 'bg-[#b2f432]/10 text-[#b2f432]' : 'bg-white/5 text-[#c2caaf]/40'}`}>
+                            {item.certificate_issued ? 'ISSUED' : 'PENDING'}
+                          </span>
+                        </td>
                         <td className="px-6 py-5 text-right"><span className="text-[9px] bg-[#233600] text-[#b2f432] px-2 py-0.5 rounded uppercase font-bold">Healthy</span></td>
                       </tr>
                     ))}
