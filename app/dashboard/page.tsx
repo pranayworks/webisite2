@@ -42,6 +42,7 @@ export default function DashboardPage() {
   const certificateRef = useRef<HTMLDivElement>(null)
   const benefitsRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [monthlyStats, setMonthlyStats] = useState({ oxygen: '0', carbon: '0', energy: '0', daysRemaining: 0 })
   const rank = useMemo(() => calculateRank(metrics.trees), [metrics.trees])
 
@@ -257,8 +258,17 @@ export default function DashboardPage() {
 
   return (
     <div className="font-['Manrope'] bg-[#121410] text-[#e3e3db] flex min-h-screen selection:bg-[#b2f432] selection:text-[#233600]">
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 md:hidden"
+        />
+      )}
+
       {/* SideNavBar */}
-      <aside className="bg-[#0d0f0b] h-full w-64 fixed left-0 top-0 hidden md:flex flex-col py-8 gap-6 z-40">
+      <aside className={`bg-[#0d0f0b] h-full w-64 fixed left-0 top-0 flex flex-col py-8 gap-6 z-40 transition-transform duration-300 md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="px-8 mt-4 mb-4">
           <Link href="/">
             <h1 className="font-['Noto_Serif'] italic text-xl text-[#b2f432] cursor-pointer hover:opacity-80 transition-opacity">Green Legacy</h1>
@@ -300,13 +310,21 @@ export default function DashboardPage() {
       </aside>
 
       {/* Main Content Canvas */}
-      <main className="flex-1 md:ml-64 bg-[#121410] min-h-screen relative pb-20">
+      <main className="flex-1 md:ml-64 bg-[#121410] min-h-screen relative pb-24 md:pb-20">
 
         {/* TopAppBar */}
-        <header className="fixed top-0 right-0 left-0 md:left-64 h-20 bg-[#121410]/70 backdrop-blur-xl z-30 flex justify-between items-center px-8 border-b border-[#424935]/10">
-          <div className="flex flex-col mb-4 md:mb-0">
-            <h2 className="font-['Noto_Serif'] text-2xl font-bold tracking-tight text-[#e3e3db] capitalize">Welcome back, {displayName}</h2>
-            <p className="text-xs font-['Manrope'] text-[#c2caaf] tracking-wider uppercase">Your legacy continues to grow.</p>
+        <header className="fixed top-0 right-0 left-0 md:left-64 h-16 md:h-20 bg-[#121410]/70 backdrop-blur-xl z-30 flex justify-between items-center px-4 md:px-8 border-b border-[#424935]/10">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden h-9 w-9 flex items-center justify-center text-[#b2f432] bg-[#b2f432]/10 rounded-xl active:scale-95 transition-transform"
+            >
+              <MaterialIcon name={sidebarOpen ? 'close' : 'menu'} />
+            </button>
+            <div className="flex flex-col">
+              <h2 className="font-['Noto_Serif'] text-lg md:text-2xl font-bold tracking-tight text-[#e3e3db] capitalize">Welcome, {displayName.split(' ')[0]}</h2>
+              <p className="text-[10px] font-['Manrope'] text-[#c2caaf] tracking-wider uppercase hidden sm:block">Your legacy continues to grow.</p>
+            </div>
           </div>
 
           <div className="flex items-center gap-6">
@@ -330,7 +348,27 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        <div className="pt-28 px-8 max-w-7xl mx-auto space-y-12">
+        {/* Mobile Bottom Navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-[#0d0f0b]/95 backdrop-blur-xl border-t border-[#424935]/20 flex items-center justify-around px-2 py-2">
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 px-4 py-1 text-[#b2f432]">
+            <MaterialIcon name="dashboard" className="text-xl" />
+            <span className="text-[9px] uppercase tracking-widest font-bold">Overview</span>
+          </Link>
+          <Link href="/subscriptions" className="flex flex-col items-center gap-1 px-4 py-1 text-[#c2caaf]">
+            <MaterialIcon name="eco" className="text-xl" />
+            <span className="text-[9px] uppercase tracking-widest font-bold">Plant</span>
+          </Link>
+          <button onClick={handleManageBilling} className="flex flex-col items-center gap-1 px-4 py-1 text-[#c2caaf]">
+            <MaterialIcon name="payments" className="text-xl" />
+            <span className="text-[9px] uppercase tracking-widest font-bold">Billing</span>
+          </button>
+          <Link href="/dashboard/settings" className="flex flex-col items-center gap-1 px-4 py-1 text-[#c2caaf]">
+            <MaterialIcon name="person" className="text-xl" />
+            <span className="text-[9px] uppercase tracking-widest font-bold">Profile</span>
+          </Link>
+        </nav>
+
+        <div className="pt-20 md:pt-28 px-4 md:px-8 max-w-7xl mx-auto space-y-8 md:space-y-12">
           
           {/* Stewardship Level & Badge Section */}
           <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">

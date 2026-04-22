@@ -80,6 +80,7 @@ export default function AdminDashboard() {
   const [proofData, setProofData] = useState({ gps: '', species: 'Neem', photo: '', date: new Date().toISOString().split('T')[0] })
   const [chartData, setChartData] = useState<any[]>([])
   const [revenueData, setRevenueData] = useState<any[]>([])
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Dynamic Global Metrics
   const GLOBAL_GOAL = 1000
@@ -457,12 +458,18 @@ export default function AdminDashboard() {
   return (
     <div className="bg-[#121410] text-[#e3e3db] min-h-screen font-['Manrope'] selection:bg-[#b2f432] selection:text-[#233600]">
       {/* TopNavBar */}
-      <header className="fixed top-0 w-full z-50 bg-[#121410]/70 backdrop-blur-xl border-b border-[#424935]/10 flex justify-between items-center px-8 h-20">
-        <div className="flex items-center gap-12">
+      <header className="fixed top-0 w-full z-50 bg-[#121410]/70 backdrop-blur-xl border-b border-[#424935]/10 flex justify-between items-center px-4 md:px-8 h-16 md:h-20">
+        <div className="flex items-center gap-3 md:gap-12">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="md:hidden h-9 w-9 flex items-center justify-center text-[#b2f432] bg-[#b2f432]/10 rounded-xl"
+          >
+            <MaterialIcon name={sidebarOpen ? 'close' : 'menu'} />
+          </button>
           <Link href="/">
-            <h1 className="text-xl font-bold tracking-tighter text-[#e3e3db] font-['Noto_Serif'] cursor-pointer">Stewardship Portal</h1>
+            <h1 className="text-base md:text-xl font-bold tracking-tighter text-[#e3e3db] font-['Noto_Serif'] cursor-pointer">Stewardship Portal</h1>
           </Link>
-          <div className="relative group hidden md:block">
+          <div className="relative group hidden lg:block">
             <MaterialIcon name="person_search" className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c2caaf]/60" />
             <input
               value={searchQuery}
@@ -476,9 +483,16 @@ export default function AdminDashboard() {
       </header>
 
       {/* SideNavBar & Main Content Wrapper */}
-      <div className="flex pt-20 h-screen">
+      <div className="flex pt-16 md:pt-20 min-h-screen">
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 md:hidden"
+          />
+        )}
         {/* SideNavBar */}
-        <aside className="fixed left-0 top-20 h-[calc(100vh-80px)] w-72 bg-[#0d0f0b] flex flex-col py-6 gap-1 hidden md:flex border-r border-[#424935]/10 overflow-y-auto custom-scrollbar z-40">
+        <aside className={`fixed left-0 top-16 md:top-20 h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] w-72 bg-[#0d0f0b] flex flex-col py-6 gap-1 border-r border-[#424935]/10 overflow-y-auto custom-scrollbar z-40 transition-transform duration-300 md:translate-x-0 ${ sidebarOpen ? 'translate-x-0' : '-translate-x-full' }`}>
           <div className="px-8 mb-4 shrink-0">
             <h2 className="font-['Manrope'] font-bold text-[#c2caaf] text-xs uppercase tracking-widest opacity-60">Field Operations</h2>
             <p className="text-[#b2f432] font-medium text-sm">Active Stewardship Dashboard</p>
@@ -535,8 +549,28 @@ export default function AdminDashboard() {
           </div>
         </aside>
 
+        {/* Mobile Bottom Navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0d0f0b]/95 backdrop-blur-xl border-t border-[#424935]/20 flex items-center justify-around px-1 py-2">
+          {[
+            { tab: 'queue', icon: 'list_alt', label: 'Queue' },
+            { tab: 'users', icon: 'group', label: 'Users' },
+            { tab: 'inquiries', icon: 'mail', label: 'Inbox' },
+            { tab: 'products', icon: 'inventory_2', label: 'Plans' },
+            { tab: 'settings', icon: 'settings', label: 'Settings' },
+          ].map(({ tab, icon, label }) => (
+            <button
+              key={tab}
+              onClick={() => { setActiveTab(tab as any); setSidebarOpen(false); }}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all ${activeTab === tab ? 'text-[#b2f432]' : 'text-[#c2caaf]/50'}`}
+            >
+              <MaterialIcon name={icon} className="text-xl" />
+              <span className="text-[8px] uppercase tracking-widest font-bold">{label}</span>
+            </button>
+          ))}
+        </nav>
+
         {/* Main Content Area */}
-        <main className="flex-1 ml-0 md:ml-72 overflow-y-auto p-8 space-y-12 no-scrollbar">
+        <main className="flex-1 ml-0 md:ml-72 overflow-y-auto p-4 md:p-8 space-y-8 md:space-y-12 no-scrollbar pb-24 md:pb-8">
 
           {activeTab === 'queue' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-12">
