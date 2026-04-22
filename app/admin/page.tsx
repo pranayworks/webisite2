@@ -756,7 +756,7 @@ export default function AdminDashboard() {
                       <th className="px-6 py-4">Tree ID</th>
                       <th className="px-6 py-4">Steward</th>
                       <th className="px-6 py-4">Species</th>
-                      <th className="px-6 py-4">Location</th>
+                      <th className="px-6 py-4 text-center">Type</th>
                       <th className="px-6 py-4 text-center">Certificate</th>
                       <th className="px-6 py-4 text-right">Status</th>
                     </tr>
@@ -767,7 +767,13 @@ export default function AdminDashboard() {
                         <td className="px-6 py-5 font-mono text-xs text-[#b2f432]">{item.id}</td>
                         <td className="px-6 py-5 text-sm">{item.steward}</td>
                         <td className="px-6 py-5 text-sm">{item.species}</td>
-                        <td className="px-6 py-5 text-sm text-[#c2caaf]">{item.loc}</td>
+                        <td className="px-6 py-5 text-center">
+                          {item.isCsr ? (
+                            <span className="text-[7px] bg-accent/10 text-accent px-1.5 py-0.5 rounded border border-accent/20 font-black">CSR</span>
+                          ) : (
+                            <span className="text-[7px] bg-white/5 text-[#c2caaf]/30 px-1.5 py-0.5 rounded font-bold">SOLO</span>
+                          )}
+                        </td>
                         <td className="px-6 py-5 text-center">
                           <span className={`text-[9px] px-2 py-1 rounded-full font-bold uppercase tracking-widest ${item.certificate_issued ? 'bg-[#b2f432]/10 text-[#b2f432]' : 'bg-white/5 text-[#c2caaf]/40'}`}>
                             {item.certificate_issued ? 'ISSUED' : 'PENDING'}
@@ -795,10 +801,10 @@ export default function AdminDashboard() {
                   <thead>
                     <tr className="border-b border-[#424935]/10 text-[#c2caaf] text-[10px] uppercase tracking-widest font-bold">
                       <th className="px-6 py-4">Steward Name</th>
-                      <th className="px-6 py-4 text-center">Total Trees Planted</th>
-                      <th className="px-6 py-4 text-center">Total Contribution</th>
-                      <th className="px-6 py-4">First Planting</th>
-                      <th className="px-6 py-4">Latest Action</th>
+                      <th className="px-6 py-4 text-center">Trees</th>
+                      <th className="px-6 py-4 text-center">Type</th>
+                      <th className="px-6 py-4 text-center">Revenue</th>
+                      <th className="px-6 py-4">Last Activity</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#424935]/10">
@@ -817,11 +823,15 @@ export default function AdminDashboard() {
                             {user.trees} 🌲
                           </span>
                         </td>
+                        <td className="px-6 py-5 text-center">
+                          {user.isCsr ? (
+                            <span className="text-[8px] bg-accent text-black px-2 py-0.5 rounded-full font-black tracking-widest">PARTNER</span>
+                          ) : (
+                            <span className="text-[8px] bg-white/5 text-[#c2caaf]/40 px-2 py-0.5 rounded-full font-bold uppercase">Steward</span>
+                          )}
+                        </td>
                         <td className="px-6 py-5 text-center text-sm font-mono tracking-wide text-[#e3e3db]">
                           ₹{user.amount.toLocaleString('en-IN')}
-                        </td>
-                        <td className="px-6 py-5 text-xs text-[#c2caaf]">
-                          {new Date(user.firstPlanted).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
                         <td className="px-6 py-5 text-xs text-[#c2caaf]">
                           {new Date(user.lastPlanted).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
