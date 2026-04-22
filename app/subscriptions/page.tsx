@@ -43,6 +43,8 @@ function SubscriptionsContent() {
   const [customerType, setCustomerType] = useState<"individual" | "corporate">("individual")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null)
+  const [companyName, setCompanyName] = useState("")
+  const [gstNumber, setGstNumber] = useState("")
 
   useEffect(() => {
     async function fetchPlans() {
@@ -322,16 +324,32 @@ function SubscriptionsContent() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-[10px] uppercase font-bold text-muted-foreground">Company Name</label>
-                        <input className="w-full bg-muted border-none rounded-lg px-4 py-2 text-sm outline-none" placeholder="Required for Tax Receipt" />
+                        <input 
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                          className="w-full bg-muted border-none rounded-lg px-4 py-2 text-sm outline-none" 
+                          placeholder="Required for Tax Receipt" 
+                        />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[10px] uppercase font-bold text-muted-foreground">GST Identification No.</label>
-                        <input className="w-full bg-muted border-none rounded-lg px-4 py-2 text-sm outline-none" placeholder="Required for B2B Benefits" />
+                        <input 
+                          value={gstNumber}
+                          onChange={(e) => setGstNumber(e.target.value)}
+                          className="w-full bg-muted border-none rounded-lg px-4 py-2 text-sm outline-none" 
+                          placeholder="Required for B2B Benefits" 
+                        />
                       </div>
                     </div>
                   </div>
                 )}
-                <Checkout productId={selectedPlan} occasion={selectedOccasion} isCsr={customerType === "corporate"} />
+                <Checkout 
+                  productId={selectedPlan} 
+                  occasion={selectedOccasion} 
+                  isCsr={customerType === "corporate"} 
+                  companyName={companyName}
+                  gstNumber={gstNumber}
+                />
               </div>
             </div>
           </section>

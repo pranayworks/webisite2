@@ -12,7 +12,19 @@ declare global {
   }
 }
 
-export default function Checkout({ productId, occasion, isCsr }: { productId: string, occasion?: string | null, isCsr?: boolean }) {
+export default function Checkout({ 
+  productId, 
+  occasion, 
+  isCsr, 
+  companyName, 
+  gstNumber 
+}: { 
+  productId: string, 
+  occasion?: string | null, 
+  isCsr?: boolean,
+  companyName?: string,
+  gstNumber?: string
+}) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -61,10 +73,17 @@ export default function Checkout({ productId, occasion, isCsr }: { productId: st
         toast.loading("Verifying transaction...", { id: toastId })
         
         const result = await verifyRazorpayPayment(
-          order.id, // This will be either orderId or subscriptionId
+          order.id,
           response.razorpay_payment_id,
           response.razorpay_signature,
-          { userId: user.id, productId, occasion: occasion || "" }
+          { 
+            userId: user.id, 
+            productId, 
+            occasion: occasion || "",
+            is_csr: isCsr || false,
+            company_name: companyName || "",
+            gst_number: gstNumber || ""
+          }
         )
 
         if (result.success) {

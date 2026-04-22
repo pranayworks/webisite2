@@ -60,7 +60,14 @@ export async function verifyRazorpayPayment(
   orderId: string,
   paymentId: string,
   signature: string,
-  metadata: { userId: string, productId: string, occasion: string }
+  metadata: { 
+    userId: string, 
+    productId: string, 
+    occasion: string,
+    is_csr?: boolean,
+    company_name?: string,
+    gst_number?: string
+  }
 ) {
   try {
     // 1. Verify Signature
@@ -115,7 +122,10 @@ export async function verifyRazorpayPayment(
         status: "Pending",
         amount_paid: productPrice / 100,
         payment_id: paymentId,
-        order_key: orderId
+        order_key: orderId,
+        is_csr: (metadata as any).is_csr || false,
+        company_name: (metadata as any).company_name || null,
+        gst_number: (metadata as any).gst_number || null
       })
 
     if (plantingError) throw plantingError

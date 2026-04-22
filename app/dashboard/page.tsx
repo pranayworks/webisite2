@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { calculateImpact, calculateRank } from '@/lib/impact'
+import { generateGSTInvoice } from '@/lib/invoice'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import dynamic from 'next/dynamic'
@@ -84,7 +85,7 @@ export default function DashboardPage() {
       // Fetch ALL orders (planted + pending) for the map
       const { data: allOrdersData } = await supabase
         .from('planting_orders')
-        .select('id, steward_name, trees, status, location, planting_gps, planting_date, created_at, occasion, plan_name')
+        .select('id, steward_name, trees, status, location, planting_gps, planting_date, created_at, occasion, plan_name, amount_paid, is_csr, company_name, gst_number')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
       setAllOrders(allOrdersData || [])
@@ -993,7 +994,17 @@ export default function DashboardPage() {
                         </span>
                       </td>
                       <td className="py-6 text-right pr-2">
-                        <span className="text-sm font-black text-white">₹{order.amount || (order.trees * 299)}</span>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="text-sm font-black text-white">₹{(order.amount_paid || order.amount || (order.trees * 299)).toLocaleString()}</span>
+                          {order.is_csr && (
+                            <button 
+                              onClick={() => generateGSTInvoice(order)}
+                              className="text-[9px] font-bold text-[#b2f432] bg-[#b2f432]/10 px-2 py-1 rounded hover:bg-[#b2f432] hover:text-[#233600] transition-all flex items-center gap-1"
+                            >
+                              <MaterialIcon name="receipt_long" className="text-[10px]" /> INVOICE
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )) : (
