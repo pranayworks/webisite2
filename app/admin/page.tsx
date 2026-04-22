@@ -1698,6 +1698,26 @@ export default function AdminDashboard() {
                                   <MaterialIcon name="mark_email_read" className="text-sm" />
                                 </button>
                               )}
+
+                              {/* Delete Button */}
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (confirm("Are you sure you want to delete this inquiry?")) {
+                                    const { error } = await supabase.from('contact_messages').delete().eq('id', msg.id);
+                                    if (error) {
+                                      toast.error("Failed to delete inquiry");
+                                    } else {
+                                      toast.success("Inquiry deleted successfully");
+                                      fetchDashboardData();
+                                    }
+                                  }
+                                }}
+                                className="h-8 w-8 bg-red-500/10 text-red-500 rounded-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
+                                title="Delete Inquiry"
+                              >
+                                <MaterialIcon name="delete" className="text-sm" />
+                              </button>
                             </div>
                           </td>
                         </tr>
