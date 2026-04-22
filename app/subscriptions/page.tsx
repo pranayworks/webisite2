@@ -209,7 +209,14 @@ function SubscriptionsContent() {
                   </div>
                   <div className="mb-6">
                     <span className="text-4xl font-bold text-foreground">
-                      {customerType === "corporate" ? `₹${Math.floor(parseInt(product.priceDisplay.replace(/[^0-9]/g, '')) * 0.7)}` : product.priceDisplay}
+                      {(() => {
+                        const basePrice = (product.priceDisplay || "₹0").toString()
+                        if (customerType === "corporate") {
+                          const numericValue = parseInt(basePrice.replace(/[^0-9]/g, '')) || 0
+                          return `₹${Math.floor(numericValue * 0.7)}`
+                        }
+                        return basePrice
+                      })()}
                     </span>
                     {product.mode === "payment" && (
                       <span className="ml-1 text-sm text-muted-foreground">

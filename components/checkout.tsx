@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-export default function Checkout({ productId, occasion }: { productId: string, occasion?: string | null }) {
+export default function Checkout({ productId, occasion, isCsr }: { productId: string, occasion?: string | null, isCsr?: boolean }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
