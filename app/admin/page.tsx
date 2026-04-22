@@ -161,11 +161,14 @@ export default function AdminDashboard() {
       if (pData) setDbProducts(pData)
 
       // 4. Fetch Contact Messages
-      const { data: mData } = await supabase
+      const { data: mData, error: mError } = await supabase
         .from('contact_messages')
         .select('*')
         .order('created_at', { ascending: false })
-      if (mData) setMessages(mData)
+      if (mError) {
+        console.error('ADMIN: Failed to fetch contact_messages:', mError)
+      }
+      setMessages(mData || [])
 
       // 5. Build Users Directory
       const { data: allOrdersData } = await supabase.from('planting_orders').select('*').order('created_at', { ascending: true })
