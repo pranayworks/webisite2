@@ -1158,7 +1158,12 @@ export default function AdminDashboard() {
                       <span className="text-[8px] bg-[#233600] text-[#b2f432] px-2 py-1 rounded-full font-bold uppercase">{p.mode}</span>
                     </div>
                     <h4 className="font-bold text-lg">{p.name}</h4>
-                    <p className="text-[#c2caaf] text-sm mt-1">{p.price_display}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-[#c2caaf] text-sm">{p.price_display}</p>
+                      {p.is_csr && (
+                        <span className="text-[7px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-md font-black border border-accent/30">CORPORATE ONLY</span>
+                      )}
+                    </div>
                     <div className="mt-8 pt-6 border-t border-[#424935]/10 flex gap-2">
                       <button onClick={() => setEditingProduct(p)} className="flex-1 bg-[#343530] text-[#e3e3db] py-2 rounded-lg text-xs font-bold hover:bg-[#424935]">Edit</button>
                       <button className="h-8 w-8 bg-[#343530] text-red-500/80 rounded-lg flex items-center justify-center hover:bg-red-500/10"><MaterialIcon name="delete" className="text-sm" /></button>
@@ -1193,14 +1198,33 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Trees Provided</label>
-                    <input
-                      type="number"
-                      value={editingProduct.trees}
-                      onChange={(e) => setEditingProduct({ ...editingProduct, trees: Number(e.target.value) })}
-                      className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Trees Provided</label>
+                      <input
+                        type="number"
+                        value={editingProduct.trees}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, trees: Number(e.target.value) })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Target Audience</label>
+                      <div className="flex gap-2 p-1 bg-[#343530] rounded-xl">
+                        <button 
+                          onClick={() => setEditingProduct({...editingProduct, is_csr: false})}
+                          className={cn("flex-1 py-2 rounded-lg text-[10px] font-bold transition-all", !editingProduct.is_csr ? "bg-[#b2f432] text-[#233600]" : "text-[#c2caaf]")}
+                        >
+                          SOLO
+                        </button>
+                        <button 
+                          onClick={() => setEditingProduct({...editingProduct, is_csr: true})}
+                          className={cn("flex-1 py-2 rounded-lg text-[10px] font-bold transition-all", editingProduct.is_csr ? "bg-accent text-black" : "text-[#c2caaf]")}
+                        >
+                          CSR
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-4 pt-4">
