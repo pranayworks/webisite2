@@ -24,7 +24,7 @@ export default function RefundPage() {
       <main className="pt-32 pb-20 px-8 max-w-3xl mx-auto">
         <header className="mb-16">
           <div className="text-[10px] text-[#b2f432] font-bold uppercase tracking-[0.5em] mb-4">Financial Protocol</div>
-          <h2 className="font-['Noto_Serif'] text-5xl font-bold">Refund Policy</h2>
+          <h2 className="font-['Noto_Serif'] text-5xl font-bold">Refund & Cancellation Policy</h2>
           <p className="text-[#c2caaf] mt-4 text-sm font-bold uppercase tracking-widest">Version: 1.2 • April 16, 2026</p>
         </header>
 
@@ -44,9 +44,18 @@ export default function RefundPage() {
             <p>Subscription plans (Annual/Monthly Stewardship) can be cancelled at any time through your Billing Dashboard. Cancellation stops future billing, but past payments are non-refundable as they have already been committed to the maintenance of your existing forest grove.</p>
           </div>
 
-           <div className="space-y-4">
-            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">4. Failed Transactions</h3>
-            <p>In the event of a technical failure where a payment is deducted but an order is not recorded, our system will automatically initiate a refund within 48 hours. If you do not see a refund, please contact our support team with your Transaction ID.</p>
+          <div className="space-y-4">
+            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">4. Failed Transactions & Auto-Refunds</h3>
+            <p>In the event of a technical failure where a payment is deducted but an order is not recorded, our system will automatically initiate a refund within 48-72 hours. The refund will be credited back to the original source of payment (Bank Account/Card/UPI).</p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">5. Contact for Support</h3>
+            <p>For any issues related to cancellations or refunds, please reach out to our support team directly. We are committed to resolving all financial queries within 48 hours of receipt.</p>
+            <div className="bg-[#1a1c18] p-6 rounded-2xl border border-[#424935]/20 space-y-2 mt-4 text-sm">
+                <p><span className="text-[#b2f432] font-bold">Email:</span> greenlegacy.org@gmail.com</p>
+                <p><span className="text-[#b2f432] font-bold">WhatsApp Support:</span> +91 8074935169</p>
+            </div>
           </div>
         </section>
 

@@ -31,7 +31,7 @@ export default function TermsPage() {
         <section className="space-y-12 leading-relaxed text-[#c2caaf]">
           <div className="space-y-4">
             <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">1. Acceptance of Terms</h3>
-            <p>By accessing the Green Legacy portal and initiating a tree planting sequence, you agree to bound by this Stewardship Charter. You certify that the information provided during signup and steward identity verification is accurate and true.</p>
+            <p>By accessing the Green Legacy portal and initiating a tree planting sequence, you agree to be bound by this Stewardship Charter. You certify that the information provided during signup and steward identity verification is accurate and true.</p>
           </div>
 
           <div className="space-y-4">
@@ -40,18 +40,23 @@ export default function TermsPage() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">3. Certifications and Verification</h3>
+            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">3. Payment Gateway & Security</h3>
+            <p>All payments are securely processed through authorized third-party gateways (Razorpay/Stripe). We do not store your credit card or sensitive banking information on our servers. By making a payment, you agree to the terms of the respective payment processor.</p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">4. Certifications and Verification</h3>
             <p>All digital certificates issued by Green Legacy are legal confirmations of your environmental impact. They are non-transferable and tied to your unique Steward ID. Unauthorized reproduction of these documents for commercial gain is prohibited.</p>
           </div>
 
            <div className="space-y-4">
-            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">4. Prohibited Conduct</h3>
+            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">5. Prohibited Conduct</h3>
             <p>Users must not interfere with the biological or digital integrity of the Green Legacy. This includes fraudulent GPS manipulation, unauthorized access to other stewardship files, or any activity that compromises the community's trust.</p>
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">5. Termination</h3>
-            <p>We reserve the right to suspend or terminate any stewardship account that violates this Charter. Upon termination, your digital certificates may be suspended, but the physical trees planted will continue their biological mission as part of the public forest.</p>
+            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">6. Governing Law</h3>
+            <p>These terms shall be governed by and constructed in accordance with the laws of India. Any disputes arising out of or in connection with these terms shall be subject to the exclusive jurisdiction of the courts in Hyderabad, Telangana.</p>
           </div>
         </section>
 
