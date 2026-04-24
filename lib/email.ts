@@ -31,37 +31,75 @@ export async function sendEmail({ to, subject, html }: { to: string, subject: st
   }
 }
 
-export function generateOrderConfirmationEmailHtml(userName: string, treeCount: number, planName: string) {
+export function generateOrderConfirmationEmailHtml(
+  userName: string, 
+  treeCount: number, 
+  planName: string, 
+  amountPaid: number, 
+  orderId: string, 
+  date: string,
+  occasion: string | null
+) {
+  const formattedAmount = (amountPaid).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })
+  
   return `
-    <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f9fafb; padding: 60px 20px; color: #1a1c18;">
-      <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: 24px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-        <div style="text-align: center; margin-bottom: 30px;">
-           <div style="display: inline-block; background: #b2f432; color: #233600; padding: 8px 16px; border-radius: 50px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">Order Confirmed</div>
-        </div>
+    <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f9fafb; padding: 60px 20px; color: #1a1c18;">
+      <div style="max-width: 540px; margin: 0 auto; background: white; border-radius: 24px; padding: 48px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);">
         
-        <h1 style="font-size: 28px; font-weight: 800; text-align: center; margin: 0 0 10px 0; color: #121410;">Your botanical legacy has begun.</h1>
-        <p style="text-align: center; color: #424935; font-size: 16px; line-height: 1.6; margin-bottom: 40px;">
-          Thank you, ${userName}. Your contribution of <b>${treeCount} trees</b> (${planName}) is now in our planting queue.
-        </p>
-
-        <div style="background: #f8faf5; border-radius: 20px; padding: 30px; margin-bottom: 40px; border: 1px solid rgba(66,73,53,0.05);">
-          <h3 style="margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #233600;">📋 Fulfillment Timeline</h3>
-          <ul style="padding: 0; margin: 0; list-style: none; font-size: 14px; color: #424935; line-height: 2;">
-            <li style="display: flex; align-items: center; gap: 10px;">✅ Payment Verified</li>
-            <li style="display: flex; align-items: center; gap: 10px;">⏳ Site Allocation (In Progress)</li>
-            <li style="display: flex; align-items: center; gap: 10px;">⏳ <b>GPS Coordinates (Updated within 7 days)</b></li>
-          </ul>
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #f1f2ec; padding-bottom: 24px; margin-bottom: 32px;">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #121410;">Invoice</h1>
+            <p style="margin: 4px 0 0; color: #8a9675; font-size: 13px;">Green Legacy Forestry</p>
+          </div>
+          <div style="text-align: right;">
+            <p style="margin: 0; font-size: 11px; font-weight: 700; color: #8a9675; text-transform: uppercase; letter-spacing: 1px;">Order No.</p>
+            <p style="margin: 4px 0 0; font-size: 14px; font-weight: 600; color: #121410;">#${orderId}</p>
+            <p style="margin: 8px 0 0; font-size: 13px; color: #8a9675;">${date}</p>
+          </div>
         </div>
 
-        <p style="text-align: center; font-size: 14px; color: #c2caaf; margin-bottom: 30px;">
-          You can track the live status of your grove at any time via your dashboard.
+        <!-- Greeting -->
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 16px 0; color: #121410;">Hello ${userName},</h2>
+        <p style="margin: 0 0 40px 0; color: #424935; font-size: 15px; line-height: 1.6;">
+          Thank you for establishing your botanical legacy. Your payment has been successfully processed, and your trees are entering our planting queue.
         </p>
 
+        <!-- Invoice Details Box -->
+        <div style="background: #fafaf9; border-radius: 16px; padding: 24px; margin-bottom: 32px; border: 1px solid #f1f2ec;">
+          <h3 style="margin: 0 0 20px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #8a9675;">Order Summary</h3>
+          
+          <!-- Line Item -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px dashed #e3e3db; padding-bottom: 16px; margin-bottom: 16px;">
+            <div>
+              <p style="margin: 0; font-weight: 700; font-size: 15px; color: #121410;">${planName}</p>
+              <p style="margin: 4px 0 0; font-size: 13px; color: #8a9675;">Qty: ${treeCount} Trees</p>
+              ${occasion ? `<p style="margin: 4px 0 0; font-size: 12px; color: #abb692; max-width: 200px;">Occasion: ${occasion}</p>` : ''}
+            </div>
+            <div style="text-align: right;">
+              <p style="margin: 0; font-weight: 600; font-size: 15px; color: #121410;">${formattedAmount}</p>
+            </div>
+          </div>
+
+          <!-- Totals -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px;">
+            <p style="margin: 0; font-weight: 500; font-size: 14px; color: #424935;">Total Paid</p>
+            <p style="margin: 0; font-weight: 800; font-size: 18px; color: #b2f432; background: #233600; padding: 4px 12px; border-radius: 8px;">${formattedAmount}</p>
+          </div>
+        </div>
+
+        <!-- Timeline Banner -->
+        <div style="background: rgba(178,244,50,0.1); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 32px;">
+          <p style="margin: 0; font-size: 12px; font-weight: 700; color: #233600; text-transform: uppercase; letter-spacing: 0.5px;">✓ Payment Verified &nbsp;→&nbsp; ⏳ Allocating Site &nbsp;→&nbsp; 📍 GPS Tagging</p>
+        </div>
+
+        <!-- Action / Footer -->
         <div style="text-align: center;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL}/dashboard" style="display: inline-block; background-color: #121410; color: #b2f432; padding: 16px 32px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">View My Dashboard</a>
+          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://greenlegacy.in'}/dashboard" style="display: inline-block; background-color: #121410; color: #b2f432; padding: 14px 28px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Access Dashboard</a>
         </div>
       </div>
-      <p style="text-align: center; font-size: 10px; color: #c2caaf; margin-top: 30px; text-transform: uppercase; letter-spacing: 1px;">© 2026 Arboretum Management Portal • Professional Stewardship</p>
+      
+      <p style="text-align: center; font-size: 10px; color: #a1a1aa; margin-top: 40px; text-transform: uppercase; letter-spacing: 1.5px;">© ${new Date().getFullYear()} Green Legacy by Arboretum</p>
     </div>
   `
 }

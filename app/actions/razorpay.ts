@@ -155,14 +155,23 @@ export async function verifyRazorpayPayment(
     try {
       const { sendEmail, generateOrderConfirmationEmailHtml } = await import("@/lib/email")
       
-      // Email to Customer (Confirmation + Timeline Promise)
+      // Custom formatted date
+      const orderDate = new Date().toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'short', year: 'numeric'
+      })
+
+      // Email to Customer (Confirmation + Invoice)
       await sendEmail({
         to: profile?.email || "",
-        subject: "Your Botanical Legacy has Begun",
+        subject: `Invoice #${paymentId.slice(-6).toUpperCase()} - Your Botanical Legacy has Begun`,
         html: generateOrderConfirmationEmailHtml(
           profile?.full_name || "Steward",
           product.trees,
-          product.name
+          product.name,
+          productPrice / 100, // amountPaid
+          paymentId.slice(-8).toUpperCase(), // orderId formatted for invoice
+          orderDate, // date
+          metadata.occasion || null // occasion
         )
       })
 
