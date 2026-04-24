@@ -86,7 +86,11 @@ export async function testOrderConfirmationEmailAction(adminEmail: string) {
     const html = generateOrderConfirmationEmailHtml(
        "Aris Thorne",
        5,
-       "Forest (One-Time)"
+       "Forest (One-Time)",
+       1250,
+       "TST_892MX",
+       new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+       "General Legacy"
      )
     const result = await sendEmail({
       to: adminEmail,

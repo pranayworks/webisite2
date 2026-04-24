@@ -772,7 +772,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="p-8 space-y-6">
                     <a 
-                      href={tree.coordinates !== 'Awaiting Sync' ? \`https://www.google.com/maps/search/?api=1&query=\${encodeURIComponent(tree.coordinates)}\` : '#'}
+                      href={tree.coordinates !== 'Awaiting Sync' ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tree.coordinates)}` : '#'}
                       target={tree.coordinates !== 'Awaiting Sync' ? '_blank' : '_self'}
                       rel="noopener noreferrer"
                       className="flex justify-between items-center group/gps cursor-pointer text-current no-underline block"
