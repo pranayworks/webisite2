@@ -86,7 +86,7 @@ export default function DashboardPage() {
       // Fetch ALL orders (planted + pending) for the map
       const { data: allOrdersData } = await supabase
         .from('planting_orders')
-        .select('id, steward_name, trees, status, location, planting_gps, planting_photo, planting_date, created_at, occasion, plan_name, amount_paid, is_csr, company_name, gst_number')
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
       setAllOrders(allOrdersData || [])
