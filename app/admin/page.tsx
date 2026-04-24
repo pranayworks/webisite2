@@ -127,11 +127,6 @@ export default function AdminDashboard() {
         .in('status', ['Pending', 'Planted'])
         .order('created_at', { ascending: false })
 
-      const dummyOrders = [
-        { id: 'MOCK-101', name: 'Aris Thorne', initials: 'AT', date: 'Oct 24, 2026', quantity: '1 Tree', status: 'Pending', color: 'bg-secondary-container/20 text-secondary', occasion: 'Birthday', plan: 'Sprout (One-Time)' },
-        { id: 'MOCK-102', name: 'Lyra Chen', initials: 'LC', date: 'Oct 25, 2026', quantity: '5 Trees', status: 'Pending', color: 'bg-secondary-container/20 text-secondary', occasion: 'Memorial', plan: 'Forest (One-Time)' }
-      ]
-
       const formattedOrders = (ordersData || []).map(o => ({
         id: o.id.toString(),
         name: o.steward_name,
@@ -144,7 +139,7 @@ export default function AdminDashboard() {
         plan: o.plan_name
       }))
 
-      setOrders([...formattedOrders, ...dummyOrders])
+      setOrders(formattedOrders)
 
       // 2. Fetch History (Finalized Queue: Completed)
       const { data: historyData, error: historyError } = await supabase
@@ -944,9 +939,12 @@ export default function AdminDashboard() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(testimonials.length > 0 ? testimonials : [
-                  { name: "Demo User", role: "Corporate Partner", text: "No database records yet. Run setup.sql to populate.", id: 'mock', rating: 5 }
-                ]).map(test => (
+                {testimonials.length === 0 ? (
+                  <div className="col-span-full py-12 text-center border border-dashed border-[#424935]/30 rounded-2xl">
+                    <MaterialIcon name="campaign" className="text-4xl text-[#c2caaf]/30 mb-2" />
+                    <p className="text-[#c2caaf]/50 font-medium">No testimonials found. Add an endorsement above.</p>
+                  </div>
+                ) : testimonials.map(test => (
                   <div key={test.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all flex flex-col">
                     <div className="flex gap-1 mb-4 text-[#b2f432]">
                       {Array.from({ length: test.rating || 5 }).map((_, i) => <MaterialIcon key={i} name="star" className="text-sm fill-current" />)}
@@ -982,9 +980,12 @@ export default function AdminDashboard() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(eventsData.length > 0 ? eventsData : [
-                  { title: "Demo Drive", date: "2026-11-05", location: "Run DB Setup", id: 'mock', spots: 25 }
-                ]).map(evt => (
+                {eventsData.length === 0 ? (
+                  <div className="col-span-full py-12 text-center border border-dashed border-[#424935]/30 rounded-2xl">
+                    <MaterialIcon name="event_busy" className="text-4xl text-[#c2caaf]/30 mb-2" />
+                    <p className="text-[#c2caaf]/50 font-medium">No active campaigns scheduled. Add one above.</p>
+                  </div>
+                ) : eventsData.map(evt => (
                   <div key={evt.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all flex flex-col">
                     <h4 className="font-bold text-lg mb-2 text-[#b2f432]">{evt.title}</h4>
                     <div className="flex items-center gap-2 text-sm text-[#c2caaf] mb-1">
@@ -1024,9 +1025,12 @@ export default function AdminDashboard() {
               </div>
               
               <div className="space-y-4 max-w-4xl">
-                {(faqsData.length > 0 ? faqsData : [
-                  { question: "Run DB script?", answer: "Apply the schema directly.", display_order: 1, id: 'mock' }
-                ]).map(faq => (
+                {faqsData.length === 0 ? (
+                  <div className="py-12 text-center border border-dashed border-[#424935]/30 rounded-2xl">
+                    <MaterialIcon name="quiz" className="text-4xl text-[#c2caaf]/30 mb-2" />
+                    <p className="text-[#c2caaf]/50 font-medium">No FAQs have been added yet.</p>
+                  </div>
+                ) : faqsData.map(faq => (
                   <div key={faq.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group flex gap-6 hover:border-[#b2f432]/30 transition-all items-start">
                     <div className="w-10 h-10 shrink-0 bg-[#343530] rounded-full flex items-center justify-center font-bold text-[#b2f432]">
                       {faq.display_order}
