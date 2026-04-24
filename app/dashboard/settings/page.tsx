@@ -23,6 +23,10 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState('')
   const [uploading, setUploading] = useState(false)
+  
+  // Subscription State
+  const [activeSub, setActiveSub] = useState<any>(null)
+  const [isCancelling, setIsCancelling] = useState(false)
 
   useEffect(() => {
     async function fetchUser() {
@@ -44,6 +48,22 @@ export default function SettingsPage() {
       setAge(profile?.age?.toString() || '')
       setGender(profile?.gender || 'Other')
       setAvatarUrl(profile?.avatar_url || '')
+
+      // Check for active Razorpay recurring subscriptions
+      const { data: subData } = await supabase
+        .from('planting_orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .like('order_key', 'sub_%')
+        .not('status', 'eq', 'Canceled')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+        
+      if (subData) {
+        setActiveSub(subData)
+      }
+
       setLoading(false)
     }
     fetchUser()
@@ -75,6 +95,30 @@ export default function SettingsPage() {
       toast.error('Upload failed: ' + error.message)
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    if (!activeSub || !activeSub.order_key) return
+    const confirmed = window.confirm("Are you sure you want to cancel your recurring environmental impact? This will stop all future billing immediately.")
+    if (!confirmed) return
+
+    setIsCancelling(true)
+    try {
+      const res = await fetch('/api/subscription/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptionId: activeSub.order_key, orderId: activeSub.id })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to cancel subscription')
+      
+      toast.success("Subscription successfully canceled.")
+      setActiveSub(null)
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setIsCancelling(false)
     }
   }
 
@@ -244,6 +288,34 @@ export default function SettingsPage() {
               {isSaving ? 'Syncing...' : 'Save Steward Identity'}
             </button>
           </form>
+
+          {/* Subscription Management (RBI Compliance) */}
+          {activeSub && (
+            <div className="bg-[#1a1c18] p-8 rounded-3xl border border-red-500/20 space-y-6 mt-12">
+              <div className="flex items-center gap-4 text-red-500/80">
+                <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+                  <MaterialIcon name="credit_card_off" />
+                </div>
+                <h3 className="font-['Noto_Serif'] text-xl font-bold">Billing & Subscription</h3>
+              </div>
+              <p className="text-[#c2caaf] text-sm leading-relaxed">
+                You have an active recurring subscription <b>({activeSub.plan_name})</b>. Under RBI guidelines, you may cancel your auto-pay mandate at any time. Your current cycle's trees will still be planted.
+              </p>
+              
+              <div className="pt-4 border-t border-[#424935]/20 flex justify-between items-center">
+                <div className="text-xs font-mono text-[#c2caaf]/50 truncate max-w-[200px]">
+                  ID: {activeSub.order_key}
+                </div>
+                <button
+                  onClick={handleCancelSubscription}
+                  disabled={isCancelling}
+                  className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50"
+                >
+                  {isCancelling ? 'Processing...' : 'Cancel Subscription'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -47,14 +47,13 @@ export default function FieldOpsPortal() {
 
       const { data: publicUrlData } = supabase.storage.from('images').getPublicUrl(`field_updates/${fileName}`)
 
-      // 2. We can update the planting_orders table (change status to 'Planted' and append gps)
-      //    Or insert a new record into a growth tracker depending on the architecture. Let's update planting_orders.
+      // 2. We update the planting_orders table
       const { error: dbError } = await supabase
         .from('planting_orders')
         .update({
           status: 'Planted',
-          location_gps: `${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`,
-          // If we had an image URL column, we'd save it here. You can add it later to the schema.
+          planting_gps: `${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`,
+          planting_photo: publicUrlData.publicUrl
         })
         .eq('id', orderId)
 

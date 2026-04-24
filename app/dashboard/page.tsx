@@ -86,7 +86,7 @@ export default function DashboardPage() {
       // Fetch ALL orders (planted + pending) for the map
       const { data: allOrdersData } = await supabase
         .from('planting_orders')
-        .select('id, steward_name, trees, status, location, planting_gps, planting_date, created_at, occasion, plan_name, amount_paid, is_csr, company_name, gst_number')
+        .select('id, steward_name, trees, status, location, planting_gps, planting_photo, planting_date, created_at, occasion, plan_name, amount_paid, is_csr, company_name, gst_number')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
       setAllOrders(allOrdersData || [])
@@ -771,13 +771,18 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="p-8 space-y-6">
-                    <div className="flex justify-between items-center group/gps cursor-pointer">
+                    <a 
+                      href={tree.coordinates !== 'Awaiting Sync' ? \`https://www.google.com/maps/search/?api=1&query=\${encodeURIComponent(tree.coordinates)}\` : '#'}
+                      target={tree.coordinates !== 'Awaiting Sync' ? '_blank' : '_self'}
+                      rel="noopener noreferrer"
+                      className="flex justify-between items-center group/gps cursor-pointer text-current no-underline block"
+                    >
                       <div className="space-y-1">
                         <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-[#c2caaf]/40">Legacy Coordinates</p>
                         <p className="text-sm font-mono text-[#b2f432] group-hover:text-white transition-colors">{tree.coordinates}</p>
                       </div>
                       <MaterialIcon name="gps_fixed" className="text-[#b2f432] text-xl opacity-20 group-hover:opacity-100 transition-all group-hover:rotate-12" />
-                    </div>
+                    </a>
                     <div className="pt-6 border-t border-[#424935]/10 flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <div className="h-2 w-2 rounded-full bg-[#b2f432] animate-pulse"></div>
