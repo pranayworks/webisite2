@@ -49,7 +49,20 @@ function SubscriptionsContent() {
   useEffect(() => {
     async function fetchPlans() {
       const { data } = await supabase.from('site_products').select('id, name, description, price_in_cents, price_display, trees, mode, features, popular, badge, is_csr')
-      if (data) setDbProducts(data)
+      if (data) {
+        const formatted = data.map(p => ({
+          ...p,
+          priceDisplay: p.price_display, // Map snake_case to camelCase
+          points: (p.trees || 1) * 100,  // Auto-calculate points
+          features: Array.isArray(p.features) && p.features.length > 0 ? p.features : [
+            `${p.trees || 1} Tree planted`,
+            "Digital GPS certificate",
+            `${(p.trees || 1) * 100} Green Points`,
+            "Email updates"
+          ]
+        }))
+        setDbProducts(formatted)
+      }
     }
     fetchPlans()
   }, [])
