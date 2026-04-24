@@ -242,6 +242,10 @@ export default function AdminDashboard() {
       const { data: mediaRes } = await supabase.from('media_assets').select('*').order('created_at', { ascending: false })
       if (mediaRes) setMediaData(mediaRes)
 
+      // 10.5 Fetch Products
+      const { data: prodsData } = await supabase.from('site_products').select('*').order('price_in_cents', { ascending: true })
+      if (prodsData) setDbProducts(prodsData)
+
       // 11. Generate Analytics Data
       const { data: allOrdersForCharts } = await supabase
         .from('planting_orders')
@@ -1102,6 +1106,51 @@ export default function AdminDashboard() {
             </section>
           )}
 
+          {activeTab === 'products' && (
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+              <div className="flex justify-between items-center">
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Inventory & Price Control</h2>
+                <button
+                  onClick={() => setEditingProduct({ name: '', description: '', price_in_cents: 0, price_display: '', trees: 1, mode: 'payment', features: [], popular: false, badge: '', is_csr: false })}
+                  className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] transition-transform"
+                >
+                  <MaterialIcon name="add" /> New Plan
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(dbProducts.length > 0 ? dbProducts : []).map(product => (
+                  <div key={product.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all flex flex-col relative overflow-hidden">
+                    {product.is_csr && <div className="absolute top-0 right-0 bg-[#b2f432] text-[#233600] text-[8px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-widest">CSR Focus</div>}
+                    <div className="flex justify-between items-start mb-2">
+                       <span className="text-[10px] bg-[#343530] text-[#b2f432] px-3 py-1 rounded-full uppercase tracking-widest font-bold">
+                         {product.mode === 'subscription' ? 'Recurring' : 'One-Time'}
+                       </span>
+                    </div>
+                    <h4 className="font-['Noto_Serif'] font-bold text-xl mb-1 text-[#e3e3db] leading-snug">{product.name}</h4>
+                    <p className="text-sm font-mono text-[#b2f432] mb-4 font-bold">{product.price_display}</p>
+                    <p className="text-[#c2caaf] text-xs leading-relaxed mb-4">{product.description}</p>
+                    
+                    <div className="mt-auto space-y-2">
+                      <div className="flex justify-between items-center text-[10px] text-[#c2caaf]/60 font-mono border-t border-[#424935]/10 pt-4">
+                        <span>{product.trees} Trees/Unit</span>
+                        <span>{product.id}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setEditingProduct(product)} className="flex-1 bg-[#343530] text-[#e3e3db] py-2 rounded-lg text-xs font-bold hover:bg-[#424935]">Edit Pricing</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {dbProducts.length === 0 && (
+                   <div className="col-span-full py-12 text-center border-2 border-dashed border-[#424935]/20 rounded-3xl">
+                     <p className="text-[#c2caaf]">No Custom Pricing Models Found. Using UI defaults.</p>
+                   </div>
+                )}
+              </div>
+            </section>
+          )}
+
           {activeTab === 'settings' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <h2 className="font-['Noto_Serif'] text-3xl font-bold">Global Site Configuration</h2>
@@ -1294,6 +1343,138 @@ export default function AdminDashboard() {
                     Save Changes
                   </button>
                   <button onClick={() => setEditingProduct(null)} className="flex-1 bg-white/5 py-3 rounded-xl font-bold">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {editingProduct && (
+            <div className="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md overflow-y-auto">
+              <div className="bg-[#1a1c18] w-full max-w-2xl rounded-3xl border border-[#424935]/20 p-8 space-y-6 my-auto">
+                <h3 className="font-['Noto_Serif'] text-2xl font-bold">{editingProduct.id ? 'Edit Plan Pricing' : 'Deploy New Plan'}</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Plan Name</label>
+                      <input
+                        value={editingProduct.name}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                        placeholder="e.g. Forest Endowment"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Internal ID (Unique)</label>
+                      <input
+                        value={editingProduct.id || ''}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, id: e.target.value })}
+                        disabled={!!editingProduct.created_at}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] disabled:opacity-50"
+                        placeholder="e.g. CSR_Tier_2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Price In Cents (Required for Stripe/Razorpay)</label>
+                      <input
+                        type="number"
+                        value={editingProduct.price_in_cents}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, price_in_cents: parseInt(e.target.value) || 0 })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                        placeholder="e.g. 500000"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Display Price</label>
+                      <input
+                        value={editingProduct.price_display}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, price_display: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                        placeholder="e.g. ₹5,000 / month"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Trees Provided</label>
+                      <input
+                        type="number"
+                        value={editingProduct.trees}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, trees: parseInt(e.target.value) || 1 })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Billing Mode</label>
+                      <select
+                        value={editingProduct.mode}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, mode: e.target.value })}
+                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] appearance-none"
+                      >
+                        <option value="payment">One-Time Payment</option>
+                        <option value="subscription">Recurring Subscription</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 mt-8">
+                        <input
+                          type="checkbox"
+                          checked={editingProduct.is_csr}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, is_csr: e.target.checked })}
+                          className="w-4 h-4"
+                        />
+                        <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Limit to B2B / CSR Customers Only</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Description</label>
+                    <textarea
+                      value={editingProduct.description}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] min-h-[80px]"
+                      placeholder="Marketing description to persuade buyers."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4 border-t border-[#424935]/10">
+                  <button
+                    onClick={async () => {
+                      if(!editingProduct.id) { toast.error("Provide an internal ID (e.g. plan_x)"); return }
+                      const dataPayload = { 
+                        id: editingProduct.id, 
+                        name: editingProduct.name, 
+                        description: editingProduct.description, 
+                        price_in_cents: editingProduct.price_in_cents, 
+                        price_display: editingProduct.price_display, 
+                        trees: editingProduct.trees, 
+                        mode: editingProduct.mode, 
+                        is_csr: editingProduct.is_csr 
+                      }
+                      
+                      const op = editingProduct.created_at 
+                        ? supabase.from('site_products').update(dataPayload).eq('id', editingProduct.id)
+                        : supabase.from('site_products').insert(dataPayload)
+                        
+                      const { error } = await op
+                      if (!error) {
+                        toast.success("Pricing Matrix Updated!")
+                        setEditingProduct(null)
+                        fetchDashboardData()
+                      } else {
+                        toast.error(error.message)
+                      }
+                    }}
+                    className="flex-1 bg-[#b2f432] text-[#233600] py-3 rounded-xl font-bold hover:scale-[1.01] transition-transform"
+                  >
+                    Lock Pricing
+                  </button>
+                  <button onClick={() => setEditingProduct(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
                 </div>
               </div>
             </div>
