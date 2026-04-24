@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 export default function FieldOpsPortal() {
@@ -11,7 +11,6 @@ export default function FieldOpsPortal() {
   const [gps, setGps] = useState<{ lat: number, lng: number } | null>(null)
   const [photo, setPhoto] = useState<File | null>(null)
   
-  const supabase = createClientComponentClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const captureGPS = () => {
