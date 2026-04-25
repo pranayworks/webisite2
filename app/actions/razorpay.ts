@@ -21,7 +21,7 @@ export async function createRazorpayOrder(
       .single()
 
     const product = dbProduct || PRODUCTS.find((p) => p.id === productId) || SUBSCRIPTIONS.find((s) => s.id === productId)
-    if (!product) throw new Error("Product not found")
+    if (!product) return { error: "Plan not found in registry" }
 
     let amount = product.price_in_cents || product.priceInCents
     if (!amount || amount < 100) {
@@ -103,7 +103,7 @@ export async function verifyRazorpayPayment(
       .digest("hex")
 
     if (expectedSignature !== signature) {
-      throw new Error("Invalid payment signature")
+      return { success: false, error: "Invalid payment signature" }
     }
 
     // 2. Fetch Product Details
