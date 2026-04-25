@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { addGrowthUpdate } from '@/app/actions/impact'
 import { testTelegramAction, testEmailAction, testInquiryEmailAction, testGrowthEmailAction, testOrderConfirmationEmailAction } from '@/app/actions/diagnostics'
 import { 
@@ -1344,7 +1345,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-          )}
           )}
 
           {editingStory && (
