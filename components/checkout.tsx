@@ -70,11 +70,18 @@ export default function Checkout({
       }
 
       // 2. Open Razorpay Checkout
+      const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+      if (!rzpKey) {
+        setLoading(false)
+        toast.error("Razorpay Public Key missing in environment settings", { id: toastId })
+        return
+      }
+
       const options: any = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: rzpKey,
         amount: order.amount,
         currency: order.currency,
-        name: "Arboretum",
+        name: "Green Legacy",
         description: `Planting Plan: ${productId}`,
       }
 
@@ -85,32 +92,41 @@ export default function Checkout({
       }
 
       options.handler = async function (response: any) {
+        setLoading(true)
         toast.loading("Verifying transaction...", { id: toastId })
         
-        const result = await verifyRazorpayPayment(
-          order.id!,
-          response.razorpay_payment_id,
-          response.razorpay_signature,
-          { 
-            userId: user.id, 
-            productId, 
-            occasion: occasion || "",
-            is_csr: isCsr || false,
-            company_name: companyName || "",
-            gst_number: gstNumber || ""
-          }
-        )
+        try {
+          const result = await verifyRazorpayPayment(
+            order.id!,
+            response.razorpay_payment_id || response.razorpay_subscription_id,
+            response.razorpay_signature,
+            { 
+              userId: user.id, 
+              productId, 
+              occasion: occasion || "",
+              is_csr: isCsr || false,
+              company_name: companyName || "",
+              gst_number: gstNumber || ""
+            }
+          )
 
-        if (result.success) {
-          toast.success("Botanical Legacy Established!", { id: toastId })
-          router.push("/dashboard")
-        } else {
-          toast.error(result.error || "Payment verification failed", { id: toastId })
+          if (result.success) {
+            toast.success("Botanical Legacy Established!", { id: toastId })
+            router.push("/dashboard")
+          } else {
+            setLoading(false)
+            toast.error(result.error || "Payment verification failed", { id: toastId })
+          }
+        } catch (err: any) {
+          setLoading(false)
+          toast.error("Verification failed. Please check your dashboard for updates.", { id: toastId })
         }
       }
 
       options.prefill = {
-        email: user.email,
+        name: profile?.full_name || "",
+        email: user.email || "",
+        contact: profile?.phone || ""
       }
 
       options.theme = {
@@ -124,11 +140,17 @@ export default function Checkout({
         }
       }
 
+      if (typeof window.Razorpay === 'undefined') {
+        setLoading(false)
+        toast.error("Razorpay SDK failed to load. Do you have an ad-blocker enabled?", { id: toastId })
+        return
+      }
+
       const rzp = new window.Razorpay(options)
       rzp.open()
     } catch (error: any) {
       console.error(error)
-      toast.error(error.message || "Failed to start payment", { id: toastId })
+      toast.error(error.message || "Failed to start payment gateway", { id: toastId })
       setLoading(false)
     }
   }
