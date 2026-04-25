@@ -1273,9 +1273,17 @@ export default function AdminDashboard() {
                        <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Website Display Price</label>
                        <input
                          value={editingProduct.price_display}
-                         onChange={(e) => setEditingProduct({ ...editingProduct, price_display: e.target.value })}
+                         onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9.]/g, ''); 
+                            const num = parseFloat(val) || 0;
+                            setEditingProduct({ 
+                              ...editingProduct, 
+                              price_display: e.target.value.startsWith('₹') ? e.target.value : `₹${e.target.value}`,
+                              price_in_cents: Math.round(num * 100)
+                            })
+                         }}
                          className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none"
-                         placeholder="e.g. ₹500 / month"
+                         placeholder="e.g. 500"
                        />
                     </div>
                     <div className="space-y-2">
