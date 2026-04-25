@@ -1105,7 +1105,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </section>
-                 {activeTab === 'settings' && (
+          {activeTab === 'settings' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <h2 className="font-['Noto_Serif'] text-3xl font-bold">Global Site Configuration</h2>
               <div className="bg-[#1a1c18] rounded-3xl border border-[#424935]/20 p-8 space-y-8 max-w-3xl">
