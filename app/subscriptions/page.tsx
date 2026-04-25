@@ -234,8 +234,7 @@ function SubscriptionsContent() {
                   <p className="text-muted-foreground font-medium">No plans available for this category in the current registry.</p>
                 </div>
               ) : (
-                currentProducts.map((product, i) => {
-                return (
+                currentProducts.map((product, i) => (
                   <div
                     key={product.id}
                     className={cn(
@@ -247,68 +246,67 @@ function SubscriptionsContent() {
                     )}
                     style={{ animationDelay: `${i * 150}ms` }}
                   >
-                  {product.badge && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground whitespace-nowrap">
-                        {product.badge}
+                    {product.badge && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <span className="rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground whitespace-nowrap">
+                          {product.badge}
+                        </span>
+                      </div>
+                    )}
+                    <div className="mb-6">
+                      <h3 className="text-xl font-semibold text-card-foreground">{product.name}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{product.description}</p>
+                    </div>
+                    <div className="mb-6">
+                      <span className="text-4xl font-bold text-foreground">
+                        {(() => {
+                          const raw = String(product.priceDisplay || "0")
+                          const numericPart = raw.match(/\d+/) ? raw.replace(/,/g, '').match(/\d+/)?.[0] : "0"
+                          const numericValue = parseInt(numericPart || "0")
+                          
+                          if (customerType === "corporate") {
+                            return `₹${Math.floor(numericValue * 0.7)}`
+                          }
+                          return product.priceDisplay || "₹0"
+                        })()}
+                      </span>
+                      {product.mode === "payment" && (
+                        <span className="ml-1 text-sm text-muted-foreground">
+                          {customerType === "corporate" ? "/ block" : "one-time"}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mb-4 flex gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold text-foreground">{product.trees}</span> trees
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold text-foreground">{product.points.toLocaleString()}</span> pts
                       </span>
                     </div>
-                  )}
-                  <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-card-foreground">{product.name}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{product.description}</p>
+                    <ul className="mb-8 flex-1 space-y-3">
+                      {product.features?.map((f: string) => (
+                        <li key={f} className="flex items-start gap-3 text-sm text-muted-foreground">
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      onClick={() => handleSelectPlan(product.id)}
+                      className={cn(
+                        "w-full rounded-xl py-5 transition-all duration-300",
+                        product.popular || selectedPlan === product.id
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-muted text-foreground hover:bg-primary hover:text-primary-foreground"
+                      )}
+                    >
+                      {selectedPlan === product.id ? "Selected" : `Choose ${product.name}`}
+                    </Button>
                   </div>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold text-foreground">
-                      {(() => {
-                        const raw = String(product.priceDisplay || "0")
-                        const numericPart = raw.match(/\d+/) ? raw.replace(/,/g, '').match(/\d+/)?.[0] : "0"
-                        const numericValue = parseInt(numericPart || "0")
-                        
-                        if (customerType === "corporate") {
-                          return `₹${Math.floor(numericValue * 0.7)}`
-                        }
-                        return product.priceDisplay || "₹0"
-                      })()}
-                    </span>
-                    {product.mode === "payment" && (
-                      <span className="ml-1 text-sm text-muted-foreground">
-                        {customerType === "corporate" ? "/ block" : "one-time"}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mb-4 flex gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <span className="font-semibold text-foreground">{product.trees}</span> trees
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="font-semibold text-foreground">{product.points.toLocaleString()}</span> pts
-                    </span>
-                  </div>
-                  <ul className="mb-8 flex-1 space-y-3">
-                    {product.features?.map((f: string) => (
-                      <li key={f} className="flex items-start gap-3 text-sm text-muted-foreground">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    onClick={() => handleSelectPlan(product.id)}
-                    className={cn(
-                      "w-full rounded-xl py-5 transition-all duration-300",
-                      product.popular || selectedPlan === product.id
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                        : "bg-muted text-foreground hover:bg-primary hover:text-primary-foreground"
-                    )}
-                  >
-                    {selectedPlan === product.id ? "Selected" : `Choose ${product.name}`}
-                  </Button>
-                </div>
-            );
-          })}
-        )}
-      </div>
+                ))
+              )}
+            </div>
 
             {/* Corporate Subscription */}
             {activeTab === "subscription" && (
