@@ -51,7 +51,17 @@ export default function Checkout({
         return
       }
 
-      // 1. Create Order
+      // 1. Check Profile Completion
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      if (!profile?.full_name || !profile?.phone || !profile?.address) {
+        toast.error("Please complete your profile details first", { id: toastId })
+        // Save current selection to session storage to resume after profile update
+        sessionStorage.setItem('pending_checkout', JSON.stringify({ productId, occasion, isCsr, companyName, gstNumber }))
+        router.push("/settings?error=profile_incomplete")
+        return
+      }
+
+      // 2. Create Order
       const order = await createRazorpayOrder(productId, user.id, occasion, isCsr, companyName, gstNumber)
 
       // 2. Open Razorpay Checkout
