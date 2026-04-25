@@ -4,41 +4,55 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export default function TestDatabase() {
-  const [profiles, setProfiles] = useState<any[]>([])
-  const [columns, setColumns] = useState<string[]>([])
+  const [reports, setReports] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function auditProfileSchema() {
+    async function auditFullSchema() {
       try {
-        // Try to fetch one profile to see what columns come back
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .limit(1)
+        const auditResults = []
 
-        if (error) throw error
+        // 1. Audit Profiles
+        const { data: pData, error: pError } = await supabase.from('profiles').select('*').limit(1)
+        auditResults.push({
+          table: 'profiles',
+          exists: !pError,
+          columns: pData && pData.length > 0 ? Object.keys(pData[0]) : [],
+          error: pError?.message,
+          required: ['id', 'full_name', 'phone', 'address', 'trees_planted', 'stripe_customer_id']
+        })
 
-        if (data && data.length > 0) {
-          setProfiles(data)
-          setColumns(Object.keys(data[0]))
-        } else {
-          // If no data, we can't easily see columns via select *, 
-          // so we alert that the table might be empty but connected
-          setProfiles([])
-          setError("Profiles table is connected but empty. Please create a user first.")
-        }
+        // 2. Audit Planting Orders
+        const { data: oData, error: oError } = await supabase.from('planting_orders').select('*').limit(1)
+        auditResults.push({
+          table: 'planting_orders',
+          exists: !oError,
+          columns: oData && oData.length > 0 ? Object.keys(oData[0]) : [],
+          error: oError?.message,
+          required: ['id', 'user_id', 'steward_name', 'trees', 'plan_name', 'amount_paid', 'payment_id', 'order_key', 'is_csr', 'status']
+        })
+
+        // 3. Audit Site Products
+        const { data: prData, error: prError } = await supabase.from('site_products').select('*').limit(1)
+        auditResults.push({
+          table: 'site_products',
+          exists: !prError,
+          columns: prData && prData.length > 0 ? Object.keys(prData[0]) : [],
+          error: prError?.message,
+          required: ['id', 'name', 'price_in_cents', 'trees']
+        })
+
+        setReports(auditResults)
 
       } catch (err: any) {
         setError(err.message)
-        console.error('Schema Audit Error:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    auditProfileSchema()
+    auditFullSchema()
   }, [])
 
   if (loading) {
@@ -51,50 +65,74 @@ export default function TestDatabase() {
 
   return (
     <div className="min-h-screen bg-[#121410] p-8 text-[#e3e3db] font-['Manrope']">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="bg-[#1a1c18] rounded-3xl p-8 border border-[#424935]/20 shadow-2xl">
-          <h1 className="text-4xl font-bold text-[#b2f432] mb-4 font-['Noto_Serif']">
-            🛡️ Schema Integrity Audit
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="bg-[#1a1c18] rounded-3xl p-10 border border-[#424935]/20 shadow-2xl">
+          <h1 className="text-4xl font-bold text-[#b2f432] mb-2 font-['Noto_Serif'] italic">
+            🛡️ Database Stewardship Audit
           </h1>
+          <p className="text-[#c2caaf] text-sm opacity-60 mb-10">Verifying structural integrity for production-grade environmental assets.</p>
           
-          {error ? (
-            <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl">
-              <h2 className="text-xl font-bold text-red-500 mb-2">❌ Audit Error</h2>
-              <p className="text-sm opacity-80">{error}</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="bg-green-500/10 border border-green-500/20 p-6 rounded-2xl">
-                <h2 className="text-xl font-bold text-green-500 mb-2">✅ API Connected</h2>
-                <p className="text-sm opacity-80">The system can successfully reach the 'profiles' registry.</p>
-              </div>
+          <div className="space-y-12">
+            {reports.map((report) => (
+              <div key={report.table} className="space-y-6">
+                <div className="flex items-center justify-between border-b border-[#424935]/20 pb-4">
+                  <h2 className="text-2xl font-bold font-['Noto_Serif']">{report.table}</h2>
+                  {report.exists ? (
+                    <span className="bg-green-500/10 text-green-500 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-green-500/20">Operational</span>
+                  ) : (
+                    <span className="bg-red-500/10 text-red-500 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-red-500/20">Missing or Error</span>
+                  )}
+                </div>
 
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-[#c2caaf] mb-4">Detected Columns in 'profiles'</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {columns.map(col => (
-                    <div 
-                      key={col} 
-                      className={`px-4 py-3 rounded-xl border text-sm font-mono flex items-center justify-between ${col === 'address' ? 'border-[#b2f432] bg-[#b2f432]/10 text-[#b2f432]' : 'border-[#424935]/20 bg-[#121410]'}`}
-                    >
-                      <span>{col}</span>
-                      {col === 'address' && <span className="text-[10px] uppercase font-bold">Live</span>}
-                    </div>
-                  ))}
+                {report.error && (
+                  <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-xs text-red-500 font-mono">
+                    {report.error}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {report.required.map((req: string) => {
+                    const isFound = report.columns.includes(req)
+                    return (
+                      <div 
+                        key={req} 
+                        className={`p-4 rounded-2xl border transition-all ${isFound ? 'border-green-500/20 bg-green-500/5' : 'border-red-500/40 bg-red-500/10 animate-pulse'}`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-[9px] font-bold uppercase tracking-tighter ${isFound ? 'text-green-500' : 'text-red-500'}`}>
+                            {isFound ? 'Verified' : 'Missing'}
+                          </span>
+                          <span className="material-symbols-outlined text-sm">
+                            {isFound ? 'check_circle' : 'error'}
+                          </span>
+                        </div>
+                        <p className={`text-sm font-bold font-mono ${isFound ? 'text-[#e3e3db]' : 'text-red-500'}`}>{req}</p>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
+            ))}
+          </div>
 
-              {!columns.includes('address') && (
-                <div className="bg-orange-500/10 border border-orange-500/20 p-6 rounded-2xl">
-                  <h3 className="font-bold text-orange-500 mb-2">⚠️ 'address' Column Not Found</h3>
-                  <p className="text-sm opacity-80">
-                    If you just added it in the SQL Editor, the API cache is stale. 
-                    Run <code>NOTIFY pgrst, 'reload schema';</code> in your SQL Editor now.
-                  </p>
-                </div>
-              )}
+          <div className="mt-16 pt-8 border-t border-[#424935]/20">
+            <h3 className="font-bold text-[#b2f432] mb-4">💡 Resolver Instructions</h3>
+            <p className="text-sm text-[#c2caaf] leading-relaxed mb-6">
+              If columns are highlighted in <span className="text-red-500 font-bold underline">RED</span>, 
+              the payment logic will fail to sync even if money was debited. 
+              The server will crash before redirecting you to the dashboard.
+            </p>
+            <div className="bg-[#121410] p-6 rounded-2xl border border-[#424935]/20">
+              <p className="text-xs font-mono text-[#c2caaf]/60 mb-4">-- Run this to fix ALL structural issues at once:</p>
+              <pre className="text-[10px] text-[#b2f432]/80 leading-relaxed overflow-x-auto">
+{`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS order_key TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS is_csr BOOLEAN DEFAULT FALSE;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS amount_paid NUMERIC;
+NOTIFY pgrst, 'reload schema';`}
+              </pre>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
