@@ -128,17 +128,20 @@ export default function AdminDashboard() {
         .in('status', ['Pending', 'Planted'])
         .order('created_at', { ascending: false })
 
-      const formattedOrders = (ordersData || []).map(o => ({
-        id: o.id.toString(),
-        name: o.steward_name,
-        initials: o.steward_name.split(' ').map((n: string) => n[0]).join(''),
-        date: new Date(o.created_at).toLocaleDateString(),
-        quantity: `${o.trees} Tree${o.trees > 1 ? 's' : ''}`,
-        status: o.status,
-        color: o.status === 'Planted' ? 'bg-[#b2f432]/20 text-[#b2f432]' : 'bg-secondary-container/20 text-secondary',
-        occasion: o.occasion,
-        plan: o.plan_name
-      }))
+      const formattedOrders = (ordersData || []).map(o => {
+        const name = o.steward_name || 'Anonymous Steward';
+        return {
+          id: String(o.id),
+          name: name,
+          initials: name.split(' ').filter(Boolean).map((n: string) => n[0]).join('').toUpperCase(),
+          date: new Date(o.created_at).toLocaleDateString(),
+          quantity: `${o.trees} Tree${o.trees > 1 ? 's' : ''}`,
+          status: o.status,
+          color: o.status === 'Planted' ? 'bg-[#b2f432]/20 text-[#b2f432]' : 'bg-secondary-container/20 text-secondary',
+          occasion: o.occasion,
+          plan: o.plan_name
+        }
+      })
 
       setOrders(formattedOrders)
 
@@ -155,8 +158,8 @@ export default function AdminDashboard() {
       ]
 
       const formattedHistory = (historyData || []).map(o => ({
-        id: `TR-${o.id.slice(0, 4)}`,
-        steward: o.steward_name,
+        id: `TR-${String(o.id).slice(0, 4)}`,
+        steward: o.steward_name || 'Anonymous',
         species: o.species || 'Neem',
         date: new Date(o.created_at).toLocaleDateString(),
         loc: o.location || 'Northern Reserve',
