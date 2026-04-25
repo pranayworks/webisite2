@@ -96,14 +96,23 @@ export async function verifyRazorpayPayment(
 ) {
   try {
     // 1. Verify Signature
-    const text = orderId + "|" + paymentId
+    // For Subscriptions, text is 'payment_id|subscription_id'
+    // For One-time, text is 'order_id|payment_id'
+    let text = ""
+    if (orderId.startsWith('sub_')) {
+      text = paymentId + "|" + orderId 
+    } else {
+      text = orderId + "|" + paymentId
+    }
+
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
       .update(text)
       .digest("hex")
 
     if (expectedSignature !== signature) {
-      return { success: false, error: "Invalid payment signature" }
+      console.error("Signature Mismatch!", { expectedSignature, signature, text })
+      return { success: false, error: "Payment verification signature mismatch. Please contact support." }
     }
 
     // 2. Fetch Product Details
