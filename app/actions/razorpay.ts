@@ -197,8 +197,20 @@ export async function verifyRazorpayPayment(
       if (process.env.ADMIN_EMAIL) {
         await sendEmail({
           to: process.env.ADMIN_EMAIL,
-          subject: `New Order: ${profile?.full_name} established ${product.trees} trees`,
-          html: `<p>New order received from <b>${profile?.full_name}</b>.</p><p>Plan: ${product.name}</p><p>Trees: ${product.trees}</p><p>Amount: ₹${productPrice / 100}</p>`
+          subject: `🌳 NEW ORDER: ${profile?.full_name} - ${product.trees} Trees`,
+          html: `
+            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e3e3db; border-radius: 12px;">
+              <h2 style="color: #233600;">New Botanical Legacy Established</h2>
+              <p><b>Steward:</b> ${profile?.full_name}</p>
+              <p><b>Phone:</b> ${profile?.phone || 'Not Provided'}</p>
+              <p><b>Plan:</b> ${product.name} (${product.trees} Trees)</p>
+              <p><b>Amount Paid:</b> ₹${productPrice / 100}</p>
+              <p><b>Occasion:</b> <span style="color: #b2f432; font-weight: bold;">${metadata.occasion || 'General Stewardship'}</span></p>
+              <p><b>Payment ID:</b> ${paymentId}</p>
+              <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+              <p style="font-size: 12px; color: #888;">This order is now pending in your <a href="${process.env.NEXT_PUBLIC_SITE_URL}/admin">Admin Dashboard</a>.</p>
+            </div>
+          `
         })
       }
     } catch (e) {
