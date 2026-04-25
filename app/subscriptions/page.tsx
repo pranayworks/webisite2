@@ -234,7 +234,8 @@ function SubscriptionsContent() {
                   <p className="text-muted-foreground font-medium">No plans available for this category in the current registry.</p>
                 </div>
               ) : (
-                currentProducts.map((product, i) => (
+                currentProducts.map((product, i) => {
+                return (
                   <div
                     key={product.id}
                     className={cn(
@@ -304,8 +305,9 @@ function SubscriptionsContent() {
                     {selectedPlan === product.id ? "Selected" : `Choose ${product.name}`}
                   </Button>
                 </div>
-              ))}
-            </div>
+              );
+            })}
+          </div>
 
             {/* Corporate Subscription */}
             {activeTab === "subscription" && (
