@@ -1330,9 +1330,9 @@ export default function AdminDashboard() {
                 <div className="pt-8 border-t border-[#424935]/10 flex gap-4">
                   <button
                     onClick={async () => {
-                      const { error } = await supabase.from('site_products').upsert(editingProduct)
+                      const { error } = await supabase.from('site_products').upsert(editingProduct, { onConflict: 'id' })
                       if (!error) {
-                        toast.success("Master Catalog Synchronized")
+                        toast.success("Catalog Synchronized Live")
                         setEditingProduct(null)
                         fetchDashboardData()
                       } else {
