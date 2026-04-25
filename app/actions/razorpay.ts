@@ -23,7 +23,11 @@ export async function createRazorpayOrder(
     const product = dbProduct || PRODUCTS.find((p) => p.id === productId) || SUBSCRIPTIONS.find((s) => s.id === productId)
     if (!product) throw new Error("Product not found")
 
-    const amount = product.price_in_cents || product.priceInCents
+    let amount = product.price_in_cents || product.priceInCents
+    if (!amount || amount < 100) {
+      // Razorpay requires minimum 1.00 INR (100 paise)
+      amount = 100 
+    }
 
     // Handle One-Time Payment
     if (product.mode === 'payment') {
@@ -73,7 +77,7 @@ export async function createRazorpayOrder(
     }
   } catch (error: any) {
     console.error("Razorpay Generation Error:", error)
-    throw new Error(error.message)
+    return { error: error.message || "Failed to initialize payment gateway" }
   }
 }
 

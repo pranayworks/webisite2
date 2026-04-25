@@ -63,6 +63,11 @@ export default function Checkout({
 
       // 2. Create Order
       const order = await createRazorpayOrder(productId, user.id, occasion, isCsr, companyName, gstNumber)
+      if (order.error) {
+        toast.error(order.error, { id: toastId })
+        setLoading(false)
+        return
+      }
 
       // 2. Open Razorpay Checkout
       const options: any = {
