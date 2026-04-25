@@ -88,7 +88,7 @@ export default function Checkout({
         toast.loading("Verifying transaction...", { id: toastId })
         
         const result = await verifyRazorpayPayment(
-          order.id,
+          order.id!,
           response.razorpay_payment_id,
           response.razorpay_signature,
           { 
