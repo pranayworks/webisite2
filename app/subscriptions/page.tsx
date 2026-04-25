@@ -305,7 +305,7 @@ function SubscriptionsContent() {
                     </Button>
                   </div>
                 ))
-              )}
+              }
             </div>
 
             {/* Corporate Subscription */}
