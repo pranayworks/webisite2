@@ -3,112 +3,99 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
-interface College {
-  id: string
-  name: string
-  location: string
-  city: string
-  state: string
-  total_trees_planted: number
-}
-
 export default function TestDatabase() {
-  const [colleges, setColleges] = useState<College[]>([])
+  const [profiles, setProfiles] = useState<any[]>([])
+  const [columns, setColumns] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchColleges() {
+    async function auditProfileSchema() {
       try {
+        // Try to fetch one profile to see what columns come back
         const { data, error } = await supabase
-          .from('colleges')
+          .from('profiles')
           .select('*')
-          .order('name')
+          .limit(1)
 
         if (error) throw error
 
-        setColleges(data || [])
+        if (data && data.length > 0) {
+          setProfiles(data)
+          setColumns(Object.keys(data[0]))
+        } else {
+          // If no data, we can't easily see columns via select *, 
+          // so we alert that the table might be empty but connected
+          setProfiles([])
+          setError("Profiles table is connected but empty. Please create a user first.")
+        }
+
       } catch (err: any) {
         setError(err.message)
-        console.error('Error:', err)
+        console.error('Schema Audit Error:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchColleges()
+    auditProfileSchema()
   }, [])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Loading colleges...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-red-50">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">❌ Connection Error</h2>
-          <p className="text-gray-700 mb-4">Failed to connect to Supabase:</p>
-          <pre className="bg-red-100 p-4 rounded text-sm overflow-auto">{error}</pre>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-[#121410]">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#b2f432]"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8 border-l-8 border-green-500">
-          <h1 className="text-4xl font-bold text-green-700 mb-2">
-            🎉 Supabase Connected Successfully!
+    <div className="min-h-screen bg-[#121410] p-8 text-[#e3e3db] font-['Manrope']">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="bg-[#1a1c18] rounded-3xl p-8 border border-[#424935]/20 shadow-2xl">
+          <h1 className="text-4xl font-bold text-[#b2f432] mb-4 font-['Noto_Serif']">
+            🛡️ Schema Integrity Audit
           </h1>
-          <p className="text-xl text-gray-600 mb-4">
-            Your Green Legacy backend is live and ready!
-          </p>
-          <div className="flex gap-4">
-            <div className="bg-green-100 px-6 py-3 rounded-lg">
-              <p className="text-sm text-gray-600">Total Colleges</p>
-              <p className="text-3xl font-bold text-green-700">{colleges.length}</p>
-            </div>
-            <div className="bg-blue-100 px-6 py-3 rounded-lg">
-              <p className="text-sm text-gray-600">Database Status</p>
-              <p className="text-xl font-semibold text-blue-700">✅ Active</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">
-            🎓 Partner Agriculture Colleges
-          </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {colleges.map((college) => (
-              <div 
-                key={college.id} 
-                className="border-2 border-green-200 rounded-lg p-6 hover:border-green-400 hover:shadow-lg transition-all"
-              >
-                <h3 className="font-bold text-lg text-gray-800 mb-2">
-                  {college.name}
-                </h3>
-                <p className="text-gray-600 mb-1">📍 {college.location}</p>
-                <p className="text-gray-600 mb-3">🏙️ {college.city}, {college.state}</p>
-                <p className="text-green-600 font-semibold">
-                  🌳 {college.total_trees_planted} trees planted
-                </p>
+          {error ? (
+            <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl">
+              <h2 className="text-xl font-bold text-red-500 mb-2">❌ Audit Error</h2>
+              <p className="text-sm opacity-80">{error}</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-green-500/10 border border-green-500/20 p-6 rounded-2xl">
+                <h2 className="text-xl font-bold text-green-500 mb-2">✅ API Connected</h2>
+                <p className="text-sm opacity-80">The system can successfully reach the 'profiles' registry.</p>
               </div>
-            ))}
-          </div>
-        </div>
 
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-[#c2caaf] mb-4">Detected Columns in 'profiles'</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {columns.map(col => (
+                    <div 
+                      key={col} 
+                      className={`px-4 py-3 rounded-xl border text-sm font-mono flex items-center justify-between ${col === 'address' ? 'border-[#b2f432] bg-[#b2f432]/10 text-[#b2f432]' : 'border-[#424935]/20 bg-[#121410]'}`}
+                    >
+                      <span>{col}</span>
+                      {col === 'address' && <span className="text-[10px] uppercase font-bold">Live</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {!columns.includes('address') && (
+                <div className="bg-orange-500/10 border border-orange-500/20 p-6 rounded-2xl">
+                  <h3 className="font-bold text-orange-500 mb-2">⚠️ 'address' Column Not Found</h3>
+                  <p className="text-sm opacity-80">
+                    If you just added it in the SQL Editor, the API cache is stale. 
+                    Run <code>NOTIFY pgrst, 'reload schema';</code> in your SQL Editor now.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
