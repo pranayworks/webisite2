@@ -217,7 +217,7 @@ function SubscriptionsContent() {
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className="grid gap-6 md:grid-cols-3">
               {fetchLoading ? (
-                // Premium Skeleton Loader
+                /* Premium Skeleton Loader */
                 [1, 2, 3].map((i) => (
                   <div key={i} className="animate-pulse flex flex-col rounded-2xl border border-border bg-card/50 p-8 min-h-[450px]">
                     <div className="h-4 w-1/3 bg-muted rounded-full mb-4" />
@@ -239,9 +239,7 @@ function SubscriptionsContent() {
                     key={product.id}
                     className={cn(
                       "group relative flex flex-col rounded-2xl border bg-card p-8 transition-all duration-500 hover:shadow-xl animate-fade-in-up",
-                      product.popular
-                        ? "border-primary shadow-lg md:scale-105"
-                        : "border-border hover:-translate-y-1",
+                      product.popular ? "border-primary shadow-lg md:scale-105" : "border-border hover:-translate-y-1",
                       selectedPlan === product.id && "ring-2 ring-primary"
                     )}
                     style={{ animationDelay: `${i * 150}ms` }}
@@ -263,11 +261,7 @@ function SubscriptionsContent() {
                           const raw = String(product.priceDisplay || "0")
                           const numericPart = raw.match(/\d+/) ? raw.replace(/,/g, '').match(/\d+/)?.[0] : "0"
                           const numericValue = parseInt(numericPart || "0")
-                          
-                          if (customerType === "corporate") {
-                            return `₹${Math.floor(numericValue * 0.7)}`
-                          }
-                          return product.priceDisplay || "₹0"
+                          return customerType === "corporate" ? `₹${Math.floor(numericValue * 0.7)}` : (product.priceDisplay || "₹0")
                         })()}
                       </span>
                       {product.mode === "payment" && (
@@ -305,7 +299,7 @@ function SubscriptionsContent() {
                     </Button>
                   </div>
                 ))
-              }
+              )}
             </div>
 
             {/* Corporate Subscription */}
