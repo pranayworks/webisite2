@@ -30,7 +30,7 @@ export default function TestDatabase() {
           exists: !oError,
           columns: oData && oData.length > 0 ? Object.keys(oData[0]) : [],
           error: oError?.message,
-          required: ['id', 'user_id', 'steward_name', 'trees', 'plan_name', 'amount_paid', 'payment_id', 'order_key', 'is_csr', 'status']
+          required: ['id', 'user_id', 'steward_name', 'trees', 'plan_name', 'amount_paid', 'payment_id', 'order_key', 'is_csr', 'company_name', 'gst_number', 'status']
         })
 
         // 3. Audit Site Products
@@ -125,9 +125,12 @@ export default function TestDatabase() {
             <div className="bg-[#121410] p-6 rounded-2xl border border-[#424935]/20">
               <p className="text-xs font-mono text-[#c2caaf]/60 mb-4">-- Run this to fix ALL structural issues at once:</p>
               <pre className="text-[10px] text-[#b2f432]/80 leading-relaxed overflow-x-auto">
-{`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
-ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS order_key TEXT;
+{`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS company_name TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS gst_number TEXT;
 ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS is_csr BOOLEAN DEFAULT FALSE;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS order_key TEXT;
 ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS amount_paid NUMERIC;
 NOTIFY pgrst, 'reload schema';`}
               </pre>
