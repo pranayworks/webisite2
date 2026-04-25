@@ -124,8 +124,8 @@ function SubscriptionsContent() {
     { icon: Shield, title: "Tax Benefits", desc: "Automatic tax deduction receipts for every payment under Section 80G" },
     { icon: Star, title: "Priority Planting", desc: "Subscribers get priority access to premium planting locations" },
     { icon: Gift, title: "Bonus Trees", desc: "Receive bonus anniversary trees on your subscription milestones" },
-    { icon: Zap, title: "Exclusive Events", desc: "Invitations to subscriber-only planting drives and community events" },
-  ]
+    { icon: Zap, title: "Exclusive Events", desc: "Invitations to subscriber-only planting drives and community events" }
+  ];
 
   return (
     <>
