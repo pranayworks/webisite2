@@ -305,9 +305,10 @@ function SubscriptionsContent() {
                     {selectedPlan === product.id ? "Selected" : `Choose ${product.name}`}
                   </Button>
                 </div>
-              );
-            })}
-          </div>
+            );
+          })}
+        )}
+      </div>
 
             {/* Corporate Subscription */}
             {activeTab === "subscription" && (
