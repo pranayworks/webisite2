@@ -57,7 +57,7 @@ export default function Checkout({
         toast.error("Please complete your profile details first", { id: toastId })
         // Save current selection to session storage to resume after profile update
         sessionStorage.setItem('pending_checkout', JSON.stringify({ productId, occasion, isCsr, companyName, gstNumber }))
-        router.push("/settings?error=profile_incomplete")
+        router.push("/dashboard/settings?error=profile_incomplete")
         return
       }
 

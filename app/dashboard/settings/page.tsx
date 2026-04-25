@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
   const [age, setAge] = useState('')
   const [gender, setGender] = useState('Other')
   const [loading, setLoading] = useState(true)
@@ -45,6 +46,7 @@ export default function SettingsPage() {
       setUser({ ...user, profile })
       setFullName(profile?.full_name || '')
       setPhone(profile?.phone || '')
+      setAddress(profile?.address || '')
       setAge(profile?.age?.toString() || '')
       setGender(profile?.gender || 'Other')
       setAvatarUrl(profile?.avatar_url || '')
@@ -135,6 +137,7 @@ export default function SettingsPage() {
         email: user.email,
         full_name: fullName,
         phone: phone,
+        address: address,
         age: parseInt(age) || 0,
         gender: gender,
         avatar_url: avatarUrl
@@ -149,6 +152,7 @@ export default function SettingsPage() {
           ...user.profile,
           full_name: fullName,
           phone: phone,
+          address: address,
           age: parseInt(age) || 0,
           gender: gender,
           avatar_url: avatarUrl
@@ -278,6 +282,19 @@ export default function SettingsPage() {
                   </select>
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-[#c2caaf]">Stewardship Address</label>
+                <div className="relative group">
+                  <MaterialIcon name="location_on" className="absolute left-6 top-6 text-[#c2caaf]/40 group-focus-within:text-[#b2f432] transition-colors" />
+                  <textarea 
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full bg-[#121410] border border-[#424935]/20 rounded-2xl pl-14 pr-6 py-4 focus:ring-1 focus:ring-[#b2f432]/40 outline-none transition-all min-h-[100px] resize-none"
+                    placeholder="Full Billing Address (Required for Tree Certificates)"
+                  />
+                </div>
+              </div>
             </div>
 
             <button 
@@ -292,7 +309,7 @@ export default function SettingsPage() {
           {/* Subscription Management (RBI Compliance) */}
           {activeSub && (
             <div className="bg-[#1a1c18] p-8 rounded-3xl border border-red-500/20 space-y-6 mt-12">
-              <div className="flex items-center gap-4 text-red-500/80">
+              <div className="items-center gap-4 text-red-500/80 flex">
                 <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center">
                   <MaterialIcon name="credit_card_off" />
                 </div>
