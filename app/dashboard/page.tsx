@@ -74,7 +74,7 @@ export default function DashboardPage() {
           growth_updates (*)
         `)
         .eq('user_id', user.id)
-        .eq('status', 'Planted')
+        .in('status', ['Planted', 'Pending'])
 
       if (ordersError) {
         console.error("Error fetching plantings:", ordersError)
@@ -117,10 +117,10 @@ export default function DashboardPage() {
           species: species,
           region: region,
           coordinates: coords,
-          age: o.age || '0y 1m',
-          status: 'Healthy',
+          age: o.age || (o.status === 'Pending' ? 'Queueing' : '0y 1m'),
+          status: o.status === 'Pending' ? 'In Queue' : 'Healthy',
           photos: photos,
-          growthStage: Math.min(100, (photos.length * 20)), // Dynamic growth stage based on updates
+          growthStage: o.status === 'Pending' ? 5 : Math.min(100, (photos.length * 20)), // Dynamic growth stage 
           latestPhoto: photos[photos.length - 1].url
         }
       })
