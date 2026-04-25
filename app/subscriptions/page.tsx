@@ -37,8 +37,9 @@ function SubscriptionsContent() {
   }, [router])
 
   const [dbProducts, setDbProducts] = useState<any[]>([])
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(initialPlan)
-  const [showCheckout, setShowCheckout] = useState(!!initialPlan)
+  const [fetchLoading, setFetchLoading] = useState(true)
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [showCheckout, setShowCheckout] = useState(false)
   const [activeTab, setActiveTab] = useState<"one-time" | "subscription">("one-time")
   const [customerType, setCustomerType] = useState<"individual" | "corporate">("individual")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
@@ -47,13 +48,24 @@ function SubscriptionsContent() {
   const [gstNumber, setGstNumber] = useState("")
 
   useEffect(() => {
+    if (initialPlan) {
+      setSelectedPlan(initialPlan)
+      setShowCheckout(true)
+    }
+  }, [initialPlan])
+
+  useEffect(() => {
     async function fetchPlans() {
-      const { data } = await supabase.from('site_products').select('id, name, description, price_in_cents, price_display, trees, mode, features, popular, badge, is_csr')
+      setFetchLoading(true)
+      const { data, error } = await supabase
+        .from('site_products')
+        .select('*')
+      
       if (data) {
         const formatted = data.map(p => ({
           ...p,
-          priceDisplay: p.price_display, // Map snake_case to camelCase
-          points: (p.trees || 1) * 100,  // Auto-calculate points
+          priceDisplay: p.price_display, 
+          points: (p.trees || 1) * 100, 
           features: Array.isArray(p.features) && p.features.length > 0 ? p.features : [
             `${p.trees || 1} Tree planted`,
             "Digital GPS certificate",
@@ -62,7 +74,10 @@ function SubscriptionsContent() {
           ]
         }))
         setDbProducts(formatted)
+      } else if (error) {
+        console.error("DB Fetch Error:", error)
       }
+      setFetchLoading(false)
     }
     fetchPlans()
   }, [])
@@ -82,9 +97,11 @@ function SubscriptionsContent() {
   const { ref: benefitsRef, isVisible: benefitsVisible } = useScrollAnimation()
   const { ref: faqRef, isVisible: faqVisible } = useScrollAnimation()
 
-  const currentProducts = dbProducts.length > 0 
-    ? dbProducts.filter(p => p.mode === (activeTab === 'one-time' ? 'payment' : 'subscription'))
-    : (activeTab === "one-time" ? PRODUCTS : SUBSCRIPTIONS)
+  const currentProducts = dbProducts.filter(p => {
+    const matchesTab = p.mode === (activeTab === 'one-time' ? 'payment' : 'subscription')
+    const matchesCustomer = customerType === 'corporate' ? p.is_csr === true : p.is_csr !== true
+    return matchesTab && matchesCustomer
+  })
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId)
@@ -199,18 +216,36 @@ function SubscriptionsContent() {
         <section className="bg-background pb-20">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className="grid gap-6 md:grid-cols-3">
-              {currentProducts.map((product, i) => (
-                <div
-                  key={product.id}
-                  className={cn(
-                    "group relative flex flex-col rounded-2xl border bg-card p-8 transition-all duration-500 hover:shadow-xl animate-fade-in-up",
-                    product.popular
-                      ? "border-primary shadow-lg md:scale-105"
-                      : "border-border hover:-translate-y-1",
-                    selectedPlan === product.id && "ring-2 ring-primary"
-                  )}
-                  style={{ animationDelay: `${i * 150}ms` }}
-                >
+              {fetchLoading ? (
+                // Premium Skeleton Loader
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse flex flex-col rounded-2xl border border-border bg-card/50 p-8 min-h-[450px]">
+                    <div className="h-4 w-1/3 bg-muted rounded-full mb-4" />
+                    <div className="h-10 w-3/4 bg-muted rounded-lg mb-8" />
+                    <div className="h-12 w-1/2 bg-muted rounded-lg mb-12" />
+                    <div className="space-y-4 mb-12">
+                      {[1, 2, 3, 4].map(j => <div key={j} className="h-3 w-full bg-muted rounded-full" />)}
+                    </div>
+                    <div className="mt-auto h-12 w-full bg-muted rounded-xl" />
+                  </div>
+                ))
+              ) : currentProducts.length === 0 ? (
+                <div className="col-span-full py-20 text-center border-2 border-dashed border-border rounded-3xl">
+                  <p className="text-muted-foreground font-medium">No plans available for this category in the current registry.</p>
+                </div>
+              ) : (
+                currentProducts.map((product, i) => (
+                  <div
+                    key={product.id}
+                    className={cn(
+                      "group relative flex flex-col rounded-2xl border bg-card p-8 transition-all duration-500 hover:shadow-xl animate-fade-in-up",
+                      product.popular
+                        ? "border-primary shadow-lg md:scale-105"
+                        : "border-border hover:-translate-y-1",
+                      selectedPlan === product.id && "ring-2 ring-primary"
+                    )}
+                    style={{ animationDelay: `${i * 150}ms` }}
+                  >
                   {product.badge && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <span className="rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground whitespace-nowrap">

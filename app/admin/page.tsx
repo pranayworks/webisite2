@@ -1104,54 +1104,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </section>
-          )}
-
-          {activeTab === 'products' && (
-            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
-              <div className="flex justify-between items-center">
-                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Inventory & Price Control</h2>
-                <button
-                  onClick={() => setEditingProduct({ name: '', description: '', price_in_cents: 0, price_display: '', trees: 1, mode: 'payment', features: [], popular: false, badge: '', is_csr: false })}
-                  className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] transition-transform"
-                >
-                  <MaterialIcon name="add" /> New Plan
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(dbProducts.length > 0 ? dbProducts : []).map(product => (
-                  <div key={product.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all flex flex-col relative overflow-hidden">
-                    {product.is_csr && <div className="absolute top-0 right-0 bg-[#b2f432] text-[#233600] text-[8px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-widest">CSR Focus</div>}
-                    <div className="flex justify-between items-start mb-2">
-                       <span className="text-[10px] bg-[#343530] text-[#b2f432] px-3 py-1 rounded-full uppercase tracking-widest font-bold">
-                         {product.mode === 'subscription' ? 'Recurring' : 'One-Time'}
-                       </span>
-                    </div>
-                    <h4 className="font-['Noto_Serif'] font-bold text-xl mb-1 text-[#e3e3db] leading-snug">{product.name}</h4>
-                    <p className="text-sm font-mono text-[#b2f432] mb-4 font-bold">{product.price_display}</p>
-                    <p className="text-[#c2caaf] text-xs leading-relaxed mb-4">{product.description}</p>
-                    
-                    <div className="mt-auto space-y-2">
-                      <div className="flex justify-between items-center text-[10px] text-[#c2caaf]/60 font-mono border-t border-[#424935]/10 pt-4">
-                        <span>{product.trees} Trees/Unit</span>
-                        <span>{product.id}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => setEditingProduct(product)} className="flex-1 bg-[#343530] text-[#e3e3db] py-2 rounded-lg text-xs font-bold hover:bg-[#424935]">Edit Pricing</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {dbProducts.length === 0 && (
-                   <div className="col-span-full py-12 text-center border-2 border-dashed border-[#424935]/20 rounded-3xl">
-                     <p className="text-[#c2caaf]">No Custom Pricing Models Found. Using UI defaults.</p>
-                   </div>
-                )}
-              </div>
-            </section>
-          )}
-
-          {activeTab === 'settings' && (
+                 {activeTab === 'settings' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <h2 className="font-['Noto_Serif'] text-3xl font-bold">Global Site Configuration</h2>
               <div className="bg-[#1a1c18] rounded-3xl border border-[#424935]/20 p-8 space-y-8 max-w-3xl">
@@ -1223,38 +1176,37 @@ export default function AdminDashboard() {
           {activeTab === 'products' && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <div className="flex justify-between items-center">
-                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Offerings & Subscriptions</h2>
+                <h2 className="font-['Noto_Serif'] text-3xl font-bold">Offerings & Price Master</h2>
                 <button
-                  onClick={() => setEditingProduct({ id: `plan-${Math.random().toString(36).substring(2, 7)}`, name: '', price_in_cents: 0, trees: 1, mode: 'payment', features: [], is_csr: false })}
-                  className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2"
+                  onClick={() => setEditingProduct({ id: `plan-${Math.random().toString(36).substring(2, 7)}`, name: '', description: '', price_in_cents: 0, price_display: '', trees: 1, mode: 'payment', features: [], is_csr: false, popular: false, badge: '' })}
+                  className="bg-[#b2f432] text-[#233600] px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-[1.05] transition-all"
                 >
-                  <MaterialIcon name="add" /> Add New Plan
+                  <MaterialIcon name="add_shopping_cart" /> Add New Offering
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {(dbProducts.length > 0 ? dbProducts : [
-                  { id: 'sprout', name: 'Sprout', price_display: '₹299', mode: 'payment' },
-                  { id: 'forest', name: 'Forest', price_display: '₹999', mode: 'payment' },
-                  { id: 'legacy', name: 'Legacy', price_display: '₹4,999', mode: 'payment' },
-                  { id: 'monthly-sapling', name: 'Monthly Sapling', price_display: '₹249/mo', mode: 'subscription' },
-                ]).map(p => (
-                  <div key={p.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all">
+                {dbProducts.map(p => (
+                  <div key={p.id} className="bg-[#1a1c18] border border-[#424935]/10 p-6 rounded-2xl group hover:border-[#b2f432]/30 transition-all flex flex-col relative overflow-hidden">
+                    {p.is_csr && <div className="absolute top-0 right-0 bg-[#b2f432] text-[#233600] text-[8px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-widest">CSR ONLY</div>}
                     <div className="flex justify-between items-start mb-6">
                       <div className="h-10 w-10 bg-[#343530] rounded-xl flex items-center justify-center text-[#b2f432]">
                         <MaterialIcon name={p.mode === 'subscription' ? 'event_repeat' : 'shopping_bag'} />
                       </div>
                       <span className="text-[8px] bg-[#233600] text-[#b2f432] px-2 py-1 rounded-full font-bold uppercase">{p.mode}</span>
                     </div>
-                    <h4 className="font-bold text-lg">{p.name}</h4>
+                    <h4 className="font-bold text-lg text-[#e3e3db]">{p.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
-                      <p className="text-[#c2caaf] text-sm">{p.price_display}</p>
-                      {p.is_csr && (
-                        <span className="text-[7px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-md font-black border border-accent/30">CORPORATE ONLY</span>
-                      )}
+                      <p className="text-[#b2f432] font-mono font-bold">{p.price_display}</p>
                     </div>
+                    <p className="text-[#c2caaf] text-xs mt-2 line-clamp-2">{p.description}</p>
                     <div className="mt-8 pt-6 border-t border-[#424935]/10 flex gap-2">
-                      <button onClick={() => setEditingProduct(p)} className="flex-1 bg-[#343530] text-[#e3e3db] py-2 rounded-lg text-xs font-bold hover:bg-[#424935]">Edit</button>
-                      <button className="h-8 w-8 bg-[#343530] text-red-500/80 rounded-lg flex items-center justify-center hover:bg-red-500/10"><MaterialIcon name="delete" className="text-sm" /></button>
+                      <button onClick={() => setEditingProduct(p)} className="flex-1 bg-[#343530] text-[#e3e3db] py-2 rounded-lg text-xs font-bold hover:bg-[#b2f432] hover:text-[#233600] transition-colors">Modify Plan</button>
+                      <button onClick={async () => {
+                         if(confirm(`Erase ${p.name} from registry?`)) {
+                           const { error } = await supabase.from('site_products').delete().eq('id', p.id)
+                           if (!error) { toast.success("Plan Erased"); fetchDashboardData() } else { toast.error(error.message) }
+                         }
+                      }} className="h-8 w-8 bg-[#343530] text-red-500/80 rounded-lg flex items-center justify-center hover:bg-red-500/10"><MaterialIcon name="delete" className="text-sm" /></button>
                     </div>
                   </div>
                 ))}
@@ -1263,221 +1215,136 @@ export default function AdminDashboard() {
           )}
 
           {editingProduct && (
-            <div className="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md">
-              <div className="bg-[#1a1c18] w-full max-w-lg rounded-3xl border border-[#424935]/20 p-8 space-y-6">
-                <h3 className="font-['Noto_Serif'] text-2xl font-bold">Edit Plan Details</h3>
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Item ID (Primary Key - Use Slugs like 'basic-oak')</label>
-                    <input
-                      value={editingProduct.id}
-                      onChange={(e) => setEditingProduct({ ...editingProduct, id: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                      className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none font-mono"
-                      placeholder="e.g. mega-forest-premium"
-                    />
+            <div className="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md overflow-y-auto custom-scrollbar">
+              <div className="bg-[#1a1c18] w-full max-w-2xl rounded-[2.5rem] border border-[#424935]/20 p-10 space-y-8 my-auto relative shadow-2xl">
+                <button onClick={() => setEditingProduct(null)} className="absolute top-6 right-6 h-10 w-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
+                  <MaterialIcon name="close" />
+                </button>
+                
+                <h3 className="font-['Noto_Serif'] text-3xl font-bold">Configure Offering</h3>
+                
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Plan Heading</label>
+                       <input
+                         value={editingProduct.name}
+                         onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                         className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none focus:border-[#b2f432]/50 transition-colors"
+                         placeholder="e.g. Forest Legacy"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Internal Master ID</label>
+                       <input
+                         value={editingProduct.id}
+                         disabled={!!editingProduct.created_at}
+                         onChange={(e) => setEditingProduct({ ...editingProduct, id: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                         className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none font-mono disabled:opacity-30"
+                         placeholder="e.g. woodland-tier-3"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Trees Per Unit</label>
+                       <input
+                         type="number"
+                         value={editingProduct.trees}
+                         onChange={(e) => setEditingProduct({ ...editingProduct, trees: parseInt(e.target.value) || 1 })}
+                         className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none"
+                       />
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Plan Name</label>
-                      <input
-                        value={editingProduct.name}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none"
-                      />
+
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Price In Cents (Stripe Logic)</label>
+                       <input
+                         type="number"
+                         value={editingProduct.price_in_cents}
+                         onChange={(e) => setEditingProduct({ ...editingProduct, price_in_cents: parseInt(e.target.value) || 0 })}
+                         className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none text-[#b2f432] font-bold"
+                         placeholder="e.g. 50000 (for ₹500)"
+                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Price (INR)</label>
-                      <input
-                        type="number"
-                        value={editingProduct.price_in_cents / 100}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, price_in_cents: Number(e.target.value) * 100, price_display: `₹${e.target.value}` })}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none"
-                      />
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Website Display Price</label>
+                       <input
+                         value={editingProduct.price_display}
+                         onChange={(e) => setEditingProduct({ ...editingProduct, price_display: e.target.value })}
+                         className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none"
+                         placeholder="e.g. ₹500 / month"
+                       />
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Trees Provided</label>
-                      <input
-                        type="number"
-                        value={editingProduct.trees}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, trees: Number(e.target.value) })}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-2 text-sm outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Target Audience</label>
-                      <div className="flex gap-2 p-1 bg-[#343530] rounded-xl">
-                        <button 
-                          onClick={() => setEditingProduct({...editingProduct, is_csr: false})}
-                          type="button"
-                          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-all ${!editingProduct?.is_csr ? "bg-[#b2f432] text-[#233600]" : "text-[#c2caaf]"}`}
-                        >
-                          SOLO
-                        </button>
-                        <button 
-                          onClick={() => setEditingProduct({...editingProduct, is_csr: true})}
-                          type="button"
-                          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-all ${editingProduct?.is_csr ? "bg-accent text-black" : "text-[#c2caaf]"}`}
-                        >
-                          CSR
-                        </button>
-                      </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Billing Interval</label>
+                       <select
+                         value={editingProduct.mode}
+                         onChange={(e) => setEditingProduct({ ...editingProduct, mode: e.target.value })}
+                         className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none appearance-none"
+                       >
+                         <option value="payment">One-Time (Stewardship)</option>
+                         <option value="subscription">Subscription (Monthly)</option>
+                       </select>
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-4 pt-4">
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                     <label className="text-[10px] uppercase font-bold tracking-widest text-[#c2caaf]">Product Description</label>
+                     <textarea
+                       value={editingProduct.description}
+                       onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                       className="w-full bg-[#292b26] border border-[#424935]/20 rounded-2xl px-5 py-4 text-sm outline-none min-h-[100px]"
+                       placeholder="Explain the impact of this plan..."
+                     />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-6 bg-[#292b26] rounded-2xl border border-[#424935]/20">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="is_csr_check"
+                        checked={editingProduct.is_csr}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, is_csr: e.target.checked })}
+                        className="w-5 h-5 accent-[#b2f432]"
+                      />
+                      <label htmlFor="is_csr_check" className="text-xs font-bold uppercase tracking-widest text-[#e3e3db]">Limit to Corporate Customers</label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="is_popular"
+                        checked={editingProduct.popular}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, popular: e.target.checked })}
+                        className="w-5 h-5 accent-[#b2f432]"
+                      />
+                      <label htmlFor="is_popular" className="text-xs font-bold uppercase tracking-widest text-[#e3e3db]">Featured Plan</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t border-[#424935]/10 flex gap-4">
                   <button
                     onClick={async () => {
                       const { error } = await supabase.from('site_products').upsert(editingProduct)
                       if (!error) {
-                        toast.success("Catalog Updated")
+                        toast.success("Master Catalog Synchronized")
                         setEditingProduct(null)
                         fetchDashboardData()
                       } else {
                         toast.error(error.message)
                       }
                     }}
-                    className="flex-1 bg-[#b2f432] text-[#233600] py-3 rounded-xl font-bold"
+                    className="flex-1 bg-[#b2f432] text-[#233600] py-5 rounded-[1.5rem] font-bold uppercase text-xs tracking-[0.2em] hover:scale-[1.02] active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(178,244,50,0.3)]"
                   >
-                    Save Changes
+                    Deploy to Marketplace
                   </button>
-                  <button onClick={() => setEditingProduct(null)} className="flex-1 bg-white/5 py-3 rounded-xl font-bold">Cancel</button>
+                  <button onClick={() => setEditingProduct(null)} className="px-8 bg-white/5 py-5 rounded-[1.5rem] font-bold uppercase text-xs tracking-widest hover:bg-white/10 transition-colors">Discard</button>
                 </div>
               </div>
             </div>
           )}
-
-          {editingProduct && (
-            <div className="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-6 backdrop-blur-md overflow-y-auto">
-              <div className="bg-[#1a1c18] w-full max-w-2xl rounded-3xl border border-[#424935]/20 p-8 space-y-6 my-auto">
-                <h3 className="font-['Noto_Serif'] text-2xl font-bold">{editingProduct.id ? 'Edit Plan Pricing' : 'Deploy New Plan'}</h3>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Plan Name</label>
-                      <input
-                        value={editingProduct.name}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
-                        placeholder="e.g. Forest Endowment"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Internal ID (Unique)</label>
-                      <input
-                        value={editingProduct.id || ''}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, id: e.target.value })}
-                        disabled={!!editingProduct.created_at}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] disabled:opacity-50"
-                        placeholder="e.g. CSR_Tier_2"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Price In Cents (Required for Stripe/Razorpay)</label>
-                      <input
-                        type="number"
-                        value={editingProduct.price_in_cents}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, price_in_cents: parseInt(e.target.value) || 0 })}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
-                        placeholder="e.g. 500000"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Display Price</label>
-                      <input
-                        value={editingProduct.price_display}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, price_display: e.target.value })}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
-                        placeholder="e.g. ₹5,000 / month"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Trees Provided</label>
-                      <input
-                        type="number"
-                        value={editingProduct.trees}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, trees: parseInt(e.target.value) || 1 })}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Billing Mode</label>
-                      <select
-                        value={editingProduct.mode}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, mode: e.target.value })}
-                        className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] appearance-none"
-                      >
-                        <option value="payment">One-Time Payment</option>
-                        <option value="subscription">Recurring Subscription</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 mt-8">
-                        <input
-                          type="checkbox"
-                          checked={editingProduct.is_csr}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, is_csr: e.target.checked })}
-                          className="w-4 h-4"
-                        />
-                        <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Limit to B2B / CSR Customers Only</label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Description</label>
-                    <textarea
-                      value={editingProduct.description}
-                      onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
-                      className="w-full bg-[#343530] rounded-xl px-4 py-3 text-sm outline-none text-[#e3e3db] min-h-[80px]"
-                      placeholder="Marketing description to persuade buyers."
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-4 border-t border-[#424935]/10">
-                  <button
-                    onClick={async () => {
-                      if(!editingProduct.id) { toast.error("Provide an internal ID (e.g. plan_x)"); return }
-                      const dataPayload = { 
-                        id: editingProduct.id, 
-                        name: editingProduct.name, 
-                        description: editingProduct.description, 
-                        price_in_cents: editingProduct.price_in_cents, 
-                        price_display: editingProduct.price_display, 
-                        trees: editingProduct.trees, 
-                        mode: editingProduct.mode, 
-                        is_csr: editingProduct.is_csr 
-                      }
-                      
-                      const op = editingProduct.created_at 
-                        ? supabase.from('site_products').update(dataPayload).eq('id', editingProduct.id)
-                        : supabase.from('site_products').insert(dataPayload)
-                        
-                      const { error } = await op
-                      if (!error) {
-                        toast.success("Pricing Matrix Updated!")
-                        setEditingProduct(null)
-                        fetchDashboardData()
-                      } else {
-                        toast.error(error.message)
-                      }
-                    }}
-                    className="flex-1 bg-[#b2f432] text-[#233600] py-3 rounded-xl font-bold hover:scale-[1.01] transition-transform"
-                  >
-                    Lock Pricing
-                  </button>
-                  <button onClick={() => setEditingProduct(null)} className="flex-1 bg-white/5 text-[#c2caaf] hover:text-white py-3 rounded-xl font-bold transition-colors">Cancel</button>
-                </div>
-              </div>
-            </div>
           )}
 
           {editingStory && (
