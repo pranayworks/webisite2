@@ -15,24 +15,30 @@ export default function TestDatabase() {
       try {
         const auditResults = []
 
+        // Helper to check for a column by attempting to select it
+        const checkColumn = async (table: string, column: string) => {
+          const { error } = await supabase.from(table).select(column).limit(0)
+          return !error
+        }
+
         // 1. Audit Profiles
-        const { data: pData, error: pError } = await supabase.from('profiles').select('*').limit(1)
+        const profileCols = ['id', 'full_name', 'phone', 'address', 'trees_planted', 'stripe_customer_id']
+        const pStatus = await Promise.all(profileCols.map(c => checkColumn('profiles', c)))
         auditResults.push({
           table: 'profiles',
-          exists: !pError,
-          columns: pData && pData.length > 0 ? Object.keys(pData[0]) : [],
-          error: pError?.message,
-          required: ['id', 'full_name', 'phone', 'address', 'trees_planted', 'stripe_customer_id']
+          exists: true,
+          columns: profileCols.filter((_, i) => pStatus[i]),
+          required: profileCols
         })
 
         // 2. Audit Planting Orders
-        const { data: oData, error: oError } = await supabase.from('planting_orders').select('*').limit(1)
+        const orderCols = ['id', 'user_id', 'steward_name', 'trees', 'plan_name', 'amount_paid', 'payment_id', 'order_key', 'is_csr', 'company_name', 'gst_number', 'status']
+        const oStatus = await Promise.all(orderCols.map(c => checkColumn('planting_orders', c)))
         auditResults.push({
           table: 'planting_orders',
-          exists: !oError,
-          columns: oData && oData.length > 0 ? Object.keys(oData[0]) : [],
-          error: oError?.message,
-          required: ['id', 'user_id', 'steward_name', 'trees', 'plan_name', 'amount_paid', 'payment_id', 'order_key', 'is_csr', 'company_name', 'gst_number', 'status']
+          exists: true,
+          columns: orderCols.filter((_, i) => oStatus[i]),
+          required: orderCols
         })
 
         setReports(auditResults)
@@ -78,7 +84,7 @@ export default function TestDatabase() {
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="bg-[#1a1c18] rounded-3xl p-10 border border-[#424935]/20 shadow-2xl">
           <h1 className="text-4xl font-bold text-[#b2f432] mb-2 font-['Noto_Serif'] italic">
-            🛡️ Production Stewardship Audit
+            🛡️ Deep Schema Audit (v2.1)
           </h1>
           
           <div className="mt-10 space-y-8">
@@ -88,9 +94,7 @@ export default function TestDatabase() {
                  <span className="material-symbols-outlined text-[#b2f432]">mail</span>
                  Email System Diagnostic
                </h2>
-               <p className="text-sm text-[#c2caaf] mb-6">
-                 Click the button below to test if your Vercel project is correctly configured to send emails via Gmail.
-               </p>
+               <p className="text-sm text-[#c2caaf] mb-4">Verify SMTP credentials in Vercel.</p>
                <button 
                  onClick={testEmailConfig}
                  disabled={isTestLoading}
@@ -109,19 +113,16 @@ export default function TestDatabase() {
               <div key={report.table} className="space-y-6">
                 <div className="flex items-center justify-between border-b border-[#424935]/20 pb-4">
                   <h2 className="text-2xl font-bold">{report.table}</h2>
-                  <span className={`px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${report.exists ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                    {report.exists ? 'Operational' : 'Structural Issue'}
-                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   {report.required.map((req: string) => {
                     const isFound = report.columns.includes(req)
                     return (
-                      <div key={req} className={`p-4 rounded-xl border ${isFound ? 'border-green-500/10 bg-white/[0.02]' : 'border-red-500/40 bg-red-500/5 animate-pulse'}`}>
+                      <div key={req} className={`p-4 rounded-xl border ${isFound ? 'border-green-500/20 bg-green-500/5' : 'border-red-500/40 bg-red-500/10 animate-pulse'}`}>
                         <div className="flex justify-between items-center mb-1">
-                          <span className={`text-[8px] font-black uppercase ${isFound ? 'text-green-500/60' : 'text-red-500'}`}>{isFound ? 'Active' : 'Missing'}</span>
-                          <span className="material-symbols-outlined text-[12px]">{isFound ? 'check' : 'close'}</span>
+                          <span className={`text-[8px] font-black uppercase ${isFound ? 'text-green-500' : 'text-red-500'}`}>{isFound ? 'Verified' : 'Missing'}</span>
+                          <span className="material-symbols-outlined text-[12px]">{isFound ? 'check' : 'error'}</span>
                         </div>
                         <p className="font-mono text-sm">{req}</p>
                       </div>
@@ -133,16 +134,34 @@ export default function TestDatabase() {
           </div>
 
           <div className="mt-16 pt-8 border-t border-[#424935]/20">
-            <h3 className="font-bold text-[#b2f432] mb-4 uppercase tracking-[0.2em] text-xs">Resolver Sequence</h3>
+            <h3 className="font-bold text-[#b2f432] mb-4 uppercase tracking-[0.2em] text-xs">Final Resolver Code</h3>
             <div className="bg-[#121410] p-6 rounded-2xl border border-[#424935]/20">
               <pre className="text-[10px] text-[#b2f432]/80 leading-relaxed overflow-x-auto whitespace-pre-wrap">
-{`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT;
+{`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS trees_planted INTEGER DEFAULT 0;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
-ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS company_name TEXT;
-ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS gst_number TEXT;
-ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS is_csr BOOLEAN DEFAULT FALSE;
-ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS order_key TEXT;
-ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS amount_paid NUMERIC;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
+
+CREATE TABLE IF NOT EXISTS planting_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id),
+  steward_name TEXT,
+  trees INTEGER,
+  plan_name TEXT,
+  occasion TEXT,
+  status TEXT DEFAULT 'Pending',
+  amount_paid NUMERIC,
+  payment_id TEXT,
+  order_key TEXT,
+  is_csr BOOLEAN DEFAULT FALSE,
+  company_name TEXT,
+  gst_number TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+GRANT ALL ON TABLE planting_orders TO authenticated, anon, service_role;
+GRANT ALL ON TABLE profiles TO authenticated, anon, service_role;
 NOTIFY pgrst, 'reload schema';`}
               </pre>
             </div>
