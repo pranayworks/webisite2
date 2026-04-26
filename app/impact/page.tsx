@@ -248,7 +248,7 @@ export default function ImpactPage() {
               <div className="transition-all duration-700 opacity-100">
                 <h3 className="mb-8 text-center text-xl font-semibold text-[#e3e3db]">Movement Growth</h3>
                 <div className="space-y-8">
-                {(speciesStats.some(s => s.count > 0) ? speciesStats : [
+                {(speciesStats.length > 0 ? speciesStats : [
                   { label: "Neem", count: 2450, pct: 35 },
                   { label: "Banyan", count: 1820, pct: 28 },
                   { label: "Teak", count: 1240, pct: 15 },
