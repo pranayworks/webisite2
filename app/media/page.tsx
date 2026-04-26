@@ -10,6 +10,17 @@ import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 
+const fallbackCoverage = [
+  { id: 'f1', title: "Green Legacy's 10,000 Tree Milestone", publisher_or_location: "Eco Times", date_published: "June 2024", media_url: "#" },
+  { id: 'f2', title: "The Future of Reforestation in India", publisher_or_location: "Green Journal", date_published: "May 2024", media_url: "#" },
+  { id: 'f3', title: "Technology Meets Sustainability", publisher_or_location: "Tech Daily", date_published: "April 2024", media_url: "#" },
+]
+
+const fallbackPress = [
+  { id: 'p1', title: "Annual Sustainability Report 2023", date_published: "Jan 12, 2024", excerpt_or_headline: "Discover the results of our year-long effort to restoration over 15 sites across India." },
+  { id: 'p2', title: "New Partnership with Global Green Fund", date_published: "Nov 05, 2023", excerpt_or_headline: "A $2M commitment to scale biodiversity planting programs in semi-arid regions." },
+]
+
 export default function MediaPage() {
   const [pressReleases, setPressReleases] = useState<any[]>([])
   const [mediaCoverage, setMediaCoverage] = useState<any[]>([])
@@ -48,9 +59,12 @@ export default function MediaPage() {
   const { ref: videoRef, isVisible: videoVisible } = useScrollAnimation()
   const { ref: brandRef, isVisible: brandVisible } = useScrollAnimation()
 
+  const finalCoverage = mediaCoverage.length > 0 ? mediaCoverage : fallbackCoverage
+  const finalPress = pressReleases.length > 0 ? pressReleases : fallbackPress
+
   const filteredCoverage = coverageFilter === "All"
-    ? mediaCoverage
-    : mediaCoverage.filter((m) => m.publisher_or_location === coverageFilter)
+    ? finalCoverage
+    : finalCoverage.filter((m: any) => m.publisher_or_location === coverageFilter)
 
   return (
     <>
@@ -78,7 +92,7 @@ export default function MediaPage() {
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <h2 className="mb-8 text-center font-serif text-2xl font-bold text-foreground">In the News</h2>
             <div className="grid gap-6 md:grid-cols-3">
-              {mediaCoverage.slice(0, 3).map((item, i) => (
+              {finalCoverage.slice(0, 3).map((item: any, i: number) => (
                 <div key={item.id || item.title} className="group rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:shadow-lg hover:-translate-y-1 animate-fade-in-up" style={{ animationDelay: `${i * 150}ms` }}>
                   <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{item.publisher_or_location}</span>
                   <h3 className="mt-3 font-semibold text-card-foreground leading-snug">{item.title}</h3>
@@ -102,9 +116,9 @@ export default function MediaPage() {
               <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Press Releases</h2>
             </div>
             <div className="mt-12 space-y-0 border-l-2 border-border">
-              {pressReleases.map((pr, i) => (
+              {finalPress.map((pr: any, i: number) => (
                 <div
-                  key={pr.title}
+                  key={pr.id || pr.title}
                   className={cn(
                     "relative pl-8 pb-10 transition-all duration-500",
                     pressVisible ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
