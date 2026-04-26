@@ -1,7 +1,7 @@
 "use server"
 
-import { sendTelegramNotification } from "@/lib/telegram"
-import { sendEmail } from "@/lib/email"
+import { sendTelegramNotification } from "../../lib/telegram"
+import { sendEmail } from "../../lib/email"
 
 export async function testTelegramAction() {
   try {
@@ -44,7 +44,7 @@ export async function testEmailAction(adminEmail: string) {
 
 export async function testInquiryEmailAction(adminEmail: string) {
   try {
-    const { generateInquiryEmailHtml } = await import("@/lib/email")
+    const { generateInquiryEmailHtml } = await import("../../lib/email")
     const result = await sendEmail({
       to: adminEmail,
       subject: "PREVIEW: New Site Inquiry",
@@ -64,7 +64,7 @@ export async function testInquiryEmailAction(adminEmail: string) {
 
 export async function testGrowthEmailAction(adminEmail: string) {
   try {
-    const { generateGrowthUpdateEmailHtml } = await import("@/lib/email")
+    const { generateGrowthUpdateEmailHtml } = await import("../../lib/email")
     const result = await sendEmail({
       to: adminEmail,
       subject: "PREVIEW: Growth Milestone Reached",
@@ -82,7 +82,7 @@ export async function testGrowthEmailAction(adminEmail: string) {
 
 export async function testOrderConfirmationEmailAction(adminEmail: string) {
   try {
-    const { generateOrderConfirmationEmailHtml } = await import("@/lib/email")
+    const { generateOrderConfirmationEmailHtml } = await import("../../lib/email")
     const html = generateOrderConfirmationEmailHtml(
        "Aris Thorne",
        5,

@@ -1,7 +1,7 @@
 "use server"
 
-import { supabase } from "@/lib/supabase"
-import { sendEmail, generatePlantingEmailHtml } from "@/lib/email"
+import { supabase } from "../../lib/supabase"
+import { sendEmail, generatePlantingEmailHtml } from "../../lib/email"
 
 /**
  * Historical Stripe verification (Deprecated)
@@ -35,8 +35,8 @@ export async function addGrowthUpdate(orderId: string, note: string, photoUrl?: 
       if (order) {
         const { data: profile } = await supabase.from('profiles').select('email, full_name').eq('id', order.user_id).single()
         if (profile) {
-          const { generateGrowthUpdateEmailHtml, sendEmail } = await import("@/lib/email")
-          const { sendTelegramNotification } = await import("@/lib/telegram")
+          const { generateGrowthUpdateEmailHtml, sendEmail } = await import("../../lib/email")
+          const { sendTelegramNotification } = await import("../../lib/telegram")
 
           // Notify User
           await sendEmail({

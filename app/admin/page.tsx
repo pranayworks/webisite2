@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from "../lib/supabase"
+import { supabase } from "../../lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { toast } from "sonner"
-import { cn } from "../lib/utils"
-import { Button } from "../components/ui/button"
-import { addGrowthUpdate } from "../actions/impact"
-import { testTelegramAction, testEmailAction, testInquiryEmailAction, testGrowthEmailAction, testOrderConfirmationEmailAction } from "../actions/diagnostics"
+import { cn } from "../../lib/utils"
+import { Button } from "../../components/ui/button"
+import { addGrowthUpdate } from "../../actions/impact"
+import { testTelegramAction, testEmailAction, testInquiryEmailAction, testGrowthEmailAction, testOrderConfirmationEmailAction } from "../../actions/diagnostics"
 import { 
   AreaChart, 
   Area, 
@@ -128,7 +128,7 @@ export default function AdminDashboard() {
         .in('status', ['Pending', 'Planted'])
         .order('created_at', { ascending: false })
 
-      const formattedOrders = (ordersData || []).map(o => {
+      const formattedOrders = (ordersData || []).map((o: any) => {
         const name = o.steward_name || 'Anonymous Steward';
         return {
           id: String(o.id),
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
         { id: 'TR-1002', steward: 'Sarah Kent', species: 'Neem', date: 'Oct 22, 2026', loc: 'Northern Reserve', status: 'Healthy' }
       ]
 
-      const formattedHistory = (historyData || []).map(o => ({
+      const formattedHistory = (historyData || []).map((o: any) => ({
         id: `TR-${String(o.id).slice(0, 4)}`,
         steward: o.steward_name || 'Anonymous',
         species: o.species || 'Neem',
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
       const { data: configRes } = await supabase.from('site_config').select('*')
       if (configRes && configRes.length > 0) {
         const configMap: Record<string, string> = {}
-        configRes.forEach(c => configMap[c.key] = c.value)
+        configRes.forEach((c: any) => configMap[c.key] = c.value)
         setSiteConfig(configMap)
       }
 
@@ -271,7 +271,7 @@ export default function AdminDashboard() {
           dailyRevenue[day] = 0
         })
 
-        allOrdersForCharts.forEach(order => {
+        allOrdersForCharts.forEach((order: any) => {
           const day = new Date(order.created_at).toISOString().split('T')[0]
           if (dailyCounts[day] !== undefined) {
              dailyCounts[day] += (order.trees || 1)
@@ -1169,7 +1169,7 @@ export default function AdminDashboard() {
                       supabase.from('site_config').upsert({ key, value })
                     )
                     const results = await Promise.all(promises)
-                    if (results.every(r => !r.error)) { toast.success("Site Configuration Updated Live!") }
+                    if (results.every((r: any) => !r.error)) { toast.success("Site Configuration Updated Live!") }
                     else { toast.error("Some settings failed to save.") }
                   }} className="w-full bg-[#b2f432] text-[#233600] py-4 rounded-xl font-bold hover:scale-[1.01] transition-transform text-lg flex items-center justify-center gap-2">
                     DEPOY SETTINGS <MaterialIcon name="public" />
