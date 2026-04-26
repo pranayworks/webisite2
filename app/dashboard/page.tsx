@@ -4,16 +4,16 @@
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from "../../lib/supabase"
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { calculateImpact, calculateRank } from '@/lib/impact'
-import { generateGSTInvoice } from '@/lib/invoice'
+import { calculateImpact, calculateRank } from "../../lib/impact"
+import { generateGSTInvoice } from "../../lib/invoice"
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { Button } from "../../components/ui/button"
 import dynamic from 'next/dynamic'
 
-const TreeMap = dynamic(() => import('@/components/TreeMap'), { ssr: false })
+const TreeMap = dynamic(() => import('../../components/TreeMap'), { ssr: false })
 
 // Material Symbols mapping
 const MaterialIcon = ({ name, className = "", style = {} }: { name: string, className?: string, style?: any }) => (
