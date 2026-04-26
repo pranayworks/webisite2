@@ -7,8 +7,8 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { cn } from "../../lib/utils"
 import { Button } from "../../components/ui/button"
-import { addGrowthUpdate } from "../../actions/impact"
-import { testTelegramAction, testEmailAction, testInquiryEmailAction, testGrowthEmailAction, testOrderConfirmationEmailAction } from "../../actions/diagnostics"
+import { addGrowthUpdate } from "../actions/impact"
+import { testTelegramAction, testEmailAction, testInquiryEmailAction, testGrowthEmailAction, testOrderConfirmationEmailAction } from "../actions/diagnostics"
 import { 
   AreaChart, 
   Area, 
