@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { Calendar, ExternalLink, Download, Play, X, ImageIcon, Video, Newspaper, FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
-import { useScrollAnimation } from "@/hooks/use-scroll-animation"
-import { cn } from "@/lib/utils"
+import { Button } from "../../components/ui/button"
+import { SiteHeader } from "../../components/site-header"
+import { SiteFooter } from "../../components/site-footer"
+import { useScrollAnimation } from "../../hooks/use-scroll-animation"
+import { cn } from "../../lib/utils"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "../../lib/supabase"
 
 const fallbackCoverage = [
   { id: 'f1', title: "Green Legacy's 10,000 Tree Milestone", publisher_or_location: "Eco Times", date_published: "June 2024", media_url: "#" },
@@ -93,12 +93,15 @@ export default function MediaPage() {
             <h2 className="mb-8 text-center font-serif text-2xl font-bold text-foreground">In the News</h2>
             <div className="grid gap-6 md:grid-cols-3">
               {finalCoverage.slice(0, 3).map((item: any, i: number) => (
-                <div key={item.id || item.title} className="group rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:shadow-lg hover:-translate-y-1 animate-fade-in-up" style={{ animationDelay: `${i * 150}ms` }}>
-                  <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{item.publisher_or_location}</span>
-                  <h3 className="mt-3 font-semibold text-card-foreground leading-snug">{item.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.date_published}</p>
-                  <a href={item.media_url || '#'} target="_blank" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:text-accent transition-colors">
-                    Read article <ExternalLink className="h-3 w-3" />
+                <div key={item.id || item.title} className="group overflow-hidden rounded-2xl border border-[#b2f432]/10 bg-[#1a1c18] p-6 transition-all duration-500 hover:border-[#b2f432]/30 hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 150}ms` }}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Newspaper className="h-4 w-4 text-[#b2f432]" />
+                    <span className="inline-block rounded-full bg-[#b2f432]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#b2f432]">{item.publisher_or_location}</span>
+                  </div>
+                  <h3 className="mt-3 font-serif text-lg font-bold text-[#e3e3db] leading-snug group-hover:text-[#b2f432] transition-colors">{item.title}</h3>
+                  <p className="mt-2 text-xs font-medium text-[#c2caaf]/50 italic">{item.date_published}</p>
+                  <a href={item.media_url || '#'} target="_blank" className="mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#b2f432] hover:underline underline-offset-4">
+                    Explore Coverage <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
               ))}
@@ -115,27 +118,30 @@ export default function MediaPage() {
             )}>
               <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Press Releases</h2>
             </div>
-            <div className="mt-12 space-y-0 border-l-2 border-border">
+            <div className="mt-12 space-y-6">
               {finalPress.map((pr: any, i: number) => (
                 <div
                   key={pr.id || pr.title}
                   className={cn(
-                    "relative pl-8 pb-10 transition-all duration-500",
-                    pressVisible ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
+                    "relative pl-10 pb-12 group transition-all duration-700",
+                    pressVisible ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"
                   )}
-                  style={{ transitionDelay: pressVisible ? `${i * 100}ms` : "0ms" }}
+                  style={{ transitionDelay: `${i * 150}ms` }}
                 >
-                  <div className="absolute -left-2 top-0 h-4 w-4 rounded-full border-2 border-primary bg-background" />
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-3.5 w-3.5" />
+                  <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-[#b2f432] shadow-[0_0_15px_rgba(178,244,50,0.5)] group-hover:scale-125 transition-transform" />
+                  <div className="absolute left-[5px] top-5 h-full w-[2px] bg-[#424935]/20 group-last:hidden" />
+                  
+                  <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-[#c2caaf]">
+                    <Calendar className="h-3 w-3 text-[#b2f432]" />
                     {pr.date_published}
                   </div>
-                  <h3 className="mt-2 text-lg font-semibold text-foreground">{pr.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{pr.excerpt_or_headline}</p>
-                  <div className="mt-3 flex gap-3">
-                    <button className="text-sm font-medium text-primary hover:text-accent transition-colors">Read More</button>
-                    <button className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                      <Download className="h-3 w-3" /> PDF
+                  <h3 className="mt-3 text-xl font-bold text-[#e3e3db] group-hover:text-[#b2f432] transition-colors">{pr.title}</h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#c2caaf]/80">{pr.excerpt_or_headline}</p>
+                  
+                  <div className="mt-6 flex flex-wrap gap-4">
+                    <button className="text-[10px] font-black uppercase tracking-widest text-[#b2f432] hover:underline underline-offset-8">Read Full Release &rarr;</button>
+                    <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#c2caaf] hover:text-[#e3e3db] transition-colors">
+                      <Download className="h-3 w-3" /> Download PDF (2.4 MB)
                     </button>
                   </div>
                 </div>

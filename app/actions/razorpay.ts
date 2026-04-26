@@ -1,8 +1,8 @@
 "use server"
 
-import { razorpay } from "@/lib/razorpay"
-import { supabase } from "@/lib/supabase"
-import { PRODUCTS, SUBSCRIPTIONS } from "@/lib/products"
+import { razorpay } from "../../lib/razorpay"
+import { supabase } from "../../lib/supabase"
+import { PRODUCTS, SUBSCRIPTIONS } from "../../lib/products"
 import crypto from "crypto"
 
 export async function createRazorpayOrder(

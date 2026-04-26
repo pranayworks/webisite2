@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { TreePine, Wind, Droplets, Sun, Users, GraduationCap, Building2, Briefcase, TrendingUp } from "lucide-react"
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
-import { useScrollAnimation, useCountUp } from "@/hooks/use-scroll-animation"
-import { cn } from "@/lib/utils"
-import { supabase } from "@/lib/supabase"
-import { calculateImpact } from "@/lib/impact"
+import { SiteHeader } from "../../components/site-header"
+import { SiteFooter } from "../../components/site-footer"
+import { useScrollAnimation, useCountUp } from "../../hooks/use-scroll-animation"
+import { cn } from "../../lib/utils"
+import { supabase } from "../../lib/supabase"
+import { calculateImpact } from "../../lib/impact"
 import { useRouter } from "next/navigation"
 
 const liveStats = [
