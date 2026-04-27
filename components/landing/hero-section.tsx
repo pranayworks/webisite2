@@ -25,7 +25,7 @@ export function HeroSection() {
   const [mounted, setMounted] = useState(false)
   const [videoOpen, setVideoOpen] = useState(false)
   const [heroHeadline, setHeroHeadline] = useState("Plant a Tree, Create a Legacy")
-  const [dbStats, setDbStats] = useState({ trees: 0, colleges: 42, co2: 0 })
+  const [dbStats, setDbStats] = useState({ trees: 0, water: 0, co2: 0 })
 
   useEffect(() => {
     setMounted(true)
