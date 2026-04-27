@@ -6,6 +6,11 @@ import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 
+export function TestimonialsSection() {
+  const { ref, isVisible } = useScrollAnimation()
+  const [current, setCurrent] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(1)
   const [testimonials, setTestimonials] = useState<any[]>([])
 
   useEffect(() => {

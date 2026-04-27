@@ -13,7 +13,7 @@ import { supabase } from "../../lib/supabase"
 const fallbackCoverage = [
   { id: 'f1', title: "Green Legacy's 10,000 Tree Milestone", publisher_or_location: "Eco Times", date_published: "June 2024", media_url: "#" },
   { id: 'f2', title: "The Future of Reforestation in India", publisher_or_location: "Green Journal", date_published: "May 2024", media_url: "#" },
-  { id: 'f3', title: "Technology Meets Sustainability", publisher_or_location: "Tech Daily", date_published: "April 2024", media_url: "#" },
+  { id: 'p3', title: "Technology Meets Sustainability", publisher_or_location: "Tech Daily", date_published: "April 2024", media_url: "#" },
 ]
 
 const fallbackPress = [
@@ -39,7 +39,6 @@ export default function MediaPage() {
         const coverage = data.filter(m => m.asset_type === 'media_coverage')
         setMediaCoverage(coverage)
         
-        // Dynamically build filter types based on location / category field
         const types = new Set(["All"])
         coverage.forEach(c => c.publisher_or_location && types.add(c.publisher_or_location))
         setFilterTypes(Array.from(types))
@@ -50,7 +49,6 @@ export default function MediaPage() {
     }
     fetchMedia()
   }, [])
-
 
   const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation()
   const { ref: pressRef, isVisible: pressVisible } = useScrollAnimation()
@@ -70,7 +68,6 @@ export default function MediaPage() {
     <>
       <SiteHeader />
       <main className="bg-background text-foreground">
-        {/* Hero */}
         <section ref={heroRef} className="relative overflow-hidden bg-muted/30 pt-28 pb-16 md:pt-36">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.06)_0%,transparent_60%)]" />
           <div className={cn(
@@ -87,13 +84,12 @@ export default function MediaPage() {
           </div>
         </section>
 
-        {/* Featured Coverage */}
         <section className="bg-background py-16">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <h2 className="mb-8 text-center font-serif text-2xl font-bold text-foreground">In the News</h2>
             <div className="grid gap-6 md:grid-cols-3">
               {finalCoverage.slice(0, 3).map((item: any, i: number) => (
-                <div key={item.id || item.title} className="group overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:border-accent/30 hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 150}ms` }}>
+                <div key={item.id || i} className="group overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:border-accent/30 hover:-translate-y-1">
                   <div className="flex items-center gap-2 mb-4">
                     <Newspaper className="h-4 w-4 text-accent" />
                     <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent">{item.publisher_or_location}</span>
@@ -109,19 +105,13 @@ export default function MediaPage() {
           </div>
         </section>
 
-        {/* Press Releases */}
         <section ref={pressRef} className="py-20 lg:py-28 bg-muted/20">
           <div className="mx-auto max-w-4xl px-4 lg:px-8">
-            <div className={cn(
-              "text-center transition-all duration-700",
-              pressVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            )}>
-              <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Press Releases</h2>
-            </div>
+            <h2 className={cn("text-center font-serif text-3xl font-bold text-foreground sm:text-4xl transition-all duration-700", pressVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0")}>Press Releases</h2>
             <div className="mt-12 space-y-6">
               {finalPress.map((pr: any, i: number) => (
                 <div
-                  key={pr.id || pr.title}
+                  key={pr.id || i}
                   className={cn(
                     "relative pl-10 pb-12 group transition-all duration-700",
                     pressVisible ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"
@@ -150,15 +140,9 @@ export default function MediaPage() {
           </div>
         </section>
 
-        {/* Media Coverage */}
         <section ref={coverageRef} className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
-            <div className={cn(
-              "text-center transition-all duration-700",
-              coverageVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            )}>
-              <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Media Coverage</h2>
-            </div>
+            <h2 className={cn("text-center font-serif text-3xl font-bold text-foreground sm:text-4xl transition-all duration-700", coverageVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0")}>Media Coverage</h2>
             <div className="mx-auto mt-8 flex max-w-md flex-wrap justify-center gap-2">
               {filterTypes.map((f) => (
                 <button
@@ -166,9 +150,7 @@ export default function MediaPage() {
                   onClick={() => setCoverageFilter(f)}
                   className={cn(
                     "rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
-                    coverageFilter === f
-                      ? "bg-accent text-accent-foreground"
-                      : "bg-muted text-muted-foreground border border-border hover:text-foreground"
+                    coverageFilter === f ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground border border-border hover:text-foreground"
                   )}
                 >
                   {f}
@@ -177,11 +159,7 @@ export default function MediaPage() {
             </div>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredCoverage.map((item, i) => (
-                <div
-                  key={item.id}
-                  className="group rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-lg animate-fade-in"
-                  style={{ animationDelay: `${i * 80}ms` }}
-                >
+                <div key={item.id || i} className="group rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-lg">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-accent">{item.publisher_or_location}</span>
                   </div>
@@ -193,28 +171,21 @@ export default function MediaPage() {
           </div>
         </section>
 
-        {/* Photo Gallery */}
         <section ref={galleryRef} className="py-20 lg:py-28 bg-muted/20">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
-            <div className={cn(
-              "text-center transition-all duration-700",
-              galleryVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            )}>
-              <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Photo Gallery</h2>
-            </div>
+            <h2 className={cn("text-center font-serif text-3xl font-bold text-foreground sm:text-4xl transition-all duration-700", galleryVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0")}>Photo Gallery</h2>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {galleryItems.length === 0 ? (
                 <div className="col-span-full py-20 text-center text-muted-foreground italic">Gallery items being verified. Coming soon.</div>
               ) : galleryItems.map((item, i) => (
                 <button
-                  key={item.id}
+                  key={item.id || i}
                   onClick={() => setLightbox(item)}
                   className={cn(
                     "group relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted transition-all duration-500 hover:shadow-xl",
                     galleryVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"
                   )}
-                  style={{ transitionDelay: galleryVisible ? `${i * 100}ms` : "0ms" }}
-                  aria-label={`View ${item.title}`}
+                  style={{ transitionDelay: `${i * 100}ms` }}
                 >
                   {item.media_url ? (
                     <img src={item.media_url} className="absolute inset-0 h-full w-full object-cover" alt={item.title} />
@@ -234,38 +205,21 @@ export default function MediaPage() {
           </div>
         </section>
 
-        {/* Video Gallery */}
         <section ref={videoRef} className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
-            <div className={cn(
-              "text-center transition-all duration-700",
-              videoVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            )}>
-              <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Video Gallery</h2>
-            </div>
+            <h2 className={cn("text-center font-serif text-3xl font-bold text-foreground sm:text-4xl transition-all duration-700", videoVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0")}>Video Gallery</h2>
             <div className="mt-12 grid gap-6 sm:grid-cols-2">
               {videos.length === 0 ? (
                 <div className="col-span-full py-20 text-center text-muted-foreground italic">Cinematic impact stories being formatted. Coming soon.</div>
               ) : videos.map((v, i) => (
-                <div
-                  key={v.id}
-                  className={cn(
-                    "group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-500 hover:shadow-lg block",
-                    videoVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-                  )}
-                  style={{ transitionDelay: videoVisible ? `${i * 100}ms` : "0ms" }}
-                >
+                <div key={v.id || i} className={cn("group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-500 hover:shadow-lg", videoVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0")} style={{ transitionDelay: `${i * 100}ms` }}>
                   <a href={v.media_url || '#'} target="_blank" className="block relative aspect-video bg-muted flex items-center justify-center overflow-hidden">
-                    {v.media_url && typeof v.media_url === 'string' && v.media_url.includes('youtube') && (
-                        <img src={`https://img.youtube.com/vi/${new URL(v.media_url).searchParams.get('v')}/maxresdefault.jpg`} className="absolute inset-0 h-full w-full object-cover" />
-                    )}
                     <Video className="h-12 w-12 text-muted-foreground/40 z-10" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 z-10">
                       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-transform group-hover:scale-110">
                         <Play className="h-6 w-6 ml-0.5" />
                       </div>
                     </div>
-                    <span className="absolute bottom-2 right-2 rounded bg-black/80 px-2 py-0.5 text-xs text-white z-10">{v.date_published}</span>
                   </a>
                   <div className="p-5">
                     <span className="text-xs font-medium text-accent">{v.publisher_or_location}</span>
@@ -277,59 +231,33 @@ export default function MediaPage() {
           </div>
         </section>
 
-        {/* Brand Assets */}
         <section ref={brandRef} className="py-20 lg:py-28 bg-muted/20">
           <div className="mx-auto max-w-3xl px-4 text-center lg:px-8">
-            <div className={cn(
-              "transition-all duration-700",
-              brandVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            )}>
+            <div className={cn("transition-all duration-700", brandVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0")}>
               <FileText className="mx-auto h-10 w-10 text-accent" />
               <h2 className="mt-4 font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Brand Assets & Media Kit</h2>
-              <p className="mt-4 text-muted-foreground text-pretty">
-                Download our logos, brand colors, official photos, and fact sheets for press and media use.
-              </p>
+              <p className="mt-4 text-muted-foreground text-pretty">Download our logos, brand colors, official photos, and fact sheets for press and media use.</p>
               <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                 <Button className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 px-8">
                   <Download className="mr-2 h-4 w-4" /> Download Media Kit
                 </Button>
-                <Button variant="outline" className="rounded-full border-border bg-transparent text-foreground hover:bg-muted">
-                  Contact Press Team
-                </Button>
+                <Button variant="outline" className="rounded-full border-border bg-transparent text-foreground hover:bg-muted">Contact Press Team</Button>
               </div>
             </div>
           </div>
         </section>
       </main>
+
       <SiteFooter />
 
-      {/* Lightbox */}
       {lightbox !== null && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
-          onClick={() => setLightbox(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Photo lightbox"
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4" onClick={() => setLightbox(null)}>
           <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setLightbox(null)}
-              className="absolute -top-10 right-0 text-white hover:text-accent transition-colors"
-              aria-label="Close lightbox"
-            >
-              <X className="h-6 w-6" />
-            </button>
+            <button onClick={() => setLightbox(null)} className="absolute -top-10 right-0 text-white hover:text-accent transition-colors"><X className="h-6 w-6" /></button>
             <div className="aspect-[16/9] rounded-2xl bg-muted flex items-center justify-center overflow-hidden relative">
-              {lightbox.media_url ? (
-                <img src={lightbox.media_url} alt={lightbox.title} className="w-full h-full object-contain" />
-              ) : (
-                <div className="text-center">
-                  <ImageIcon className="mx-auto h-16 w-16 text-muted-foreground/40" />
-                </div>
-              )}
+              {lightbox.media_url ? <img src={lightbox.media_url} alt={lightbox.title} className="w-full h-full object-contain" /> : <ImageIcon className="mx-auto h-16 w-16 text-muted-foreground/40" />}
               <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 text-center text-white">
-                <p className="mt-4 text-lg font-semibold">{lightbox.title}</p>
+                <p className="text-lg font-semibold">{lightbox.title}</p>
                 <p className="text-sm opacity-80">{lightbox.publisher_or_location} &middot; {lightbox.date_published}</p>
               </div>
             </div>
