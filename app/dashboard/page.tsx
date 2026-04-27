@@ -392,6 +392,9 @@ export default function DashboardPage() {
           </Link>
         </nav>
 
+        {/* Scrollable Content */}
+        <div className="px-4 md:px-8 pt-24 md:pt-28 pb-8 space-y-12">
+
         {/* Quick Actions */}
         <section className="mb-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -888,6 +891,8 @@ export default function DashboardPage() {
               )}
             </div>
           </section>
+
+        </div>
 
         <footer className="bg-[#121410] w-full py-12 px-8 mt-auto border-t border-[#424935]/20">
           <div className="max-w-7xl mx-auto flex flex-col items-center gap-4 text-center">
