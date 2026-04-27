@@ -44,8 +44,8 @@ export async function submitContact(formData: FormData) {
 
     // 3. Send Notifications (Target Department + Admin Archive)
     try {
-      const { sendEmail, generateInquiryEmailHtml } = await import('@/lib/email')
-      const { sendTelegramNotification } = await import('@/lib/telegram')
+      const { sendEmail, generateInquiryEmailHtml } = await import("../../lib/email")
+      const { sendTelegramNotification } = await import("../../lib/telegram")
 
       const emailHtml = generateInquiryEmailHtml(name, email, phone, subject, message)
 

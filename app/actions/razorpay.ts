@@ -166,7 +166,7 @@ export async function verifyRazorpayPayment(
 
     // 4. Notifications (Email to Customer + Admin Alerts)
     try {
-      const { sendEmail, generateOrderConfirmationEmailHtml } = await import("@/lib/email")
+      const { sendEmail, generateOrderConfirmationEmailHtml } = await import("../../lib/email")
       
       // Custom formatted date
       const orderDate = new Date().toLocaleDateString('en-IN', {
@@ -189,7 +189,7 @@ export async function verifyRazorpayPayment(
       })
 
       // Telegram to Admin
-      const { sendTelegramNotification } = await import("@/lib/telegram")
+      const { sendTelegramNotification } = await import("../../lib/telegram")
       const adminMessage = `
 🌳 <b>New Planting Order!</b>
 👤 <b>User:</b> ${profile?.full_name || "Unknown"}

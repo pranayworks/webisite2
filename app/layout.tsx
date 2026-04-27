@@ -1,8 +1,9 @@
 import React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter, Noto_Serif, Manrope } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
-import LoadingScreen from "@/components/LoadingScreen"
+import { ThemeProvider } from "../components/theme-provider"
+import LoadingScreen from "../components/LoadingScreen"
+import { AppEngine } from "../components/AppEngine"
 import { Toaster } from "sonner"
 import "./globals.css"
 
@@ -74,6 +75,12 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Green Legacy",
+  },
   verification: {
     google: "g7Mea5nB9AAO-_H2x8ejJyohoBF-1ZviKsNNkr1G8xQ",
   },
@@ -103,6 +110,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange={false}>
+          <AppEngine />
           <LoadingScreen />
           {/* Google Site Name Structured Data */}
         <script

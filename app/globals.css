@@ -97,6 +97,19 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+    overflow-x: hidden;
+  }
+
+  input, textarea, [contenteditable="true"] {
+    user-select: auto !important;
+  }
+
+  a, button {
+    cursor: pointer;
+    user-select: none;
   }
 }
 
