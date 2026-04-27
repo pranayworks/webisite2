@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowDown, Play, TreePine, GraduationCap, Globe } from "lucide-react"
+import { ArrowDown, Play, TreePine, Droplets, Globe } from "lucide-react"
 import { Button } from "../../components/ui/button"
 import { useCountUp } from "../../hooks/use-scroll-animation"
 import { cn } from "../../lib/utils"
@@ -35,7 +35,7 @@ export function HeroSection() {
   }, [])
 
   const treesPlanted = useCountUp(dbStats.trees, 2500, mounted)
-  const partnerColleges = useCountUp(dbStats.colleges, 2000, mounted)
+  const waterConserved = useCountUp(dbStats.water, 2000, mounted)
   const co2Offset = useCountUp(dbStats.co2, 2200, mounted)
 
   return (
@@ -126,7 +126,7 @@ export function HeroSection() {
         >
           {[
             { icon: TreePine, value: treesPlanted, suffix: "+", label: "Trees Planted" },
-            { icon: GraduationCap, value: partnerColleges, suffix: "", label: "Partner Colleges" },
+            { icon: Droplets, value: waterConserved, suffix: " KL", label: "Water Conserved" },
             { icon: Globe, value: co2Offset, suffix: " Tonnes", label: "CO2 Offset" },
           ].map((stat) => (
             <div key={stat.label} className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card/60 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-card hover:shadow-lg">
