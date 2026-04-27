@@ -69,9 +69,9 @@ export default function MediaPage() {
   return (
     <>
       <SiteHeader />
-      <main>
+      <main className="bg-background text-foreground">
         {/* Hero */}
-        <section ref={heroRef} className="relative overflow-hidden bg-background pt-28 pb-16 md:pt-36">
+        <section ref={heroRef} className="relative overflow-hidden bg-muted/30 pt-28 pb-16 md:pt-36">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.06)_0%,transparent_60%)]" />
           <div className={cn(
             "relative z-10 mx-auto max-w-4xl px-4 text-center transition-all duration-700 lg:px-8",
@@ -88,19 +88,19 @@ export default function MediaPage() {
         </section>
 
         {/* Featured Coverage */}
-        <section className="bg-muted/30 py-16">
+        <section className="bg-background py-16">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <h2 className="mb-8 text-center font-serif text-2xl font-bold text-foreground">In the News</h2>
             <div className="grid gap-6 md:grid-cols-3">
               {finalCoverage.slice(0, 3).map((item: any, i: number) => (
-                <div key={item.id || item.title} className="group overflow-hidden rounded-2xl border border-[#b2f432]/10 bg-[#1a1c18] p-6 transition-all duration-500 hover:border-[#b2f432]/30 hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 150}ms` }}>
+                <div key={item.id || item.title} className="group overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-500 hover:border-accent/30 hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 150}ms` }}>
                   <div className="flex items-center gap-2 mb-4">
-                    <Newspaper className="h-4 w-4 text-[#b2f432]" />
-                    <span className="inline-block rounded-full bg-[#b2f432]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#b2f432]">{item.publisher_or_location}</span>
+                    <Newspaper className="h-4 w-4 text-accent" />
+                    <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent">{item.publisher_or_location}</span>
                   </div>
-                  <h3 className="mt-3 font-serif text-lg font-bold text-[#e3e3db] leading-snug group-hover:text-[#b2f432] transition-colors">{item.title}</h3>
-                  <p className="mt-2 text-xs font-medium text-[#c2caaf]/50 italic">{item.date_published}</p>
-                  <a href={item.media_url || '#'} target="_blank" className="mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#b2f432] hover:underline underline-offset-4">
+                  <h3 className="mt-3 font-serif text-lg font-bold text-foreground leading-snug group-hover:text-accent transition-colors">{item.title}</h3>
+                  <p className="mt-2 text-xs font-medium text-muted-foreground/60 italic">{item.date_published}</p>
+                  <a href={item.media_url || '#'} target="_blank" className="mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent hover:underline underline-offset-4">
                     Explore Coverage <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
@@ -110,7 +110,7 @@ export default function MediaPage() {
         </section>
 
         {/* Press Releases */}
-        <section ref={pressRef} className="py-20 lg:py-28">
+        <section ref={pressRef} className="py-20 lg:py-28 bg-muted/20">
           <div className="mx-auto max-w-4xl px-4 lg:px-8">
             <div className={cn(
               "text-center transition-all duration-700",
@@ -128,19 +128,19 @@ export default function MediaPage() {
                   )}
                   style={{ transitionDelay: `${i * 150}ms` }}
                 >
-                  <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-[#b2f432] shadow-[0_0_15px_rgba(178,244,50,0.5)] group-hover:scale-125 transition-transform" />
-                  <div className="absolute left-[5px] top-5 h-full w-[2px] bg-[#424935]/20 group-last:hidden" />
+                  <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-accent shadow-[0_0_15px_rgba(var(--accent-rgb),0.5)] group-hover:scale-125 transition-transform" />
+                  <div className="absolute left-[5px] top-5 h-full w-[2px] bg-border group-last:hidden" />
                   
-                  <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-[#c2caaf]">
-                    <Calendar className="h-3 w-3 text-[#b2f432]" />
+                  <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <Calendar className="h-3 w-3 text-accent" />
                     {pr.date_published}
                   </div>
-                  <h3 className="mt-3 text-xl font-bold text-[#e3e3db] group-hover:text-[#b2f432] transition-colors">{pr.title}</h3>
-                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#c2caaf]/80">{pr.excerpt_or_headline}</p>
+                  <h3 className="mt-3 text-xl font-bold text-foreground group-hover:text-accent transition-colors">{pr.title}</h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">{pr.excerpt_or_headline}</p>
                   
                   <div className="mt-6 flex flex-wrap gap-4">
-                    <button className="text-[10px] font-black uppercase tracking-widest text-[#b2f432] hover:underline underline-offset-8">Read Full Release &rarr;</button>
-                    <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#c2caaf] hover:text-[#e3e3db] transition-colors">
+                    <button className="text-[10px] font-black uppercase tracking-widest text-accent hover:underline underline-offset-8">Read Full Release &rarr;</button>
+                    <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
                       <Download className="h-3 w-3" /> Download PDF (2.4 MB)
                     </button>
                   </div>
@@ -151,7 +151,7 @@ export default function MediaPage() {
         </section>
 
         {/* Media Coverage */}
-        <section ref={coverageRef} className="bg-muted/30 py-20 lg:py-28">
+        <section ref={coverageRef} className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className={cn(
               "text-center transition-all duration-700",
@@ -167,8 +167,8 @@ export default function MediaPage() {
                   className={cn(
                     "rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
                     coverageFilter === f
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-card text-muted-foreground border border-border hover:text-foreground"
+                      ? "bg-accent text-accent-foreground"
+                      : "bg-muted text-muted-foreground border border-border hover:text-foreground"
                   )}
                 >
                   {f}
@@ -185,7 +185,7 @@ export default function MediaPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-accent">{item.publisher_or_location}</span>
                   </div>
-                  <h3 className="mt-2 text-sm font-semibold leading-snug text-card-foreground">{item.title}</h3>
+                  <h3 className="mt-2 text-sm font-semibold leading-snug text-foreground">{item.title}</h3>
                   <p className="mt-2 text-xs text-muted-foreground">{item.date_published}</p>
                 </div>
               ))}
@@ -194,7 +194,7 @@ export default function MediaPage() {
         </section>
 
         {/* Photo Gallery */}
-        <section ref={galleryRef} className="py-20 lg:py-28">
+        <section ref={galleryRef} className="py-20 lg:py-28 bg-muted/20">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className={cn(
               "text-center transition-all duration-700",
@@ -203,7 +203,9 @@ export default function MediaPage() {
               <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Photo Gallery</h2>
             </div>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {galleryItems.map((item, i) => (
+              {galleryItems.length === 0 ? (
+                <div className="col-span-full py-20 text-center text-muted-foreground italic">Gallery items being verified. Coming soon.</div>
+              ) : galleryItems.map((item, i) => (
                 <button
                   key={item.id}
                   onClick={() => setLightbox(item)}
@@ -221,10 +223,10 @@ export default function MediaPage() {
                       <ImageIcon className="h-12 w-12 text-primary/40" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-foreground/0 transition-all duration-300 group-hover:bg-foreground/40" />
+                  <div className="absolute inset-0 bg-black/0 transition-all duration-300 group-hover:bg-black/40" />
                   <div className="absolute inset-x-0 bottom-0 translate-y-full p-4 transition-transform duration-300 group-hover:translate-y-0 text-left">
-                    <p className="text-sm font-semibold text-background">{item.title}</p>
-                    <p className="text-xs text-background/80">{item.publisher_or_location} &middot; {item.date_published}</p>
+                    <p className="text-sm font-semibold text-white">{item.title}</p>
+                    <p className="text-xs text-white/80">{item.publisher_or_location} &middot; {item.date_published}</p>
                   </div>
                 </button>
               ))}
@@ -233,7 +235,7 @@ export default function MediaPage() {
         </section>
 
         {/* Video Gallery */}
-        <section ref={videoRef} className="bg-muted/30 py-20 lg:py-28">
+        <section ref={videoRef} className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className={cn(
               "text-center transition-all duration-700",
@@ -242,7 +244,9 @@ export default function MediaPage() {
               <h2 className="font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Video Gallery</h2>
             </div>
             <div className="mt-12 grid gap-6 sm:grid-cols-2">
-              {videos.map((v, i) => (
+              {videos.length === 0 ? (
+                <div className="col-span-full py-20 text-center text-muted-foreground italic">Cinematic impact stories being formatted. Coming soon.</div>
+              ) : videos.map((v, i) => (
                 <div
                   key={v.id}
                   className={cn(
@@ -257,15 +261,15 @@ export default function MediaPage() {
                     )}
                     <Video className="h-12 w-12 text-muted-foreground/40 z-10" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 z-10">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform group-hover:scale-110">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-transform group-hover:scale-110">
                         <Play className="h-6 w-6 ml-0.5" />
                       </div>
                     </div>
-                    <span className="absolute bottom-2 right-2 rounded bg-foreground/80 px-2 py-0.5 text-xs text-background z-10">{v.date_published}</span>
+                    <span className="absolute bottom-2 right-2 rounded bg-black/80 px-2 py-0.5 text-xs text-white z-10">{v.date_published}</span>
                   </a>
                   <div className="p-5">
                     <span className="text-xs font-medium text-accent">{v.publisher_or_location}</span>
-                    <h3 className="mt-1 font-semibold text-card-foreground">{v.title}</h3>
+                    <h3 className="mt-1 font-semibold text-foreground">{v.title}</h3>
                   </div>
                 </div>
               ))}
@@ -274,19 +278,19 @@ export default function MediaPage() {
         </section>
 
         {/* Brand Assets */}
-        <section ref={brandRef} className="py-20 lg:py-28">
+        <section ref={brandRef} className="py-20 lg:py-28 bg-muted/20">
           <div className="mx-auto max-w-3xl px-4 text-center lg:px-8">
             <div className={cn(
               "transition-all duration-700",
               brandVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
             )}>
-              <FileText className="mx-auto h-10 w-10 text-primary" />
+              <FileText className="mx-auto h-10 w-10 text-accent" />
               <h2 className="mt-4 font-serif text-3xl font-bold text-foreground sm:text-4xl text-balance">Brand Assets & Media Kit</h2>
               <p className="mt-4 text-muted-foreground text-pretty">
                 Download our logos, brand colors, official photos, and fact sheets for press and media use.
               </p>
               <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-                <Button className="rounded-full bg-primary px-8 text-primary-foreground hover:bg-primary/90">
+                <Button className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 px-8">
                   <Download className="mr-2 h-4 w-4" /> Download Media Kit
                 </Button>
                 <Button variant="outline" className="rounded-full border-border bg-transparent text-foreground hover:bg-muted">
@@ -302,7 +306,7 @@ export default function MediaPage() {
       {/* Lightbox */}
       {lightbox !== null && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/90 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
           onClick={() => setLightbox(null)}
           role="dialog"
           aria-modal="true"
@@ -311,7 +315,7 @@ export default function MediaPage() {
           <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setLightbox(null)}
-              className="absolute -top-10 right-0 text-background hover:text-accent transition-colors"
+              className="absolute -top-10 right-0 text-white hover:text-accent transition-colors"
               aria-label="Close lightbox"
             >
               <X className="h-6 w-6" />

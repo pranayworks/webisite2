@@ -47,7 +47,8 @@ export default function ImpactPage() {
     water: 0
   })
 
-  const [speciesStats, setSpeciesStats] = useState(envData)
+  const [speciesStats, setSpeciesStats] = useState<{label: string, count: number}[]>([])
+  const [impactStories, setImpactStories] = useState<any[]>([])
 
   useEffect(() => {
     async function fetchData() {
@@ -78,7 +79,27 @@ export default function ImpactPage() {
           o2: Number((totalTrees * 2.3).toFixed(1)),
           water: Number((impact.waterSaved / 1000).toFixed(1))
         })
+
+        // Species Breakdown
+        const speciesMap: {[key: string]: number} = {}
+        allOrders.forEach(o => {
+          const s = o.species || 'Others'
+          speciesMap[s] = (speciesMap[s] || 0) + (o.trees || 1)
+        })
+        const speciesArray = Object.entries(speciesMap)
+          .map(([label, count]) => ({ label, count }))
+          .sort((a, b) => b.count - a.count)
+        setSpeciesStats(speciesArray)
       }
+
+      // Fetch Live Stories
+      const { data: storiesData } = await supabase.from('stories').select('*').limit(3).order('created_at', { ascending: false })
+      if (storiesData && storiesData.length > 0) {
+        setImpactStories(storiesData)
+      } else {
+        setImpactStories(fallbackStories)
+      }
+
       setLoading(false)
     }
 
@@ -110,8 +131,8 @@ export default function ImpactPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#121410] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#b2f432] border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
       </div>
     )
   }
@@ -119,28 +140,28 @@ export default function ImpactPage() {
   return (
     <>
       <SiteHeader />
-      <main className="bg-[#121410] text-[#e3e3db]">
-        <section ref={heroRef} className="relative overflow-hidden pt-28 pb-16 md:pt-36">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(178,244,50,0.06)_0%,transparent_60%)]" />
+      <main className="bg-background text-foreground">
+        <section ref={heroRef} className="relative overflow-hidden pt-28 pb-16 md:pt-36 bg-muted/30">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.06)_0%,transparent_60%)]" />
           <div className={cn("relative z-10 mx-auto max-w-4xl px-4 text-center transition-all duration-700", heroVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0")}>
-            <p className="text-sm font-medium uppercase tracking-widest text-[#b2f432]">Impact Dashboard</p>
-            <h1 className="mt-3 font-serif text-3xl font-bold sm:text-4xl lg:text-5xl">
+            <p className="text-sm font-medium uppercase tracking-widest text-accent">Impact Dashboard</p>
+            <h1 className="mt-3 font-serif text-3xl font-bold sm:text-4xl lg:text-5xl text-foreground">
               Measurable Impact, Complete Transparency
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-[#c2caaf]">
+            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
               Every tree is tracked, every rupee accounted for. See the real-time impact of our collective effort.
             </p>
           </div>
         </section>
 
-        <section ref={liveRef} className="bg-[#1a1c18] py-16 border-y border-[#b2f432]/5">
+        <section ref={liveRef} className="bg-card py-16 border-y border-border">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {liveStatsDynamic.map((stat, i) => (
-                <div key={stat.label} className="rounded-2xl border border-[#b2f432]/10 bg-[#121410]/50 p-6 text-center backdrop-blur-sm transition-all duration-500 hover:border-[#b2f432]/30">
+                <div key={stat.label} className="rounded-2xl border border-border bg-background/50 p-6 text-center backdrop-blur-sm transition-all duration-500 hover:border-accent/30 hover:bg-background">
                   <stat.icon className={cn("mx-auto h-6 w-6 mb-3", stat.color)} />
-                  <div className="text-2xl font-bold text-[#e3e3db] mb-1">{liveCountUps[i]}</div>
-                  <p className="text-[10px] uppercase tracking-wider text-[#c2caaf]/40 font-bold">{stat.label}</p>
+                  <div className="text-2xl font-bold text-foreground mb-1">{liveCountUps[i]}</div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -149,9 +170,9 @@ export default function ImpactPage() {
 
         <section ref={tabRef} className="py-20 lg:py-28">
            <div className="mx-auto max-w-7xl px-4 lg:px-8">
-             <div className="mx-auto mb-12 flex max-w-md justify-center gap-1 rounded-full border border-[#424935]/20 bg-[#1a1c18] p-1">
+             <div className="mx-auto mb-12 flex max-w-md justify-center gap-1 rounded-full border border-border bg-muted p-1">
                {(["environmental", "social", "economic"] as const).map((tab) => (
-                 <button key={tab} onClick={() => setActiveTab(tab)} className={cn("flex-1 rounded-full px-4 py-2 text-sm font-medium capitalize transition-all", activeTab === tab ? "bg-[#b2f432] text-[#233600]" : "text-[#c2caaf] hover:text-[#e3e3db]")}>
+                 <button key={tab} onClick={() => setActiveTab(tab)} className={cn("flex-1 rounded-full px-4 py-2 text-sm font-medium capitalize transition-all", activeTab === tab ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground")}>
                    {tab}
                  </button>
                ))}
@@ -160,31 +181,81 @@ export default function ImpactPage() {
              {activeTab === "environmental" && (
                 <div className="space-y-8 max-w-2xl mx-auto">
                    <h3 className="text-center font-bold text-xl mb-8">Movement Growth</h3>
-                   {speciesStats.map((d) => (
+                   {speciesStats.length === 0 ? (
+                      <p className="text-center text-muted-foreground italic">Gathering growth data from the groves...</p>
+                   ) : speciesStats.map((d) => (
                       <div key={d.label} className="space-y-2">
                         <div className="flex justify-between text-sm">
                            <span>{d.label}</span>
-                           <span className="text-[#c2caaf]">{d.count.toLocaleString()} Specimens</span>
+                           <span className="text-muted-foreground">{d.count.toLocaleString()} Specimens</span>
                         </div>
-                        <div className="h-2 w-full bg-[#1a1c18] rounded-full overflow-hidden border border-[#b2f432]/10">
-                           <div className="h-full bg-[#b2f432] transition-all duration-1000" style={{ width: `${Math.max(5, (d.count/stats.total)*100)}%` }} />
+                        <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border">
+                           <div className="h-full bg-accent transition-all duration-1000" style={{ width: `${Math.max(5, (d.count/stats.total)*100)}%` }} />
                         </div>
                       </div>
                    ))}
                 </div>
              )}
+
+             {activeTab !== "environmental" && (
+                <div className="text-center py-20 text-muted-foreground italic">
+                   Collective data being verified. Coming soon.
+                </div>
+             )}
            </div>
         </section>
 
-        <section ref={storiesRef} className="py-20 lg:py-28">
+        <section className="py-20 lg:py-28">
+           <div className="mx-auto max-w-7xl px-4 lg:px-8">
+             <div className="flex flex-col lg:flex-row items-center gap-16">
+                <div className="flex-1 space-y-6">
+                   <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                      <TreePine className="h-6 w-6" />
+                   </div>
+                   <h2 className="font-serif text-3xl font-bold text-foreground">The Heritage Guarantee</h2>
+                   <p className="text-muted-foreground leading-relaxed">
+                      We understand that in nature, not every seedling survives. That's why Green Legacy isn't just a planting service—it's a preservation movement. 
+                   </p>
+                   <ul className="space-y-4">
+                      {[
+                        { title: "Active Monitoring", desc: "Our field teams conduct physical health audits every 6 months for the first 3 years." },
+                        { title: "Automatic Replanting", desc: "If a tree fails to thrive due to natural causes, we replant it during the next monsoon cycle at no cost." },
+                        { title: "Stewardship Transparency", desc: "Every death and replacement is logged in your dashboard, maintaining 100% honesty in our impact." }
+                      ].map((item) => (
+                        <li key={item.title} className="flex gap-4">
+                           <div className="mt-1 h-5 w-5 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+                              <div className="h-1.5 w-1.5 rounded-full bg-accent" />
+                           </div>
+                           <div>
+                              <p className="font-bold text-sm text-foreground">{item.title}</p>
+                              <p className="text-xs text-muted-foreground">{item.desc}</p>
+                           </div>
+                        </li>
+                      ))}
+                   </ul>
+                </div>
+                <div className="flex-1 relative">
+                   <div className="aspect-square rounded-3xl overflow-hidden border border-border shadow-2xl">
+                      <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=1200" alt="Sustainable Forestry" className="w-full h-full object-cover" />
+                   </div>
+                   <div className="absolute -bottom-6 -left-6 bg-card border border-border p-6 rounded-2xl shadow-xl max-w-[240px] animate-in fade-in slide-in-from-left-4 duration-1000">
+                      <p className="text-2xl font-bold text-accent">94%</p>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mt-1">Survival Rate Goal</p>
+                   </div>
+                </div>
+             </div>
+           </div>
+        </section>
+
+        <section ref={storiesRef} className="py-20 lg:py-28 bg-muted/20">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <h2 className="text-center font-serif text-3xl font-bold mb-12">Impact Stories</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {fallbackStories.map((s, i) => (
-                <div key={s.title} className="p-8 rounded-2xl border border-[#b2f432]/10 bg-[#1a1c18] hover:border-[#b2f432]/30 transition-all">
-                  <p className="text-[10px] uppercase font-black text-[#b2f432] tracking-widest mb-2">{s.location}</p>
+              {impactStories.map((s, i) => (
+                <div key={s.id || i} className="p-8 rounded-2xl border border-border bg-card hover:border-accent/30 transition-all shadow-sm">
+                  <p className="text-[10px] uppercase font-black text-accent tracking-widest mb-2">{s.location || "Community Project"}</p>
                   <h3 className="text-lg font-bold mb-3">{s.title}</h3>
-                  <p className="text-sm text-[#c2caaf] leading-relaxed">{s.excerpt}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{s.excerpt}</p>
                 </div>
               ))}
             </div>

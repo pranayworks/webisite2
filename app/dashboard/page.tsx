@@ -44,6 +44,8 @@ export default function DashboardPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [monthlyStats, setMonthlyStats] = useState({ oxygen: '0', carbon: '0', energy: '0', daysRemaining: 0 })
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [reviewForm, setReviewForm] = useState({ text: '', rating: 5 })
   const rank = useMemo(() => calculateRank(metrics.trees), [metrics.trees])
 
   useEffect(() => {
@@ -184,6 +186,28 @@ export default function DashboardPage() {
     } else {
       navigator.clipboard.writeText(shareText)
       toast.success("Impact link copied to clipboard!")
+    }
+  }
+
+  const handleSubmitReview = async () => {
+    if (!reviewForm.text.trim()) {
+      toast.error("Please enter your thoughts first!")
+      return
+    }
+
+    const { error } = await supabase.from('testimonials').insert({
+      name: user.profile?.full_name || user.email?.split('@')[0] || 'Member',
+      role: `Member • ${metrics.trees} Trees`,
+      text: reviewForm.text,
+      rating: reviewForm.rating
+    })
+
+    if (error) {
+      toast.error("Review failed: " + error.message)
+    } else {
+      toast.success("Thank you! Your review is now live on our impact wall.")
+      setShowReviewModal(false)
+      setReviewForm({ text: '', rating: 5 })
     }
   }
 
@@ -368,10 +392,56 @@ export default function DashboardPage() {
           </Link>
         </nav>
 
-        <div className="pt-20 md:pt-28 px-4 md:px-8 max-w-7xl mx-auto space-y-8 md:space-y-12">
-          
-          {/* Stewardship Level & Badge Section */}
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Quick Actions */}
+        <section className="mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button 
+              onClick={() => setShowReviewModal(true)}
+              className="bg-accent/10 border border-accent/20 rounded-2xl p-6 text-left hover:bg-accent/20 transition-all group"
+            >
+              <div className="h-12 w-12 rounded-xl bg-accent/20 flex items-center justify-center text-accent mb-4 group-hover:scale-110 transition-transform">
+                <MaterialIcon name="rate_review" className="text-2xl" />
+              </div>
+              <h4 className="font-bold text-accent mb-1">Share Your Story</h4>
+              <p className="text-xs text-[#c2caaf]/60 leading-relaxed">Let the community know why you joined the movement.</p>
+            </button>
+            
+            <button 
+              onClick={handleManageBilling}
+              className="bg-white/5 border border-white/10 rounded-2xl p-6 text-left hover:bg-white/10 transition-all group"
+            >
+              <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center text-[#c2caaf] mb-4 group-hover:scale-110 transition-transform">
+                <MaterialIcon name="credit_card" className="text-2xl" />
+              </div>
+              <h4 className="font-bold text-[#e3e3db] mb-1">Manage Plan</h4>
+              <p className="text-xs text-[#c2caaf]/60 leading-relaxed">Update your tree subscription or billing details.</p>
+            </button>
+
+            <Link 
+              href="/impact"
+              className="bg-white/5 border border-white/10 rounded-2xl p-6 text-left hover:bg-white/10 transition-all group"
+            >
+              <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center text-[#c2caaf] mb-4 group-hover:scale-110 transition-transform">
+                <MaterialIcon name="insights" className="text-2xl" />
+              </div>
+              <h4 className="font-bold text-[#e3e3db] mb-1">Global Impact</h4>
+              <p className="text-xs text-[#c2caaf]/60 leading-relaxed">See how our collective forest is breathing for India.</p>
+            </Link>
+
+            <Link 
+              href="/settings"
+              className="bg-white/5 border border-white/10 rounded-2xl p-6 text-left hover:bg-white/10 transition-all group"
+            >
+              <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center text-[#c2caaf] mb-4 group-hover:scale-110 transition-transform">
+                <MaterialIcon name="settings" className="text-2xl" />
+              </div>
+              <h4 className="font-bold text-[#e3e3db] mb-1">Profile Control</h4>
+              <p className="text-xs text-[#c2caaf]/60 leading-relaxed">Ensure your certificate details are always accurate.</p>
+            </Link>
+          </div>
+        </section>
+
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="bg-[#1a1c18] border border-[#b2f432]/10 rounded-2xl p-8 flex flex-col md:flex-row items-center gap-10">
               <div className="relative">
                 <div className="absolute inset-0 bg-[#b2f432]/20 blur-2xl rounded-full scale-75 animate-pulse"></div>
@@ -1065,6 +1135,58 @@ export default function DashboardPage() {
                 <span className="text-xs font-medium tracking-wide">Officially notarized by Green Legacy Biological Registry</span>
               </div>
               <p className="text-xs font-bold text-[#e3e3db]">Total Contribution: <span className="text-[#b2f432] ml-2">₹{allOrders.reduce((acc, curr) => acc + (curr.amount || curr.trees * 299), 0).toLocaleString()}</span></p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#1a1c18] border border-[#b2f432]/10 w-full max-w-md rounded-2xl p-8 space-y-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-xl font-bold text-[#b2f432]">Share Your Experience</h3>
+                <p className="text-xs text-[#c2caaf] mt-1">Your review will be featured on our testimonials wall.</p>
+              </div>
+              <button onClick={() => setShowReviewModal(false)} className="text-[#c2caaf] hover:text-white transition-colors">
+                <MaterialIcon name="close" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Overall Rating</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button 
+                      key={s} 
+                      onClick={() => setReviewForm({ ...reviewForm, rating: s })}
+                      className={`h-10 w-10 rounded-lg flex items-center justify-center transition-all ${reviewForm.rating >= s ? 'bg-[#b2f432] text-[#233600]' : 'bg-white/5 text-[#c2caaf]'}`}
+                    >
+                      <MaterialIcon name="star" style={{ fontVariationSettings: `'FILL' ${reviewForm.rating >= s ? 1 : 0}` }} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-[#c2caaf]">Your Review</label>
+                <textarea 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm min-h-[120px] outline-none focus:border-[#b2f432]/30 transition-colors text-[#e3e3db]"
+                  placeholder="Tell us about your planting journey..."
+                  value={reviewForm.text}
+                  onChange={(e) => setReviewForm({ ...reviewForm, text: e.target.value })}
+                />
+              </div>
+
+              <button 
+                onClick={handleSubmitReview}
+                className="w-full bg-[#b2f432] text-[#233600] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.01] transition-transform"
+              >
+                <MaterialIcon name="send" />
+                Submit Review
+              </button>
             </div>
           </div>
         </div>
