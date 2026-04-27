@@ -141,16 +141,86 @@ export default function ImpactPage() {
     <>
       <SiteHeader />
       <main className="bg-background text-foreground">
-        <section ref={heroRef} className="relative overflow-hidden pt-28 pb-16 md:pt-36 bg-muted/30">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.06)_0%,transparent_60%)]" />
-          <div className={cn("relative z-10 mx-auto max-w-4xl px-4 text-center transition-all duration-700", heroVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0")}>
-            <p className="text-sm font-medium uppercase tracking-widest text-accent">Impact Dashboard</p>
-            <h1 className="mt-3 font-serif text-3xl font-bold sm:text-4xl lg:text-5xl text-foreground">
-              Measurable Impact, Complete Transparency
+        <section ref={heroRef} className="relative overflow-hidden min-h-[92vh] flex items-center">
+          {/* Background Forest Image */}
+          <div className="absolute inset-0">
+            <img
+              src="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=2000"
+              alt="Forest canopy"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background/50 via-transparent to-background/50" />
+          </div>
+
+          {/* Radial accent glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--accent)/0.15)_0%,transparent_65%)]" />
+
+          {/* Content */}
+          <div className={cn(
+            "relative z-10 mx-auto max-w-5xl px-4 lg:px-8 text-center transition-all duration-1000",
+            heroVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
+          )}>
+            {/* Eyebrow badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-accent backdrop-blur-sm mb-6">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+              Live Impact Dashboard
+            </div>
+
+            <h1 className="font-serif text-4xl font-bold sm:text-5xl lg:text-7xl text-foreground text-balance leading-[1.1]">
+              Every Tree Tells<br />
+              <span className="text-accent">a Real Story</span>
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-              Every tree is tracked, every rupee accounted for. See the real-time impact of our collective effort.
+
+            <p className="mx-auto mt-6 max-w-2xl text-base lg:text-lg text-muted-foreground text-pretty leading-relaxed">
+              Every tree is GPS-tagged, every rupee is accounted for, and every milestone is verified in real-time. This is environmental action you can actually see.
             </p>
+
+            {/* CTA Buttons */}
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href="/subscriptions"
+                className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-accent-foreground transition-all hover:bg-accent/90 hover:scale-105 shadow-[0_0_40px_hsl(var(--accent)/0.3)]"
+              >
+                <TreePine className="h-4 w-4" />
+                Plant Your Tree
+              </a>
+              <a
+                href="#impact-stats"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-foreground backdrop-blur-sm transition-all hover:bg-muted hover:scale-105"
+              >
+                View Live Data
+                <Wind className="h-4 w-4" />
+              </a>
+            </div>
+
+            {/* Floating Stat Pills */}
+            <div className="mt-14 flex flex-wrap justify-center gap-3">
+              {[
+                { label: "Trees Planted", value: stats.total.toLocaleString(), icon: "🌳" },
+                { label: "CO₂ Offset", value: `${stats.co2} T`, icon: "💨" },
+                { label: "Water Conserved", value: `${stats.water} ML`, icon: "💧" },
+              ].map((pill) => (
+                <div
+                  key={pill.label}
+                  className="inline-flex items-center gap-3 rounded-2xl border border-border bg-card/80 px-5 py-3 backdrop-blur-md shadow-lg"
+                >
+                  <span className="text-lg">{pill.icon}</span>
+                  <div className="text-left">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{pill.label}</p>
+                    <p className="text-lg font-bold text-foreground">{pill.value || "0"}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground/60">
+            <span className="text-[9px] uppercase tracking-widest font-bold">Scroll to Explore</span>
+            <div className="h-8 w-5 rounded-full border border-muted-foreground/30 flex items-start justify-center p-1">
+              <div className="h-1.5 w-1.5 rounded-full bg-accent animate-bounce" />
+            </div>
           </div>
         </section>
 
