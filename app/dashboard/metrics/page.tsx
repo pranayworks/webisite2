@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { calculateImpact } from '@/lib/impact'
+import { calculateImpact } from '../../../lib/impact'
 
 export default function MetricsPage() {
   const router = useRouter()

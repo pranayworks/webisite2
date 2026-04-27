@@ -15,6 +15,33 @@ export const IMPACT_METRICS = {
   O2_PER_TREE: 110, // KG
 }
 
+/**
+ * Calculates environmental impact metrics based on a given number of trees.
+ * Used for individual user dashboards and impact previews.
+ */
+export function calculateImpact(trees: number) {
+  return {
+    trees: trees,
+    carbonOffset: Math.floor((trees * IMPACT_METRICS.CO2_PER_TREE) / 1000), // in Tonnes
+    waterSaved: Math.floor((trees * IMPACT_METRICS.WATER_PER_TREE) / 1000), // in Kiloliters
+    oxygenProduced: Math.floor((trees * IMPACT_METRICS.O2_PER_TREE) / 1000), // in Tonnes
+  }
+}
+
+/**
+ * Calculates the stewardship rank based on the number of trees planted.
+ */
+export function calculateRank(trees: number) {
+  let title = "Sapling Supporter"
+  if (trees >= 50) title = "Botanical Legend"
+  else if (trees >= 15) title = "Forest Founder"
+  else if (trees >= 5) title = "Grove Architect"
+  else if (trees >= 2) title = "Sprout Steward"
+  else if (trees >= 1) title = "Seedling Guardian"
+  
+  return { title }
+}
+
 export async function fetchLiveImpactMetrics() {
   try {
     // 1. Fetch total trees planted (Sum of successful orders)
