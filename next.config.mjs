@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  // Only export for Capacitor builds
+  output: process.env.IS_CAPACITOR === 'true' ? 'export' : undefined,
   trailingSlash: true,
   typescript: {
     ignoreBuildErrors: true,
