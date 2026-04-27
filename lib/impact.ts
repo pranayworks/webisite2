@@ -25,6 +25,8 @@ export function calculateImpact(trees: number) {
     carbonOffset: Math.floor((trees * IMPACT_METRICS.CO2_PER_TREE) / 1000), // in Tonnes
     waterSaved: Math.floor((trees * IMPACT_METRICS.WATER_PER_TREE) / 1000), // in Kiloliters
     oxygenProduced: Math.floor((trees * IMPACT_METRICS.O2_PER_TREE) / 1000), // in Tonnes
+    survivalRate: trees > 0 ? 94 : 0, // Baseline 94% for established groves
+    soilVitality: trees > 0 ? 8.4 : 0, // Baseline 8.4/10 for managed sites
   }
 }
 
