@@ -4,9 +4,10 @@ import * as React from "react"
 
 import Link from "next/link"
 import { TreePine, Wind, Droplets, Sun } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useScrollAnimation, useCountUp } from "@/hooks/use-scroll-animation"
-import { cn } from "@/lib/utils"
+import { Button } from "../../components/ui/button"
+import { useScrollAnimation, useCountUp } from "../../hooks/use-scroll-animation"
+import { cn } from "../../lib/utils"
+import { fetchLiveImpactMetrics } from "../../lib/impact"
 
 const stats = [
   { icon: TreePine, value: 5847, suffix: "+", label: "Trees Planted", color: "text-green-500" },
@@ -19,15 +20,18 @@ export function ImpactPreviewSection() {
   const { ref, isVisible } = useScrollAnimation()
   const [mounted, setMounted] = React.useState(false)
 
+  const [dbStats, setDbStats] = React.useState({ trees: 0, co2: 0, water: 0, o2: 0 })
+  
   React.useEffect(() => {
     setMounted(true)
+    fetchLiveImpactMetrics().then(res => setDbStats(res))
   }, [])
 
   const values = [
-    useCountUp(5847, 2500, isVisible),
-    useCountUp(328, 2000, isVisible),
-    useCountUp(24, 1800, isVisible),
-    useCountUp(876, 2200, isVisible),
+    useCountUp(dbStats.trees, 2500, isVisible),
+    useCountUp(dbStats.co2, 2000, isVisible),
+    useCountUp(dbStats.water, 1800, isVisible),
+    useCountUp(dbStats.o2, 2200, isVisible),
   ]
 
   // Pre-generate stable random values for the circles to avoid hydration mismatch

@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowDown, Play, TreePine, GraduationCap, Globe } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useCountUp } from "@/hooks/use-scroll-animation"
-import { cn } from "@/lib/utils"
-import { supabase } from "@/lib/supabase"
+import { Button } from "../../components/ui/button"
+import { useCountUp } from "../../hooks/use-scroll-animation"
+import { cn } from "../../lib/utils"
+import { supabase } from "../../lib/supabase"
 
 function Leaf({ className, delay }: { className?: string; delay: number }) {
   return (
@@ -25,16 +25,18 @@ export function HeroSection() {
   const [mounted, setMounted] = useState(false)
   const [videoOpen, setVideoOpen] = useState(false)
   const [heroHeadline, setHeroHeadline] = useState("Plant a Tree, Create a Legacy")
+  const [dbStats, setDbStats] = useState({ trees: 0, colleges: 42, co2: 0 })
 
   useEffect(() => {
     setMounted(true)
+    import("../../lib/impact").then(m => m.fetchLiveImpactMetrics()).then(res => setDbStats(res))
     supabase.from('site_config').select('*').eq('key', 'hero_headline').single()
       .then(({data}) => { if (data?.value) setHeroHeadline(data.value) })
   }, [])
 
-  const treesPlanted = useCountUp(5847, 2500, mounted)
-  const partnerColleges = useCountUp(42, 2000, mounted)
-  const co2Offset = useCountUp(328, 2200, mounted)
+  const treesPlanted = useCountUp(dbStats.trees, 2500, mounted)
+  const partnerColleges = useCountUp(dbStats.colleges, 2000, mounted)
+  const co2Offset = useCountUp(dbStats.co2, 2200, mounted)
 
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background pt-16 md:pt-20">
