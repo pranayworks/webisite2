@@ -93,37 +93,42 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false })
       setAllOrders(allOrdersData || [])
 
-      const formattedPlantings = (orders || []).map((o, i) => {
-        const species = o.species || ['Neem', 'Peepal', 'Banyan', 'Gulmohar'][i % 4]
-        const region = o.location || 'Cauvery Delta, IN'
-        const coords = o.planting_gps || 'Awaiting Sync'
-        
-        // Use real planting photo as the initial record
-        const initialPhoto = o.planting_photo || `https://images.unsplash.com/photo-${['1502082553048-f009c37129b9', '1441974231531-c6227db76b6e', '1511497584788-c76fc42c9545', '1501183638710-841dd1904471'][i % 4]}?auto=format&fit=crop&q=80&w=800`
-        const initialDate = o.planting_date ? new Date(o.planting_date).toLocaleDateString() : new Date(o.created_at).toLocaleDateString()
+      const formattedPlantings = (orders || []).map((o) => {
+        // Only use REAL admin-provided data — no fallbacks
+        const species = o.species || null
+        const region = o.location || null
+        const coords = o.planting_gps || null
+        const initialPhoto = o.planting_photo || null
+        const initialDate = o.planting_date
+          ? new Date(o.planting_date).toLocaleDateString()
+          : new Date(o.created_at).toLocaleDateString()
 
-        // Combine with real growth updates from the database
         const historicalUpdates = (o.growth_updates || []).map((gu: any) => ({
           url: gu.photo_url,
           date: new Date(gu.created_at).toLocaleDateString(),
           note: gu.note
         }))
 
+        // Only include photo records that have a real URL
         const photos = [
-          { url: initialPhoto, date: initialDate, note: 'Seedling established and verified.' },
-          ...historicalUpdates
+          ...(initialPhoto ? [{ url: initialPhoto, date: initialDate, note: 'Seedling established and verified.' }] : []),
+          ...historicalUpdates.filter((u: any) => u.url)
         ]
+
+        // isVerified = admin has filled in the key details
+        const isVerified = !!(initialPhoto && species)
 
         return {
           id: o.id,
-          species: species,
-          region: region,
+          species,
+          region,
           coordinates: coords,
           age: o.age || (o.status === 'Pending' ? 'Queueing' : '0y 1m'),
-          status: o.status === 'Pending' ? 'In Queue' : 'Healthy',
-          photos: photos,
-          growthStage: o.status === 'Pending' ? 5 : Math.min(100, (photos.length * 20)), // Dynamic growth stage 
-          latestPhoto: photos[photos.length - 1].url
+          status: o.status === 'Pending' ? 'In Queue' : 'Planted',
+          photos,
+          isVerified,
+          growthStage: o.status === 'Pending' ? 5 : Math.min(100, (photos.length * 20)),
+          latestPhoto: photos.length > 0 ? photos[photos.length - 1].url : null
         }
       })
       setPlantings(formattedPlantings)
@@ -829,47 +834,84 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {plantings.length > 0 ? plantings.map(tree => (
                 <div key={tree.id} className="bg-[#1a1c18] rounded-[2rem] overflow-hidden border border-[#424935]/10 group hover:border-[#b2f432]/30 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] transition-all duration-700">
-                  <div className="aspect-[4/5] relative overflow-hidden">
-                    <img 
-                      src={tree.latestPhoto} 
-                      className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" 
-                      alt={tree.species} 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#121410] via-transparent to-transparent opacity-80"></div>
-                    <div className="absolute bottom-6 left-8 flex flex-col gap-2">
-                      <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#b2f432] bg-[#233600]/60 px-4 py-1.5 rounded-full backdrop-blur-xl border border-[#b2f432]/20 w-fit">
-                        {tree.species}
-                      </span>
-                      <h4 className="text-xl font-bold text-white tracking-tight">{tree.region}</h4>
-                    </div>
-                  </div>
-                  <div className="p-8 space-y-6">
-                    <a 
-                      href={tree.coordinates !== 'Awaiting Sync' ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tree.coordinates)}` : '#'}
-                      target={tree.coordinates !== 'Awaiting Sync' ? '_blank' : '_self'}
-                      rel="noopener noreferrer"
-                      className="flex justify-between items-center group/gps cursor-pointer text-current no-underline block"
-                    >
-                      <div className="space-y-1">
-                        <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-[#c2caaf]/40">Legacy Coordinates</p>
-                        <p className="text-sm font-mono text-[#b2f432] group-hover:text-white transition-colors">{tree.coordinates}</p>
+                  
+                  {/* Photo / Placeholder */}
+                  <div className="aspect-[4/5] relative overflow-hidden bg-[#0d0f0b]">
+                    {tree.isVerified && tree.latestPhoto ? (
+                      <>
+                        <img
+                          src={tree.latestPhoto}
+                          className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110"
+                          alt={tree.species || 'Tree'}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#121410] via-transparent to-transparent opacity-80" />
+                        <div className="absolute bottom-6 left-8 flex flex-col gap-2">
+                          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#b2f432] bg-[#233600]/60 px-4 py-1.5 rounded-full backdrop-blur-xl border border-[#b2f432]/20 w-fit">
+                            {tree.species}
+                          </span>
+                          <h4 className="text-xl font-bold text-white tracking-tight">{tree.region}</h4>
+                        </div>
+                      </>
+                    ) : (
+                      /* Awaiting admin update */
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-center px-8">
+                        <div className="h-16 w-16 rounded-full bg-[#b2f432]/10 border border-[#b2f432]/20 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-3xl text-[#b2f432]/60">eco</span>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-widest text-[#b2f432]/60 mb-2">Tree Registered</p>
+                          <p className="text-sm text-[#c2caaf] leading-relaxed">
+                            You will be updated after your tree is planted by our field team.
+                          </p>
+                        </div>
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-[#424935] border border-[#424935]/30 px-3 py-1 rounded-full">
+                          Awaiting Field Verification
+                        </span>
                       </div>
-                      <MaterialIcon name="gps_fixed" className="text-[#b2f432] text-xl opacity-20 group-hover:opacity-100 transition-all group-hover:rotate-12" />
-                    </a>
+                    )}
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-8 space-y-6">
+                    {tree.isVerified && tree.coordinates ? (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tree.coordinates)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex justify-between items-center group/gps cursor-pointer text-current no-underline block"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-[#c2caaf]/40">Legacy Coordinates</p>
+                          <p className="text-sm font-mono text-[#b2f432] group-hover/gps:text-white transition-colors">{tree.coordinates}</p>
+                        </div>
+                        <MaterialIcon name="gps_fixed" className="text-[#b2f432] text-xl opacity-20 group-hover/gps:opacity-100 transition-all group-hover/gps:rotate-12" />
+                      </a>
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-[#c2caaf]/40">Planting Location</p>
+                          <p className="text-sm text-[#424935] italic">To be confirmed by field team</p>
+                        </div>
+                        <MaterialIcon name="location_searching" className="text-[#424935] text-xl" />
+                      </div>
+                    )}
+
                     <div className="pt-6 border-t border-[#424935]/10 flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className="h-2 w-2 rounded-full bg-[#b2f432] animate-pulse"></div>
+                        <div className={`h-2 w-2 rounded-full ${tree.isVerified ? 'bg-[#b2f432] animate-pulse' : 'bg-[#424935]'}`} />
                         <p className="text-xs font-bold text-[#e3e3db] uppercase tracking-widest">{tree.status}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => handleDownloadPDF(tree)}
-                          className="h-12 w-12 rounded-2xl bg-[#1a1c18] border border-[#b2f432]/20 flex items-center justify-center hover:bg-[#b2f432] hover:text-[#233600] transition-all duration-300 group/cert"
-                          title="Download Certificate"
-                        >
-                          <MaterialIcon name="card_membership" className="group-hover/cert:scale-110 transition-transform" />
-                        </button>
-                        <button 
+                        {tree.isVerified && (
+                          <button
+                            onClick={() => handleDownloadPDF(tree)}
+                            className="h-12 w-12 rounded-2xl bg-[#1a1c18] border border-[#b2f432]/20 flex items-center justify-center hover:bg-[#b2f432] hover:text-[#233600] transition-all duration-300 group/cert"
+                            title="Download Certificate"
+                          >
+                            <MaterialIcon name="card_membership" className="group-hover/cert:scale-110 transition-transform" />
+                          </button>
+                        )}
+                        <button
                           onClick={() => { setSelectedTreeHistory(tree); setShowHistoryModal(true); }}
                           className="h-12 w-12 rounded-2xl bg-[#343530] flex items-center justify-center hover:bg-[#b2f432] hover:text-[#233600] transition-all duration-300 group/btn"
                           title="Growth Timeline"
