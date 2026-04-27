@@ -888,7 +888,6 @@ export default function DashboardPage() {
               )}
             </div>
           </section>
-        </div>
 
         <footer className="bg-[#121410] w-full py-12 px-8 mt-auto border-t border-[#424935]/20">
           <div className="max-w-7xl mx-auto flex flex-col items-center gap-4 text-center">
