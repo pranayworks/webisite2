@@ -100,6 +100,85 @@ export default function AdminDashboard() {
     u.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const handleExportCSV = async () => {
+    try {
+      toast.loading("Preparing your master export...")
+      
+      const { data, error } = await supabase
+        .from('planting_orders')
+        .select(`
+          id, 
+          created_at, 
+          steward_name, 
+          trees, 
+          status, 
+          occasion, 
+          plan_name, 
+          amount_paid, 
+          payment_id,
+          is_csr,
+          company_name,
+          gst_number,
+          profiles(full_name, email, phone, address)
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      if (!data || data.length === 0) {
+        toast.error("No data found to export.")
+        return
+      }
+
+      // Define CSV headers
+      const headers = [
+        "Order ID", "Date", "Customer Name", "Email", "Phone", "Address",
+        "Plan", "Trees", "Amount Paid", "Status", "Occasion", 
+        "Payment ID", "Is CSR", "Company", "GST Number"
+      ]
+
+      // Convert data to CSV rows
+      const rows = data.map(o => [
+        o.id,
+        new Date(o.created_at).toLocaleString(),
+        o.profiles?.full_name || o.steward_name || "N/A",
+        o.profiles?.email || "N/A",
+        o.profiles?.phone || "N/A",
+        o.profiles?.address || "N/A",
+        o.plan_name || "Forest Tree",
+        o.trees,
+        o.amount_paid || (o.trees * 299),
+        o.status,
+        o.occasion || "General",
+        o.payment_id || "N/A",
+        o.is_csr ? "YES" : "NO",
+        o.company_name || "N/A",
+        o.gst_number || "N/A"
+      ])
+
+      // Combine headers and rows
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+      ].join("\n")
+
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement("a")
+      const url = URL.createObjectURL(blob)
+      link.setAttribute("href", url)
+      link.setAttribute("download", `Green_Legacy_Orders_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      toast.dismiss()
+      toast.success("Master export downloaded successfully!")
+    } catch (err: any) {
+      toast.error("Export failed: " + err.message)
+    }
+  }
+
   useEffect(() => {
     const checkAdmin = async () => {
       setLoading(true)
@@ -477,16 +556,25 @@ export default function AdminDashboard() {
           <Link href="/">
             <h1 className="text-base md:text-xl font-bold tracking-tighter text-[#e3e3db] font-['Noto_Serif'] cursor-pointer">Stewardship Portal</h1>
           </Link>
-          <div className="relative group hidden lg:block">
-            <MaterialIcon name="person_search" className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c2caaf]/60" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#343530] border-none rounded-full pl-10 pr-4 py-2 w-80 text-sm focus:ring-1 focus:ring-[#b2f432]/40 transition-all font-['Manrope'] outline-none"
-              placeholder="Search Steward or ID..."
-              type="text"
-            />
-          </div>
+            <div className="flex items-center gap-4">
+              <div className="relative group">
+                <MaterialIcon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-[#c2caaf]/40 group-focus-within:text-[#b2f432] transition-colors" />
+                <input 
+                  type="text" 
+                  placeholder="Filter sequence..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-[#121410] border border-[#424935]/20 rounded-2xl pl-12 pr-6 py-3 text-sm focus:outline-none focus:border-[#b2f432]/40 focus:ring-1 focus:ring-[#b2f432]/40 transition-all w-64"
+                />
+              </div>
+              <button 
+                onClick={handleExportCSV}
+                className="flex items-center gap-2 px-6 py-3 bg-[#b2f432]/10 border border-[#b2f432]/20 text-[#b2f432] rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-[#b2f432] hover:text-[#233600] transition-all group"
+              >
+                <MaterialIcon name="download" className="text-lg group-hover:bounce" />
+                Export Ledger (CSV)
+              </button>
+            </div>
         </div>
       </header>
 
