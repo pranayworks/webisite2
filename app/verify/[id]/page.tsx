@@ -112,7 +112,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ id: str
               <div className="pt-8 border-t border-[#424935]/10 space-y-6">
                 <div className="space-y-2">
                    <p className="text-[9px] uppercase font-black tracking-widest text-[#c2caaf]/40">Legacy Holder</p>
-                   <p className="text-2xl font-bold text-white">{order.steward_name}</p>
+                   <p className="text-2xl font-bold text-white">{order.profiles?.full_name || order.steward_name}</p>
                 </div>
                 <div className="space-y-2">
                    <p className="text-[9px] uppercase font-black tracking-widest text-[#c2caaf]/40">Establishment Date</p>

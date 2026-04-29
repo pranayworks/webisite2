@@ -148,7 +148,7 @@ export default function AdminDashboard() {
       // 2. Fetch History (Finalized Queue: Completed)
       const { data: historyData, error: historyError } = await supabase
         .from('planting_orders')
-        .select('id, created_at, steward_name, species, location')
+        .select('id, created_at, steward_name, species, location, profiles(full_name)')
         .eq('status', 'Completed')
         .order('created_at', { ascending: false })
 
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
 
       const formattedHistory = (historyData || []).map((o: any) => ({
         id: `TR-${String(o.id).slice(0, 4)}`,
-        steward: o.steward_name || 'Anonymous',
+        steward: o.profiles?.full_name || o.steward_name || 'Anonymous',
         species: o.species || 'Neem',
         date: new Date(o.created_at).toLocaleDateString(),
         loc: o.location || 'Northern Reserve',
@@ -186,7 +186,10 @@ export default function AdminDashboard() {
       setMessages(mData || [])
 
       // 5. Build Users Directory
-      const { data: allOrdersData } = await supabase.from('planting_orders').select('id, created_at, steward_name, trees, amount_paid').order('created_at', { ascending: true })
+      const { data: allOrdersData } = await supabase
+        .from('planting_orders')
+        .select('id, created_at, steward_name, user_id, trees, amount_paid, profiles(full_name, email)')
+        .order('created_at', { ascending: true })
       if (allOrdersData) {
         const userMap = new Map()
         // Add dummy data first for visuals if db is empty or sparse
@@ -195,16 +198,18 @@ export default function AdminDashboard() {
         userMap.set('Elias Jaxon', { name: 'Elias Jaxon', trees: 2, amount: 598, firstPlanted: '2026-10-20T00:00:00.000Z', lastPlanted: '2026-10-20T00:00:00.000Z' })
         
         allOrdersData.forEach((po: any) => {
-          const steward = po.steward_name || 'Anonymous'
+          const userId = po.user_id || po.steward_name || 'Anonymous'
+          const steward = po.profiles?.full_name || po.steward_name || 'Anonymous'
           const amount = po.amount_paid != null ? po.amount_paid : ((po.trees || 1) * 299)
           const isCsr = po.is_csr === true || po.trees >= 50
-          const existing = userMap.get(steward) || { name: steward, trees: 0, amount: 0, isCsr: false, firstPlanted: po.created_at, lastPlanted: po.created_at }
+          const existing = userMap.get(userId) || { name: steward, trees: 0, amount: 0, isCsr: false, firstPlanted: po.created_at, lastPlanted: po.created_at }
           existing.trees += (po.trees || 1)
           existing.amount += amount
+          existing.name = steward // Keep updated with the latest found name
           if (isCsr) existing.isCsr = true
           if (new Date(po.created_at) < new Date(existing.firstPlanted)) existing.firstPlanted = po.created_at
           if (new Date(po.created_at) > new Date(existing.lastPlanted)) existing.lastPlanted = po.created_at
-          userMap.set(steward, existing)
+          userMap.set(userId, existing)
         })
         const directoryArray = Array.from(userMap.values())
         directoryArray.sort((a,b) => b.trees - a.trees)
