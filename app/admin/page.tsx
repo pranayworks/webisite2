@@ -124,12 +124,12 @@ export default function AdminDashboard() {
       // 1. Fetch Orders (Active Queue: Pending + Planted)
       const { data: ordersData, error: ordersError } = await supabase
         .from('planting_orders')
-        .select('id, created_at, steward_name, trees, status, occasion, plan_name, amount_paid')
+        .select('id, created_at, steward_name, trees, status, occasion, plan_name, amount_paid, profiles(full_name)')
         .in('status', ['Pending', 'Planted'])
         .order('created_at', { ascending: false })
 
       const formattedOrders = (ordersData || []).map((o: any) => {
-        const name = o.steward_name || 'Anonymous Steward';
+        const name = o.profiles?.full_name || o.steward_name || 'Anonymous Steward';
         return {
           id: String(o.id),
           name: name,
