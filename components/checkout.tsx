@@ -103,6 +103,7 @@ export default function Checkout({
             { 
               userId: user.id, 
               productId, 
+              email: user.email,
               occasion: occasion || "",
               is_csr: isCsr || false,
               company_name: companyName || "",

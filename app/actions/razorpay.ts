@@ -175,7 +175,7 @@ export async function verifyRazorpayPayment(
 
       // Email to Customer (Confirmation + Invoice)
       await sendEmail({
-        to: profile?.email || "",
+        to: profile?.email || metadata.email || "",
         subject: `Invoice #${paymentId.slice(-6).toUpperCase()} - Your Botanical Legacy has Begun`,
         html: generateOrderConfirmationEmailHtml(
           profile?.full_name || "Steward",
@@ -193,7 +193,7 @@ export async function verifyRazorpayPayment(
       const adminMessage = `
 🌳 <b>New Planting Order!</b>
 👤 <b>User:</b> ${profile?.full_name || "Unknown"}
-📧 <b>Email:</b> ${profile?.email || "N/A"}
+📧 <b>Email:</b> ${profile?.email || metadata.email || "N/A"}
 📦 <b>Plan:</b> ${product.name} (${product.trees} trees)
 🎂 <b>Occasion:</b> ${metadata.occasion || "None"}
 💰 <b>Amount:</b> ₹${productPrice / 100}
