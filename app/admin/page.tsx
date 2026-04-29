@@ -184,6 +184,73 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleExportInquiries = async () => {
+    try {
+      toast.loading("Exporting applications...")
+      const { data, error } = await supabase.from('applications').select('*').order('created_at', { ascending: false })
+      if (error) throw error
+      if (!data || data.length === 0) {
+        toast.error("No applications found.")
+        return
+      }
+
+      const headers = ["ID", "Date", "Type", "Name", "Email", "Phone", "Details"]
+      const rows = data.map(a => [
+        a.id,
+        new Date(a.created_at).toLocaleString(),
+        a.type,
+        a.name,
+        a.email,
+        a.phone,
+        JSON.stringify(a.data || {})
+      ])
+
+      const csvContent = [headers.join(","), ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n")
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const link = document.createElement("a")
+      link.href = URL.createObjectURL(blob)
+      link.download = `Green_Legacy_Applications_${new Date().toISOString().split('T')[0]}.csv`
+      link.click()
+      toast.dismiss()
+      toast.success("Applications exported!")
+    } catch (err: any) {
+      toast.error("Failed: " + err.message)
+    }
+  }
+
+  const handleExportMessages = async () => {
+    try {
+      toast.loading("Exporting messages...")
+      const { data, error } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false })
+      if (error) throw error
+      if (!data || data.length === 0) {
+        toast.error("No messages found.")
+        return
+      }
+
+      const headers = ["ID", "Date", "Name", "Email", "Subject", "Message"]
+      const rows = data.map(m => [
+        m.id,
+        new Date(m.created_at).toLocaleString(),
+        m.name,
+        m.email,
+        m.subject || "N/A",
+        m.message
+      ])
+
+      const csvContent = [headers.join(","), ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n")
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const link = document.createElement("a")
+      link.href = URL.createObjectURL(blob)
+      link.download = `Green_Legacy_Messages_${new Date().toISOString().split('T')[0]}.csv`
+      link.click()
+      toast.dismiss()
+      toast.success("Messages exported!")
+    } catch (err: any) {
+      toast.error("Failed: " + err.message)
+    }
+  }
+
   useEffect(() => {
     const checkAdmin = async () => {
       setLoading(true)
@@ -573,11 +640,15 @@ export default function AdminDashboard() {
                 />
               </div>
               <button 
-                onClick={handleExportCSV}
+                onClick={
+                  activeTab === 'inquiries' ? handleExportInquiries :
+                  activeTab === 'stories' ? handleExportMessages :
+                  handleExportCSV
+                }
                 className="flex items-center gap-2 px-6 py-3 bg-[#b2f432]/10 border border-[#b2f432]/20 text-[#b2f432] rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-[#b2f432] hover:text-[#233600] transition-all group"
               >
                 <MaterialIcon name="download" className="text-lg group-hover:bounce" />
-                Export Ledger (CSV)
+                Export {activeTab === 'inquiries' ? 'Apps' : activeTab === 'stories' ? 'Msgs' : 'Ledger'}
               </button>
             </div>
         </div>
