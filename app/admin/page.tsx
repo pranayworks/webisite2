@@ -137,23 +137,28 @@ export default function AdminDashboard() {
       ]
 
       // Convert data to CSV rows
-      const rows = data.map(o => [
-        o.id,
-        new Date(o.created_at).toLocaleString(),
-        o.profiles?.full_name || o.steward_name || "N/A",
-        o.profiles?.email || "N/A",
-        o.profiles?.phone || "N/A",
-        o.profiles?.address || "N/A",
-        o.plan_name || "Forest Tree",
-        o.trees,
-        o.amount_paid || (o.trees * 299),
-        o.status,
-        o.occasion || "General",
-        o.payment_id || "N/A",
-        o.is_csr ? "YES" : "NO",
-        o.company_name || "N/A",
-        o.gst_number || "N/A"
-      ])
+      const rows = data.map(o => {
+        // Handle profiles which might be an array or object depending on join resolution
+        const profile: any = Array.isArray(o.profiles) ? o.profiles[0] : o.profiles;
+        
+        return [
+          o.id,
+          new Date(o.created_at).toLocaleString(),
+          profile?.full_name || o.steward_name || "N/A",
+          profile?.email || "N/A",
+          profile?.phone || "N/A",
+          profile?.address || "N/A",
+          o.plan_name || "Forest Tree",
+          o.trees,
+          o.amount_paid || (o.trees * 299),
+          o.status,
+          o.occasion || "General",
+          o.payment_id || "N/A",
+          o.is_csr ? "YES" : "NO",
+          o.company_name || "N/A",
+          o.gst_number || "N/A"
+        ]
+      })
 
       // Combine headers and rows
       const csvContent = [
