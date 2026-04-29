@@ -22,7 +22,7 @@ export default function TestDatabase() {
         }
 
         // 1. Audit Profiles
-        const profileCols = ['id', 'full_name', 'phone', 'address', 'trees_planted', 'stripe_customer_id']
+        const profileCols = ['id', 'full_name', 'phone', 'address', 'trees_planted', 'stripe_customer_id', 'email']
         const pStatus = await Promise.all(profileCols.map(c => checkColumn('profiles', c)))
         auditResults.push({
           table: 'profiles',
@@ -39,6 +39,16 @@ export default function TestDatabase() {
           exists: true,
           columns: orderCols.filter((_, i) => oStatus[i]),
           required: orderCols
+        })
+
+        // 3. Audit Testimonials
+        const testimonialCols = ['id', 'name', 'role', 'text', 'rating', 'created_at']
+        const tStatus = await Promise.all(testimonialCols.map(c => checkColumn('testimonials', c)))
+        auditResults.push({
+          table: 'testimonials',
+          exists: true,
+          columns: testimonialCols.filter((_, i) => tStatus[i]),
+          required: testimonialCols
         })
 
         setReports(auditResults)
@@ -176,11 +186,33 @@ GRANT ALL ON TABLE profiles TO authenticated, anon, service_role;
 
 -- RLS Policies for Testimonials
 ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read access" ON testimonials;
 CREATE POLICY "Allow public read access" ON testimonials FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow authenticated insert" ON testimonials;
 CREATE POLICY "Allow authenticated insert" ON testimonials FOR INSERT TO authenticated WITH CHECK (true);
 
 NOTIFY pgrst, 'reload schema';`}
               </pre>
+              <button 
+                onClick={() => {
+                  const code = document.querySelector('pre')?.innerText || ''
+                  navigator.clipboard.writeText(code)
+                  alert("SQL Code Copied! Paste this into your Supabase SQL Editor.")
+                }}
+                className="mt-6 w-full bg-[#b2f432] text-[#233600] py-4 rounded-xl font-bold uppercase tracking-widest hover:scale-[1.01] transition-transform"
+              >
+                Copy SQL to Clipboard
+              </button>
+            </div>
+            <div className="mt-6 p-6 bg-[#b2f432]/5 border border-[#b2f432]/20 rounded-2xl">
+              <h4 className="font-bold text-[#b2f432] mb-2 uppercase text-xs">How to apply:</h4>
+              <ol className="text-xs text-[#c2caaf] space-y-2 list-decimal pl-4">
+                <li>Click the <b>Copy SQL</b> button above.</li>
+                <li>Go to your <a href="https://supabase.com/dashboard" target="_blank" className="text-[#b2f432] underline">Supabase Dashboard</a>.</li>
+                <li>Open the <b>SQL Editor</b> from the left sidebar.</li>
+                <li>Click <b>New Query</b>.</li>
+                <li>Paste the code and click <b>Run</b>.</li>
+              </ol>
             </div>
           </div>
         </div>
