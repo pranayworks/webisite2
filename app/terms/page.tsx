@@ -55,7 +55,12 @@ export default function TermsPage() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">6. Governing Law</h3>
+            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">6. Heritage Guarantee</h3>
+            <p>We provide a biological replacement guarantee for all stewarded assets. If your tree is identified as dead or severely infected by our field team, it will be replaced by our stewards during the following monsoon season at no additional cost. Notification of any such biological failure will be sent directly to your Stewardship Dashboard for full transparency.</p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">7. Governing Law</h3>
             <p>These terms shall be governed by and constructed in accordance with the laws of India. Any disputes arising out of or in connection with these terms shall be subject to the exclusive jurisdiction of the courts in Hyderabad, Telangana.</p>
           </div>
         </section>
