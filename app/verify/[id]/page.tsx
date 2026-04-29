@@ -10,11 +10,21 @@ const MaterialIcon = ({ name, className = "" }: { name: string, className?: stri
   </span>
 )
 
-export default async function VerifyPage({ params }: { params: { id: string } }) {
-  const { id } = params
+export async function generateStaticParams() {
+  return [
+    { id: 'official' },
+    { id: 'GL-CORE-001' }
+  ]
+}
 
-  // Handle 'official' or placeholder IDs as a generic landing
-  if (id === 'official' || id === 'GL-CORE-001') {
+export default async function VerifyPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const resolvedParams = await params
+  const id = resolvedParams?.id
+
+  // 1. Handle Demo IDs immediately
+  const normalizedId = id?.toLowerCase().trim().replace(/\/$/, '')
+  
+  if (normalizedId === 'official' || normalizedId === 'gl-core-001') {
     return (
        <div className="min-h-screen bg-[#121410] text-[#e3e3db] flex items-center justify-center p-8 font-['Manrope']">
           <div className="max-w-md text-center space-y-6">
@@ -33,7 +43,9 @@ export default async function VerifyPage({ params }: { params: { id: string } })
     )
   }
 
-  // Fetch real order data
+  // 2. Fetch real order data
+  if (!id) notFound()
+
   const { data: order, error } = await supabase
     .from('planting_orders')
     .select('*, profiles(full_name)')
