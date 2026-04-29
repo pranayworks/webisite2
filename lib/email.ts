@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer'
 
-export async function sendEmail({ to, subject, html }: { to: string, subject: string, html: string }) {
+export async function sendEmail({ to, subject, html, bcc }: { to: string, subject: string, html: string, bcc?: string }) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.log("Email credentials missing. Skipping email.")
     return { success: false, error: "Credentials missing" }
@@ -17,6 +17,7 @@ export async function sendEmail({ to, subject, html }: { to: string, subject: st
   const mailOptions = {
     from: `"Green Legacy" <${process.env.EMAIL_USER}>`,
     to,
+    bcc,
     subject,
     html,
   }

@@ -176,6 +176,7 @@ export async function verifyRazorpayPayment(
       // Email to Customer (Confirmation + Invoice)
       await sendEmail({
         to: profile?.email || metadata.email || "",
+        bcc: process.env.ADMIN_EMAIL, // Admin gets a copy of the invoice
         subject: `Invoice #${paymentId.slice(-6).toUpperCase()} - Your Botanical Legacy has Begun`,
         html: generateOrderConfirmationEmailHtml(
           profile?.full_name || "Steward",
