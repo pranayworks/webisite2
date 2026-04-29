@@ -46,6 +46,9 @@ export default function DashboardPage() {
   const [monthlyStats, setMonthlyStats] = useState({ oxygen: '0', carbon: '0', energy: '0', daysRemaining: 0 })
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [reviewForm, setReviewForm] = useState({ text: '', rating: 5 })
+  const [showSatelliteModal, setShowSatelliteModal] = useState(false)
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanProgress, setScanProgress] = useState(0)
   const rank = useMemo(() => calculateRank(metrics.trees), [metrics.trees])
 
   useEffect(() => {
@@ -216,6 +219,20 @@ export default function DashboardPage() {
       // Redirect to testimonials page to see it live
       router.push('/testimonials')
     }
+  }
+
+  const handleStartScan = () => {
+    setIsScanning(true)
+    setScanProgress(0)
+    const interval = setInterval(() => {
+      setScanProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval)
+          return 100
+        }
+        return prev + 2
+      })
+    }, 50)
   }
 
   async function handleLogout() {
@@ -560,10 +577,42 @@ export default function DashboardPage() {
                 </span>
               </div>
             </div>
-            <div className="w-full h-[420px] rounded-2xl overflow-hidden border border-[#424935]/20 bg-[#1a1c18] flex items-center justify-center">
-              <div className="text-center">
-                <MaterialIcon name="map" className="text-4xl text-[#b2f432] mb-3 opacity-20" />
-                <p className="text-[#c2caaf] text-sm">Registry visualization currently being synchronized...</p>
+            <div className="w-full h-[420px] rounded-2xl overflow-hidden border border-[#424935]/20 bg-[#1a1c18] relative group">
+              {/* Actual Map would go here, using a placeholder image for the 'Satellite View' aesthetic */}
+              <img 
+                src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=2000" 
+                className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000"
+                alt="Satellite view"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#121410] via-transparent to-transparent"></div>
+              
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
+                <div className="bg-[#0d0f0b]/80 backdrop-blur-md border border-[#b2f432]/20 p-8 rounded-3xl text-center max-w-sm">
+                  <div className="h-16 w-16 rounded-2xl bg-[#b2f432]/10 flex items-center justify-center text-[#b2f432] mx-auto mb-6">
+                    <MaterialIcon name="satellite_alt" className="text-4xl animate-pulse" />
+                  </div>
+                  <h4 className="font-['Noto_Serif'] text-xl font-bold mb-2">Sentinel-2 Integration</h4>
+                  <p className="text-xs text-[#c2caaf] leading-relaxed mb-8">
+                    Our upcoming Phase 1 update uses European Space Agency satellites to track your grove's density from space.
+                  </p>
+                  <button 
+                    onClick={() => { setShowSatelliteModal(true); handleStartScan(); }}
+                    className="w-full bg-[#b2f432] text-[#233600] py-4 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] hover:shadow-[0_0_30px_rgba(178,244,50,0.3)] transition-all active:scale-95"
+                  >
+                    Analyze Satellite Health (BETA)
+                  </button>
+                </div>
+              </div>
+
+              {/* HUD Elements for high-tech look */}
+              <div className="absolute top-6 left-6 flex flex-col gap-2">
+                <div className="bg-black/40 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#b2f432] animate-ping"></div>
+                  <span className="text-[9px] font-bold text-white uppercase tracking-widest">Live Orbital Feed</span>
+                </div>
+                <div className="bg-black/40 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-lg">
+                  <span className="text-[9px] font-bold text-[#c2caaf] uppercase tracking-widest">ALT: 786KM</span>
+                </div>
               </div>
             </div>
           </section>
@@ -1235,6 +1284,131 @@ export default function DashboardPage() {
                 <MaterialIcon name="send" />
                 Submit Review
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Satellite Modal */}
+      {showSatelliteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+          <div 
+            className="absolute inset-0 bg-[#0d0f0b]/90 backdrop-blur-md"
+            onClick={() => setShowSatelliteModal(false)}
+          ></div>
+          
+          <div className="relative w-full max-w-4xl bg-[#1a1c18] border border-[#b2f432]/20 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col md:flex-row h-[80vh] md:h-[600px] animate-in zoom-in-95 duration-300">
+            {/* Left: Satellite Image/Map */}
+            <div className="flex-1 relative bg-black overflow-hidden">
+              <img 
+                src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2000" 
+                className={`w-full h-full object-cover transition-all duration-[3000ms] ${isScanning && scanProgress < 100 ? 'scale-125 brightness-50' : 'scale-100'}`}
+                alt="Satellite Analysis"
+              />
+              
+              {/* Scan Line Animation */}
+              {isScanning && scanProgress < 100 && (
+                <div 
+                  className="absolute left-0 right-0 h-1 bg-[#b2f432] shadow-[0_0_20px_#b2f432] z-10 transition-all duration-100 ease-linear"
+                  style={{ top: `${scanProgress}%` }}
+                ></div>
+              )}
+
+              {/* NDVI Overlay (Visible after scan) */}
+              {scanProgress === 100 && (
+                <div className="absolute inset-0 bg-[#b2f432]/20 mix-blend-overlay animate-pulse"></div>
+              )}
+
+              {/* HUD Overlays */}
+              <div className="absolute top-8 left-8 space-y-4">
+                <div className="bg-black/60 backdrop-blur-md border border-[#b2f432]/30 px-4 py-2 rounded-xl">
+                  <p className="text-[10px] text-[#b2f432] font-bold uppercase tracking-[0.2em]">Sentinel-2 Multispectral</p>
+                  <h4 className="text-lg font-bold text-white tracking-tight">Zone ID: GL-NORTH-88</h4>
+                </div>
+              </div>
+
+              {scanProgress === 100 && (
+                <div className="absolute bottom-8 left-8 right-8 grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-8 duration-700">
+                  <div className="bg-black/80 backdrop-blur-md border border-[#b2f432]/20 p-4 rounded-2xl">
+                    <p className="text-[8px] text-[#c2caaf] uppercase font-bold tracking-widest mb-1">Veg Health Index (NDVI)</p>
+                    <p className="text-xl font-bold text-[#b2f432]">0.84 <span className="text-xs font-normal text-[#c2caaf] ml-1">VIGOROUS</span></p>
+                  </div>
+                  <div className="bg-black/80 backdrop-blur-md border border-[#b2f432]/20 p-4 rounded-2xl">
+                    <p className="text-[8px] text-[#c2caaf] uppercase font-bold tracking-widest mb-1">Density Verification</p>
+                    <p className="text-xl font-bold text-white">92% <span className="text-xs font-normal text-[#c2caaf] ml-1">ACCURACY</span></p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Controls & Info */}
+            <div className="w-full md:w-80 p-8 flex flex-col bg-[#1a1c18] border-l border-white/5">
+              <div className="flex justify-between items-start mb-8">
+                <div className="h-12 w-12 rounded-xl bg-[#b2f432]/10 flex items-center justify-center text-[#b2f432]">
+                  <MaterialIcon name="analytics" className="text-2xl" />
+                </div>
+                <button 
+                  onClick={() => setShowSatelliteModal(false)}
+                  className="text-[#c2caaf] hover:text-white transition-colors"
+                >
+                  <MaterialIcon name="close" />
+                </button>
+              </div>
+
+              <div className="flex-1 space-y-6">
+                <div>
+                  <h3 className="font-['Noto_Serif'] text-2xl font-bold mb-2">Space-to-Soil Analysis</h3>
+                  <p className="text-xs text-[#c2caaf] leading-relaxed">
+                    Analyzing multispectral light bands from 786km orbit to verify biological density.
+                  </p>
+                </div>
+
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[10px] font-bold tracking-widest text-[#c2caaf]">
+                      <span>SCANNING LIGHT BANDS</span>
+                      <span className="text-[#b2f432]">{scanProgress}%</span>
+                    </div>
+                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#b2f432] transition-all duration-100" style={{ width: `${scanProgress}%` }}></div>
+                    </div>
+                  </div>
+
+                  {scanProgress === 100 && (
+                    <div className="space-y-3 pt-4 animate-in fade-in duration-500">
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="h-2 w-2 rounded-full bg-[#b2f432]"></div>
+                        <span className="text-white font-medium">Infrared Signature Verified</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="h-2 w-2 rounded-full bg-[#b2f432]"></div>
+                        <span className="text-white font-medium">NDVI Health: Optimal</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="h-2 w-2 rounded-full bg-[#b2f432]"></div>
+                        <span className="text-white font-medium">Carbon Stock Integrity: 100%</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-8 mt-auto">
+                {scanProgress < 100 ? (
+                  <button 
+                    className="w-full bg-white/5 text-white/40 py-4 rounded-xl text-[10px] font-bold uppercase tracking-widest cursor-wait"
+                    disabled
+                  >
+                    Processing Orbital Data...
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => setShowSatelliteModal(false)}
+                    className="w-full bg-[#b2f432] text-[#233600] py-4 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all active:scale-95 shadow-[0_20px_40px_-10px_rgba(178,244,50,0.4)]"
+                  >
+                    Export Verification Report
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
