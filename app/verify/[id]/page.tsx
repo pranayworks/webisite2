@@ -5,7 +5,7 @@ import Link from "next/link"
 /* eslint-disable @next/next/no-img-element */
 
 const MaterialIcon = ({ name, className = "" }: { name: string, className?: string }) => (
-  <span className={`material-symbols-outlined ${className}`} style={{ fontSize: 'inherit' }}>
+  <span className={`material-symbols-outlined ${className}`}>
     {name}
   </span>
 )
