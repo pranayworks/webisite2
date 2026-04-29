@@ -161,8 +161,24 @@ CREATE TABLE IF NOT EXISTS planting_orders (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS testimonials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT,
+  role TEXT,
+  text TEXT,
+  rating INTEGER DEFAULT 5,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+GRANT ALL ON TABLE testimonials TO authenticated, anon, service_role;
 GRANT ALL ON TABLE planting_orders TO authenticated, anon, service_role;
 GRANT ALL ON TABLE profiles TO authenticated, anon, service_role;
+
+-- RLS Policies for Testimonials
+ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access" ON testimonials FOR SELECT USING (true);
+CREATE POLICY "Allow authenticated insert" ON testimonials FOR INSERT TO authenticated WITH CHECK (true);
+
 NOTIFY pgrst, 'reload schema';`}
               </pre>
             </div>

@@ -213,6 +213,8 @@ export default function DashboardPage() {
       toast.success("Thank you! Your review is now live on our impact wall.")
       setShowReviewModal(false)
       setReviewForm({ text: '', rating: 5 })
+      // Redirect to testimonials page to see it live
+      router.push('/testimonials')
     }
   }
 
