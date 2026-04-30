@@ -35,8 +35,8 @@ export default function TermsPage() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">2. Tree Stewardship</h3>
-            <p>Green Legacy acts as a bridge between stewards and physical plantation sites. While we guarantee the plantation and maintenance of your tree for its critical first 3 years, the physical ownership of the land remains with our partner institutions and agriculture colleges.</p>
+            <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#e3e3db]">2. Tree Stewardship & Maintenance</h3>
+            <p>Green Legacy acts as a bridge between stewards and physical plantation sites. We explicitly guarantee the professional plantation and active maintenance of your tree for a period of 3 years from the date of planting. This maintenance includes regular watering, nutrient monitoring, and protection during its critical growth phase. After this 3-year period, the tree is established as self-sustaining within its natural ecosystem. The physical ownership of the land remains with our partner institutions and agriculture colleges.</p>
           </div>
 
           <div className="space-y-4">
