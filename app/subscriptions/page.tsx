@@ -46,6 +46,12 @@ function SubscriptionsContent() {
   const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState("")
   const [gstNumber, setGstNumber] = useState("")
+  const [isGift, setIsGift] = useState(false)
+  const [giftDetails, setGiftDetails] = useState({
+    recipientName: '',
+    recipientEmail: '',
+    message: ''
+  })
 
   useEffect(() => {
     if (initialPlan) {
@@ -361,6 +367,73 @@ function SubscriptionsContent() {
                 </div>
               )}
               <div className={cn("rounded-2xl border border-border bg-card p-6 shadow-lg transition-opacity", !selectedOccasion && "opacity-40 pointer-events-none")}>
+                {/* Gifting Section */}
+                <div className="mb-8 overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all">
+                  <button 
+                    onClick={() => setIsGift(!isGift)}
+                    className={cn(
+                      "flex w-full items-center justify-between p-6 transition-colors",
+                      isGift ? "bg-accent/10" : "bg-muted/30 hover:bg-muted/50"
+                    )}
+                  >
+                    <div className="flex items-center gap-4 text-left">
+                      <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl transition-all", isGift ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground")}>
+                        <Gift className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-foreground">🎁 Is this a Gift?</h4>
+                        <p className="text-xs text-muted-foreground">Surprise a loved one with a living legacy.</p>
+                      </div>
+                    </div>
+                    <div className={cn("h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all", isGift ? "border-accent bg-accent" : "border-muted-foreground/30")}>
+                      {isGift && <Check className="h-4 w-4 text-accent-foreground" />}
+                    </div>
+                  </button>
+
+                  <div className={cn("overflow-hidden transition-all duration-500", isGift ? "max-h-[500px] border-t border-border opacity-100" : "max-h-0 opacity-0")}>
+                    <div className="space-y-6 p-6 bg-accent/5">
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-accent">Recipient Name</label>
+                          <input 
+                            type="text"
+                            value={giftDetails.recipientName}
+                            onChange={(e) => setGiftDetails({ ...giftDetails, recipientName: e.target.value })}
+                            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                            placeholder="Who is this for?"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-accent">Recipient Email</label>
+                          <input 
+                            type="email"
+                            value={giftDetails.recipientEmail}
+                            onChange={(e) => setGiftDetails({ ...giftDetails, recipientEmail: e.target.value })}
+                            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                            placeholder="Where should we send the gift?"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-accent">Gift Message (Optional)</label>
+                        <textarea 
+                          rows={3}
+                          value={giftDetails.message}
+                          onChange={(e) => setGiftDetails({ ...giftDetails, message: e.target.value })}
+                          className="w-full resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                          placeholder="Add a personal touch..."
+                        />
+                      </div>
+                      <div className="flex items-start gap-3 rounded-xl bg-accent/10 p-4">
+                        <Zap className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                        <p className="text-[10px] leading-relaxed text-accent/80 font-medium italic">
+                          Instant Magic: The recipient will receive a beautiful email invitation to claim their tree immediately after payment.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {customerType === "corporate" && (
                   <div className="mb-8 p-6 bg-accent/5 rounded-2xl border border-accent/20 space-y-4">
                     <h4 className="text-sm font-bold text-accent uppercase tracking-widest">CSR Validation Info</h4>
@@ -392,6 +465,10 @@ function SubscriptionsContent() {
                   isCsr={customerType === "corporate"} 
                   companyName={companyName}
                   gstNumber={gstNumber}
+                  isGift={isGift}
+                  recipientName={giftDetails.recipientName}
+                  recipientEmail={giftDetails.recipientEmail}
+                  giftMessage={giftDetails.message}
                 />
               </div>
             </div>

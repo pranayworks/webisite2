@@ -181,3 +181,56 @@ export function generateGrowthUpdateEmailHtml(userName: string, note: string, ph
     </div>
   `
 }
+
+export function generateGiftEmailHtml(senderName: string, recipientName: string, treeCount: number, planName: string, message: string, claimUrl: string) {
+  return `
+    <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f9fafb; padding: 60px 20px; color: #1a1c18;">
+      <div style="max-width: 540px; margin: 0 auto; background: white; border-radius: 32px; padding: 48px; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.1); border: 1px solid #f1f2ec; text-align: center;">
+        
+        <!-- Icon/Visual -->
+        <div style="width: 80px; height: 80px; background: #b2f432; border-radius: 24px; margin: 0 auto 32px; display: flex; align-items: center; justify-content: center; font-size: 40px;">
+          🎁
+        </div>
+
+        <!-- Header -->
+        <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 16px 0; color: #121410; line-height: 1.2;">
+          Hi ${recipientName},<br/>A Living Legacy has been rooted for you!
+        </h1>
+        
+        <p style="font-size: 16px; color: #424935; line-height: 1.6; margin-bottom: 32px;">
+          We are thrilled to announce that <b>${senderName}</b> has planted <b>${treeCount} trees</b> in your name through Green Legacy.
+        </p>
+
+        <!-- Personal Message Box -->
+        <div style="background: #fafaf9; border-radius: 20px; padding: 24px; margin-bottom: 40px; border-left: 4px solid #b2f432; text-align: left;">
+          <p style="margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #8a9675; font-weight: 700;">Personal Message</p>
+          <p style="margin: 0; font-size: 16px; color: #121410; font-style: italic; line-height: 1.5;">"${message || 'I planted these trees to celebrate you and our planet!'}"</p>
+        </div>
+
+        <!-- Tree Details -->
+        <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; border-top: 1px solid #f1f2ec; padding-top: 32px;">
+          <div style="text-align: center;">
+            <p style="margin: 0; font-size: 24px; font-weight: 800; color: #121410;">${treeCount}</p>
+            <p style="margin: 4px 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8a9675;">Trees</p>
+          </div>
+          <div style="text-align: center;">
+            <p style="margin: 0; font-size: 24px; font-weight: 800; color: #121410;">100%</p>
+            <p style="margin: 4px 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8a9675;">Native</p>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div style="margin-bottom: 32px;">
+          <a href="${claimUrl}" style="display: inline-block; background-color: #121410; color: #b2f432; padding: 18px 40px; border-radius: 50px; text-decoration: none; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">Claim Your Legacy</a>
+        </div>
+
+        <p style="font-size: 13px; color: #8a9675; line-height: 1.6;">
+          Once you claim your trees, you can track their growth via satellite, download your official certificate, and see the real-time oxygen they produce.
+        </p>
+
+      </div>
+      
+      <p style="text-align: center; font-size: 10px; color: #a1a1aa; margin-top: 40px; text-transform: uppercase; letter-spacing: 1.5px;">Green Legacy by Arboretum • Rooting the Future</p>
+    </div>
+  `
+}

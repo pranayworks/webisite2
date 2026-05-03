@@ -32,7 +32,11 @@ export default function TestDatabase() {
         })
 
         // 2. Audit Planting Orders
-        const orderCols = ['id', 'user_id', 'steward_name', 'trees', 'plan_name', 'amount_paid', 'payment_id', 'order_key', 'is_csr', 'company_name', 'gst_number', 'status']
+        const orderCols = [
+          'id', 'user_id', 'steward_name', 'trees', 'plan_name', 'amount_paid', 
+          'payment_id', 'order_key', 'is_csr', 'company_name', 'gst_number', 'status',
+          'is_gift', 'recipient_name', 'recipient_email', 'gift_message'
+        ]
         const oStatus = await Promise.all(orderCols.map(c => checkColumn('planting_orders', c)))
         auditResults.push({
           table: 'planting_orders',
@@ -168,6 +172,10 @@ CREATE TABLE IF NOT EXISTS planting_orders (
   is_csr BOOLEAN DEFAULT FALSE,
   company_name TEXT,
   gst_number TEXT,
+  is_gift BOOLEAN DEFAULT FALSE,
+  recipient_name TEXT,
+  recipient_email TEXT,
+  gift_message TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 

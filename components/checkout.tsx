@@ -17,13 +17,21 @@ export default function Checkout({
   occasion, 
   isCsr, 
   companyName, 
-  gstNumber 
+  gstNumber,
+  isGift,
+  recipientName,
+  recipientEmail,
+  giftMessage 
 }: { 
   productId: string, 
   occasion?: string | null, 
   isCsr?: boolean,
   companyName?: string,
-  gstNumber?: string
+  gstNumber?: string,
+  isGift?: boolean,
+  recipientName?: string,
+  recipientEmail?: string,
+  giftMessage?: string
 }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -56,7 +64,10 @@ export default function Checkout({
       if (!profile?.full_name || !profile?.phone || !profile?.address) {
         toast.error("Please complete your profile details first", { id: toastId })
         // Save current selection to session storage to resume after profile update
-        sessionStorage.setItem('pending_checkout', JSON.stringify({ productId, occasion, isCsr, companyName, gstNumber }))
+        sessionStorage.setItem('pending_checkout', JSON.stringify({ 
+          productId, occasion, isCsr, companyName, gstNumber, 
+          isGift, recipientName, recipientEmail, giftMessage 
+        }))
         router.push("/dashboard/settings?error=profile_incomplete")
         return
       }
@@ -107,7 +118,11 @@ export default function Checkout({
               occasion: occasion || "",
               is_csr: isCsr || false,
               company_name: companyName || "",
-              gst_number: gstNumber || ""
+              gst_number: gstNumber || "",
+              is_gift: isGift || false,
+              recipient_name: recipientName || "",
+              recipient_email: recipientEmail || "",
+              gift_message: giftMessage || ""
             }
           )
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -19,6 +19,16 @@ export default function LoginPage() {
     password: '',
     otp: ''
   })
+
+  // Capture claim parameter from URL if present
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+    const claimId = searchParams.get('claim')
+    if (claimId) {
+      sessionStorage.setItem('pending_claim', claimId)
+      toast.info("Surprise Gift Detected! Log in or Sign up to claim your living legacy.")
+    }
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

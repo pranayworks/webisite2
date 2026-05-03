@@ -91,7 +91,12 @@ export async function verifyRazorpayPayment(
     occasion: string,
     is_csr?: boolean,
     company_name?: string,
-    gst_number?: string
+    gst_number?: string,
+    is_gift?: boolean,
+    recipient_name?: string,
+    recipient_email?: string,
+    gift_message?: string,
+    email?: string
   }
 ) {
   try {
@@ -159,7 +164,11 @@ export async function verifyRazorpayPayment(
         order_key: orderId,
         is_csr: metadata.is_csr || false,
         company_name: metadata.company_name || null,
-        gst_number: metadata.gst_number || null
+        gst_number: metadata.gst_number || null,
+        is_gift: metadata.is_gift || false,
+        recipient_name: metadata.recipient_name || null,
+        recipient_email: metadata.recipient_email || null,
+        gift_message: metadata.gift_message || null
       })
 
     if (plantingError) throw plantingError
@@ -188,6 +197,25 @@ export async function verifyRazorpayPayment(
           metadata.occasion || null // occasion
         )
       })
+
+      // NEW: Gift Recipient Email
+      if (metadata.is_gift && metadata.recipient_email) {
+        const { generateGiftEmailHtml } = await import("../../lib/email")
+        const claimUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://greenlegacy.in'}/login?claim=${paymentId}`
+        
+        await sendEmail({
+          to: metadata.recipient_email,
+          subject: `🎁 A Surprise Legacy from ${profile?.full_name || "a Friend"}!`,
+          html: generateGiftEmailHtml(
+            profile?.full_name || "Your Friend",
+            metadata.recipient_name || "Steward",
+            product.trees,
+            product.name,
+            metadata.gift_message || "",
+            claimUrl
+          )
+        })
+      }
 
       // Telegram to Admin
       const { sendTelegramNotification } = await import("../../lib/telegram")

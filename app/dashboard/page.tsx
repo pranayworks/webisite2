@@ -12,6 +12,7 @@ import { generateGSTInvoice } from "../../lib/invoice"
 import { toast } from 'sonner'
 import { Button } from "../../components/ui/button"
 import dynamic from 'next/dynamic'
+import { claimGift } from "../actions/gift"
 
 const TreeMap = dynamic(() => import('../../components/TreeMap'), { ssr: false })
 
@@ -177,6 +178,38 @@ export default function DashboardPage() {
       setLoading(false)
     }
   }
+
+  // Handle pending gift claims
+  useEffect(() => {
+    async function processPendingClaim() {
+      if (!user?.id) return
+      
+      const pendingClaim = sessionStorage.getItem('pending_claim')
+      if (pendingClaim) {
+        const toastId = toast.loading("Securely claiming your living legacy...")
+        const result = await claimGift(pendingClaim, user.id)
+        
+        if (result.success) {
+          if (result.alreadyClaimed) {
+            toast.success("This legacy is already in your dashboard!", { id: toastId })
+          } else {
+            toast.success(`Welcome to the grove! ${result.trees} trees have been added to your stewardship.`, { 
+              id: toastId,
+              duration: 5000 
+            })
+            // Refresh data
+            checkUser()
+            // In a real app, we'd trigger fetchPlantings here too
+            window.location.reload() // Simplest way to refresh all metrics and plantings
+          }
+        } else {
+          toast.error(result.error || "Failed to claim gift. Please contact support.", { id: toastId })
+        }
+        sessionStorage.removeItem('pending_claim')
+      }
+    }
+    processPendingClaim()
+  }, [user?.id])
 
   const handleShareImpact = async () => {
     const shareText = `I am officially a ${rank.title} at Green Legacy! My grove has produced ${monthlyStats.oxygen}kg of Oxygen this month alone. Join the restoration: ${window.location.origin}`
