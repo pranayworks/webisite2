@@ -18,17 +18,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-const navItems = [
+const primaryNavItems = [
   { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "How It Works", href: "/#how-it-works" },
   { label: "Subscriptions", href: "/subscriptions" },
   { label: "Impact", href: "/impact" },
-  { label: "Testimonials", href: "/testimonials" },
+]
+
+const companyNavItems = [
+  { label: "About", href: "/about" },
+  { label: "How It Works", href: "/#how-it-works" },
   { label: "Get Involved", href: "/get-involved" },
-  { label: "Media", href: "/media" },
   { label: "Contact", href: "/contact" },
 ]
+
+const allNavItems = [...primaryNavItems, ...companyNavItems]
 
 export function SiteHeader() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -88,36 +91,53 @@ export function SiteHeader() {
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+          "fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 w-[95%] max-w-5xl rounded-full border",
           isScrolled
-            ? "bg-background/80 backdrop-blur-xl border-b border-border shadow-sm"
-            : "bg-transparent"
+            ? "bg-background/70 backdrop-blur-xl shadow-lg border-border/40"
+            : "bg-background/30 backdrop-blur-md border-white/10"
         )}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:h-20 lg:px-8">
+        <div className="mx-auto flex h-16 items-center justify-between px-6">
           <Link href="/" className="flex items-center group" aria-label="Green Legacy Home">
             <img
               src="/logo.svg"
               alt="Green Legacy Logo"
-              className="h-11 md:h-15 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
           </Link>
 
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
-            {navItems.map((item) => (
+          <nav className="hidden items-center gap-2 lg:flex" aria-label="Main navigation">
+            {primaryNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "rounded-lg px-1.5 lg:px-2 xl:px-3 py-2 text-[13px] xl:text-sm font-medium whitespace-nowrap transition-colors duration-200",
+                  "rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-200",
                   pathname === item.href
                     ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
                 )}
               >
                 {item.label}
               </Link>
             ))}
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-foreground/5 hover:text-foreground focus-visible:ring-0">
+                  Company ▾
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-48 rounded-xl bg-background/95 backdrop-blur-xl border-border/50 shadow-xl mt-2 p-2">
+                {companyNavItems.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild className="rounded-lg cursor-pointer">
+                    <Link href={item.href} className="w-full">
+                      {item.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -201,7 +221,7 @@ export function SiteHeader() {
         )}
       >
         <nav className="flex h-full flex-col items-center justify-center gap-6 pt-20" aria-label="Mobile navigation">
-          {navItems.map((item, i) => (
+          {allNavItems.map((item, i) => (
             <Link
               key={item.href}
               href={item.href}

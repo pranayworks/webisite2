@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Green Legacy — Investor Pitch</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0a0f0a;color:#fff;overflow:hidden;height:100vh}
+.deck{width:100vw;height:100vh;position:relative}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px 80px;opacity:0;pointer-events:none;transition:opacity .6s ease;text-align:center}
+.slide.active{opacity:1;pointer-events:all}
+
+/* Gradients per slide */
+.s1{background:linear-gradient(135deg,#0d2818 0%,#1a4a2e 40%,#2d7a4f 100%)}
+.s2{background:linear-gradient(135deg,#1a0a2e 0%,#2d1b4e 50%,#1a2a4e 100%)}
+.s3{background:linear-gradient(135deg,#0d2818 0%,#1a3a28 60%,#0d1f3c 100%)}
+.s4{background:linear-gradient(135deg,#1a2a0d 0%,#2a4a1a 50%,#3d7a2a 100%)}
+.s5{background:linear-gradient(135deg,#0d1a2e 0%,#1a2a4e 50%,#0d2818 100%)}
+.s6{background:linear-gradient(135deg,#2a1a0d 0%,#4e3a1a 50%,#2a2a0d 100%)}
+.s7{background:linear-gradient(135deg,#0d2818 0%,#1a4a2e 60%,#0a3a20 100%)}
+.s8{background:linear-gradient(135deg,#1a0d2e 0%,#2e1a4e 50%,#1a2e4e 100%)}
+.s9{background:linear-gradient(135deg,#0d1a0d 0%,#1a3a1a 50%,#2a5a2a 100%)}
+.s10{background:linear-gradient(135deg,#1a0a0d 0%,#3a1a2a 50%,#1a1a3a 100%)}
+.s11{background:linear-gradient(135deg,#0d2818 0%,#0a2a3a 50%,#1a1a3a 100%)}
+.s12{background:linear-gradient(135deg,#0a0f0a 0%,#1a3a1a 50%,#2a5a2a 100%)}
+.s13{background:linear-gradient(135deg,#1a3a1a 0%,#2d7a4f 50%,#0d2818 100%)}
+
+.tag{font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#6ee89a;margin-bottom:16px;opacity:.8}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2.5rem,5vw,4.5rem);font-weight:900;line-height:1.1;margin-bottom:20px;background:linear-gradient(135deg,#fff 0%,#a8f0c0 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h2{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3.5vw,3rem);font-weight:700;margin-bottom:24px;background:linear-gradient(135deg,#fff 0%,#6ee89a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:1.1rem;color:rgba(255,255,255,.7);max-width:700px;line-height:1.7;margin-bottom:32px}
+.grid{display:grid;gap:20px;width:100%;max-width:1100px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.card{background:rgba(255,255,255,.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:28px;text-align:left}
+.card h3{font-size:1rem;font-weight:700;color:#6ee89a;margin-bottom:10px;letter-spacing:.5px}
+.card p{font-size:.875rem;color:rgba(255,255,255,.75);line-height:1.65}
+.icon{font-size:2rem;margin-bottom:12px}
+.pill{display:inline-block;background:rgba(110,232,154,.15);border:1px solid rgba(110,232,154,.3);color:#6ee89a;padding:6px 16px;border-radius:50px;font-size:.75rem;font-weight:700;letter-spacing:1px;margin:4px}
+.stat{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;color:#6ee89a}
+.stat-label{font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:4px}
+.big-num{font-family:'Playfair Display',serif;font-size:4rem;font-weight:900;background:linear-gradient(135deg,#6ee89a,#a8f0c0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.divider{width:60px;height:3px;background:linear-gradient(90deg,#6ee89a,transparent);border-radius:2px;margin:20px auto}
+table{width:100%;border-collapse:collapse;max-width:900px}
+th{background:rgba(110,232,154,.15);color:#6ee89a;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;padding:14px 20px;border:1px solid rgba(255,255,255,.08)}
+td{padding:14px 20px;border:1px solid rgba(255,255,255,.06);font-size:.875rem;color:rgba(255,255,255,.8)}
+tr:hover td{background:rgba(255,255,255,.04)}
+.badge{display:inline-block;padding:4px 12px;border-radius:50px;font-size:.7rem;font-weight:700}
+.live{background:rgba(110,232,154,.2);color:#6ee89a;border:1px solid #6ee89a55}
+.wip{background:rgba(255,200,50,.2);color:#ffd700;border:1px solid #ffd70055}
+.road{background:rgba(100,150,255,.2);color:#88aaff;border:1px solid #88aaff55}
+
+/* Nav */
+.nav{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:100}
+.nav button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:1.1rem;transition:all .2s}
+.nav button:hover{background:rgba(110,232,154,.3);border-color:#6ee89a}
+.slide-num{font-size:.8rem;letter-spacing:2px;color:rgba(255,255,255,.5)}
+.dots{display:flex;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:all .3s}
+.dot.active{background:#6ee89a;width:20px}
+
+/* Progress */
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#6ee89a,#a8f0c0);transition:width .4s ease;z-index:200}
+.slide-label{position:fixed;top:20px;right:30px;font-size:.7rem;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="slide-label" id="slideLabel"></div>
+
+<div class="deck">
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide s1 active">
+  <div class="tag">Investor Pitch 2026</div>
+  <h1>Green Legacy</h1>
+  <div class="divider"></div>
+  <p class="sub">A Climate-Tech Infrastructure Platform that makes every tree planted verifiable, trackable, and viral — transforming passive donation into active, satellite-verified stewardship.</p>
+  <div>
+    <span class="pill">🌱 Climate Tech</span>
+    <span class="pill">🛰️ Satellite Verified</span>
+    <span class="pill">🎁 Viral Growth</span>
+    <span class="pill">🏢 CSR Ready</span>
+  </div>
+</div>
+
+<!-- SLIDE 2: PROBLEM -->
+<div class="slide s2">
+  <div class="tag">The Problem</div>
+  <h2>Why Does Tree Planting Fail?</h2>
+  <p class="sub">The current industry is built on blind trust — and blind trust doesn't scale.</p>
+  <div class="grid g3">
+    <div class="card"><div class="icon">🕳️</div><h3>The Black Box</h3><p>People donate, receive a PDF certificate, and never hear about their tree again. Zero transparency on where, when, or if it was planted.</p></div>
+    <div class="card"><div class="icon">💀</div><h3>High Mortality</h3><p>Industry average tree survival rate is under 40%. Saplings are planted and abandoned with zero professional maintenance afterward.</p></div>
+    <div class="card"><div class="icon">📉</div><h3>No Engagement</h3><p>The relationship ends at checkout. No updates, no tracking, no community — making repeat purchase or advocacy nearly impossible.</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 3: MARKET -->
+<div class="slide s3">
+  <div class="tag">Market Opportunity</div>
+  <h2>A Problem Worth Solving at Scale</h2>
+  <div class="grid g2" style="max-width:900px">
+    <div class="card" style="text-align:center"><div class="big-num">₹26K Cr</div><div class="stat-label">Annual CSR Spend Mandated in India</div></div>
+    <div class="card" style="text-align:center"><div class="big-num">$400B</div><div class="stat-label">Global Gifting Market Size</div></div>
+    <div class="card" style="text-align:center"><div class="big-num">1B</div><div class="stat-label">Trees India's Govt Wants Planted by 2030</div></div>
+    <div class="card" style="text-align:center"><div class="big-num">$50B</div><div class="stat-label">Carbon Credit Market by 2030</div></div>
+  </div>
+</div>
+
+<!-- SLIDE 4: SOLUTION -->
+<div class="slide s4">
+  <div class="tag">Our Solution</div>
+  <h2>Green Legacy: Verified Stewardship</h2>
+  <p class="sub">We replace blind trust with real-time, technology-verified accountability.</p>
+  <div class="grid g3">
+    <div class="card"><div class="icon">📍</div><h3>GPS Tagging</h3><p>Every single tree is physically tagged with unique GPS coordinates the moment it is planted. The exact location is linked to the user's account.</p></div>
+    <div class="card"><div class="icon">🛰️</div><h3>Satellite Scanning</h3><p>Using Sentinel-2 satellite imagery, users can trigger live health scans of their grove. NDVI scores verify biological growth from space.</p></div>
+    <div class="card"><div class="icon">📜</div><h3>3-Year Guarantee</h3><p>We legally commit to professional watering, protection, and maintenance for the critical first 3 years. 90%+ survival rate guaranteed.</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 5: WHERE WE PLANT -->
+<div class="slide s5">
+  <div class="tag">Operations</div>
+  <h2>Where We Plant Trees</h2>
+  <p class="sub">We don't plant anywhere. We select strategic, protected locations that guarantee long-term survival.</p>
+  <div class="grid g2" style="max-width:900px">
+    <div class="card"><div class="icon">🏫</div><h3>College & University Campuses</h3><p>Institutional land provides natural protection. Students become the organic stewards of the grove, providing day-to-day care at no additional cost.</p></div>
+    <div class="card"><div class="icon">👨‍🌾</div><h3>Partner Farm Boundaries</h3><p>Agro-forestry model: trees planted on the borders of agricultural land benefit both the ecology and the farmer's income from shade and soil retention.</p></div>
+    <div class="card"><div class="icon">🌍</div><h3>Ecologically Degraded Zones</h3><p>We specifically target areas that have lost forest cover in India, providing maximum ecological restoration value per tree planted.</p></div>
+    <div class="card"><div class="icon">🛡️</div><h3>Protected Land Only</h3><p>All sites are vetted to ensure zero risk of deforestation or land-use change, guaranteeing the permanence of the carbon sequestration.</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 6: WHO PLANTS -->
+<div class="slide s6">
+  <div class="tag">Community Model</div>
+  <h2>Who Plants the Trees?</h2>
+  <p class="sub">A community-driven coalition that creates shared ownership and reduces operational costs.</p>
+  <div class="grid g3">
+    <div class="card"><div class="icon">🎓</div><h3>Students (NSS / ECO Clubs)</h3><p>Partner college students participate in plantation drives, creating educational impact and a generation of environmental advocates.</p></div>
+    <div class="card"><div class="icon">👨‍🌾</div><h3>Local Farming Families</h3><p>Farmers participate and receive direct livelihood benefits from the agro-forestry model, creating economic incentives for long-term care.</p></div>
+    <div class="card"><div class="icon">🌿</div><h3>Green Legacy Field Team</h3><p>Our trained specialists oversee GPS tagging, photography, quality control, and the 3-year maintenance schedule for every grove.</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 7: WHAT USERS GET -->
+<div class="slide s7">
+  <div class="tag">Customer Value</div>
+  <h2>What You Receive as a Sponsor</h2>
+  <div class="grid g2" style="max-width:900px">
+    <div class="card"><div class="icon">🖥️</div><h3>Live Stewardship Dashboard</h3><p>A personal portal showing total trees, CO₂ absorbed, oxygen produced, and a real-time interactive GPS map of your specific grove.</p></div>
+    <div class="card"><div class="icon">🛰️</div><h3>Satellite Health Scan</h3><p>Trigger a scan from space anytime. Receive NDVI biological health scores proving your forest is alive and thriving.</p></div>
+    <div class="card"><div class="icon">📜</div><h3>Verified GPS Certificate</h3><p>A premium downloadable certificate with exact coordinates, perfect for LinkedIn posts, company ESG reports, and annual filings.</p></div>
+    <div class="card"><div class="icon">🧾</div><h3>80G Tax Receipts</h3><p>Automated, legally valid tax deduction receipts delivered within 48 hours of every payment — no manual process required.</p></div>
+    <div class="card"><div class="icon">🌍</div><h3>Quarterly Site Visits</h3><p>Exclusive invitations to physically visit your grove and participate in community plantation drives as a team-building experience.</p></div>
+    <div class="card"><div class="icon">🏆</div><h3>Stewardship Ranking</h3><p>A public leaderboard showing your position among all stewards, driving competition, engagement, and repeat purchases.</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 8: GIFTING LOOP -->
+<div class="slide s8">
+  <div class="tag">Growth Engine</div>
+  <h2>The Viral Gifting Loop</h2>
+  <p class="sub">Our most powerful feature turns every transaction into a marketing engine.</p>
+  <div class="grid" style="grid-template-columns:repeat(4,1fr);max-width:1000px">
+    <div class="card" style="text-align:center"><div class="icon">🎁</div><h3>Step 1: Gift</h3><p>User A buys trees as a Birthday or Wedding gift for their friend.</p></div>
+    <div class="card" style="text-align:center"><div class="icon">📧</div><h3>Step 2: Surprise</h3><p>Friend receives a beautiful "A Living Legacy has been rooted for you!" email.</p></div>
+    <div class="card" style="text-align:center"><div class="icon">🔗</div><h3>Step 3: Claim</h3><p>Friend clicks "Claim Your Legacy" — visits Green Legacy and creates a free account.</p></div>
+    <div class="card" style="text-align:center"><div class="icon">📈</div><h3>Step 4: Grow</h3><p>New user is now on the platform — potential future paying customer at zero CAC.</p></div>
+  </div>
+  <div class="card" style="margin-top:20px;max-width:700px;background:rgba(110,232,154,.1);border-color:rgba(110,232,154,.3)">
+    <p style="text-align:center;color:#6ee89a;font-weight:700">💼 Corporate Scale: A company gifts 1,000 trees to employees for Diwali = 1,000 new active accounts in a single day.</p>
+  </div>
+</div>
+
+<!-- SLIDE 9: BUSINESS MODEL -->
+<div class="slide s9">
+  <div class="tag">Revenue</div>
+  <h2>Business Model & Revenue Streams</h2>
+  <div class="grid g2" style="max-width:900px">
+    <div class="card"><div class="icon">💚</div><h3>B2C — Individual Plans</h3><p>One-time and monthly subscription packages from ₹299 to ₹4,999. Users plant personal groves and track them on their dashboard.</p></div>
+    <div class="card"><div class="icon">🏢</div><h3>B2B — Corporate CSR Blocks</h3><p>Bulk planting with automated GST invoicing, ESG impact reports, and 30% premium pricing for verified corporate compliance.</p></div>
+    <div class="card"><div class="icon">🎁</div><h3>Gifting Revenue</h3><p>Premium gifting packages for all occasions: Birthdays, Weddings, Memorials, and Graduations with instant digital delivery.</p></div>
+    <div class="card"><div class="icon">🌿</div><h3>Future: Carbon Credits</h3><p>Satellite-verified tree health data converted into high-integrity Carbon Credits for the global voluntary carbon market.</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 10: TECH ROADMAP -->
+<div class="slide s10">
+  <div class="tag">Technology</div>
+  <h2>Built for Today. Designed for Tomorrow.</h2>
+  <table>
+    <tr><th>Phase</th><th>Feature</th><th>Status</th></tr>
+    <tr><td>Phase 1</td><td>User Dashboard + GPS Certificates + 80G Receipts</td><td><span class="badge live">✅ LIVE</span></td></tr>
+    <tr><td>Phase 2</td><td>Viral Gifting Loop — Gift a Tree Flow</td><td><span class="badge live">✅ LIVE</span></td></tr>
+    <tr><td>Phase 3</td><td>Satellite NDVI Health Scanner (Beta)</td><td><span class="badge live">✅ LIVE</span></td></tr>
+    <tr><td>Phase 4</td><td>Full Sentinel-2 / Google Earth Engine API Integration</td><td><span class="badge wip">🔄 In Progress</span></td></tr>
+    <tr><td>Phase 5</td><td>Biological Carbon Registry + Carbon Credits</td><td><span class="badge road">📋 Roadmap</span></td></tr>
+  </table>
+</div>
+
+<!-- SLIDE 11: 3-YEAR GUARANTEE -->
+<div class="slide s11">
+  <div class="tag">Biggest Differentiator</div>
+  <h2>The 3-Year Stewardship Guarantee</h2>
+  <p class="sub">The industry plants and walks away. We stay — legally committed for 3 full years.</p>
+  <div class="grid g3">
+    <div class="card" style="text-align:center"><div class="big-num" style="font-size:3rem">Year 1</div><h3 style="color:#fff;margin-top:12px">Critical Survival</h3><p>Regular watering, protection from grazing, pest control, and nutrient monitoring every week.</p></div>
+    <div class="card" style="text-align:center"><div class="big-num" style="font-size:3rem">Year 2</div><h3 style="color:#fff;margin-top:12px">Growth Phase</h3><p>Height tracking, canopy development monitoring, soil health management, and growth photography.</p></div>
+    <div class="card" style="text-align:center"><div class="big-num" style="font-size:3rem">Year 3</div><h3 style="color:#fff;margin-top:12px">Establishment</h3><p>Root system fully developed. Tree becomes self-sustaining. Digital twin updated with final vitality score.</p></div>
+  </div>
+  <div class="pill" style="margin-top:24px;font-size:.9rem;padding:10px 24px">📜 Legally formalized in our Terms & Conditions — a binding obligation, not just a promise</div>
+</div>
+
+<!-- SLIDE 12: THE ASK -->
+<div class="slide s12">
+  <div class="tag">Partnership Opportunity</div>
+  <h2>Why This Meeting Matters</h2>
+  <div class="grid g3" style="margin-bottom:24px">
+    <div class="card" style="text-align:center"><div class="icon">✅</div><h3>What We Have</h3><p>A live, working platform. Full technology stack. Viral growth engine. Satellite verification. Zero-error codebase.</p></div>
+    <div class="card" style="text-align:center"><div class="icon">🚀</div><h3>What We Need</h3><p>Strategic partnership for operational scaling, satellite API integration, institutional reach, and market positioning.</p></div>
+    <div class="card" style="text-align:center"><div class="icon">🤝</div><h3>What We Offer</h3><p>First-mover positioning in verified green infrastructure. Direct pathway to India's Carbon Credit economy.</p></div>
+  </div>
+  <p class="sub" style="font-size:1.2rem;color:#6ee89a;font-weight:600">"We are not here to ask for charity. We are here because we built something real — and we want to scale it with the right partner."</p>
+</div>
+
+<!-- SLIDE 13: THANK YOU -->
+<div class="slide s13">
+  <div class="tag">Green Legacy</div>
+  <h1>Join the Green Legacy</h1>
+  <div class="divider"></div>
+  <p class="sub" style="font-size:1.3rem;font-style:italic">"Every tree is a decision. Every decision changes the future."</p>
+  <div style="margin-top:40px;display:flex;gap:40px;justify-content:center">
+    <div class="card" style="min-width:200px;text-align:center"><p style="color:#6ee89a;font-weight:700;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Founder</p><p style="font-weight:600">[Your Name]</p></div>
+    <div class="card" style="min-width:200px;text-align:center"><p style="color:#6ee89a;font-weight:700;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Contact</p><p style="font-weight:600">[Your Phone]</p></div>
+    <div class="card" style="min-width:200px;text-align:center"><p style="color:#6ee89a;font-weight:700;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Website</p><p style="font-weight:600">greenlegacy.in</p></div>
+  </div>
+</div>
+
+</div><!-- end deck -->
+
+<div class="nav">
+  <button onclick="prev()">←</button>
+  <div class="dots" id="dots"></div>
+  <span class="slide-num" id="slideNum">1 / 13</span>
+  <button onclick="next()">→</button>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide');
+const labels=['Title','Problem','Market','Solution','Where We Plant','Who Plants','What You Get','Gifting Loop','Business Model','Tech Roadmap','3-Year Guarantee','The Ask','Thank You'];
+let cur=0;
+const dotsEl=document.getElementById('dots');
+const numEl=document.getElementById('slideNum');
+const progressEl=document.getElementById('progress');
+const labelEl=document.getElementById('slideLabel');
+
+slides.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' active':'');
+  d.onclick=()=>go(i);
+  dotsEl.appendChild(d);
+});
+
+function go(n){
+  slides[cur].classList.remove('active');
+  dotsEl.children[cur].classList.remove('active');
+  cur=Math.max(0,Math.min(n,slides.length-1));
+  slides[cur].classList.add('active');
+  dotsEl.children[cur].classList.add('active');
+  numEl.textContent=`${cur+1} / ${slides.length}`;
+  progressEl.style.width=`${((cur+1)/slides.length)*100}%`;
+  labelEl.textContent=labels[cur]||'';
+}
+function next(){go(cur+1)}
+function prev(){go(cur-1)}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ')next();
+  if(e.key==='ArrowLeft')prev();
+});
+go(0);
+</script>
+</body>
+</html>
