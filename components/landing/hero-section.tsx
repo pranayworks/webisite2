@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
 import { ArrowDown, Play, TreePine, Droplets, Globe } from "lucide-react"
 import { Button } from "../../components/ui/button"
@@ -17,6 +17,84 @@ function Leaf({ className, delay }: { className?: string; delay: number }) {
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="animate-float">
         <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" />
       </svg>
+    </div>
+  )
+}
+
+function StatCard({ stat }: { stat: any }) {
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [rotate, setRotate] = useState({ x: 0, y: 0 })
+  const [isHovered, setIsHovered] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return
+    const rect = cardRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    setPosition({ x, y })
+
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
+    const rotateX = ((y - centerY) / centerY) * -15 // Max 15deg tilt
+    const rotateY = ((x - centerX) / centerX) * 15
+    setRotate({ x: rotateX, y: rotateY })
+  }
+
+  const handleMouseEnter = () => setIsHovered(true)
+  const handleMouseLeave = () => {
+    setIsHovered(false)
+    setRotate({ x: 0, y: 0 })
+  }
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="relative group rounded-2xl bg-card/60 p-6 backdrop-blur-sm cursor-crosshair"
+      style={{
+        transform: isHovered 
+          ? `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) scale3d(1.05, 1.05, 1.05)` 
+          : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+        transition: isHovered ? 'transform 0.1s ease-out' : 'transform 0.5s ease-out',
+        transformStyle: "preserve-3d",
+      }}
+    >
+      {/* Default static border */}
+      <div className="absolute inset-0 rounded-2xl border border-border/50 transition-opacity duration-300 group-hover:opacity-0" />
+
+      {/* Spotlight Border Glow */}
+      <div
+        className="pointer-events-none absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 z-0"
+        style={{
+          background: `radial-gradient(300px circle at ${position.x}px ${position.y}px, rgba(110,232,154,0.6), transparent 40%)`,
+          WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          WebkitMaskComposite: 'xor',
+          maskComposite: 'exclude',
+          padding: '1px'
+        }}
+      />
+      {/* Spotlight Background Glow */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 z-0"
+        style={{
+          background: `radial-gradient(300px circle at ${position.x}px ${position.y}px, rgba(110,232,154,0.08), transparent 40%)`,
+        }}
+      />
+
+      {/* Content (Popping out slightly in 3D) */}
+      <div 
+        className="relative z-10 flex flex-col items-center gap-2 pointer-events-none" 
+        style={{ transform: isHovered ? 'translateZ(40px)' : 'translateZ(0px)', transition: 'transform 0.3s ease-out' }}
+      >
+        <stat.icon className="h-8 w-8 text-accent drop-shadow-[0_0_8px_rgba(110,232,154,0.5)] transition-transform duration-300 group-hover:scale-110" />
+        <span className="text-3xl font-bold tabular-nums text-foreground mt-2 drop-shadow-md">
+          {stat.value.toLocaleString()}{stat.suffix}
+        </span>
+        <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{stat.label}</span>
+      </div>
     </div>
   )
 }
@@ -120,7 +198,7 @@ export function HeroSection() {
         {/* Live counters */}
         <div
           className={cn(
-            "mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-6 transition-all duration-1000 delay-700 sm:grid-cols-3",
+            "mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-6 transition-all duration-1000 delay-700 sm:grid-cols-3 [perspective:2000px]",
             mounted ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           )}
         >
@@ -129,13 +207,7 @@ export function HeroSection() {
             { icon: Droplets, value: waterConserved, suffix: " KL", label: "Water Conserved" },
             { icon: Globe, value: co2Offset, suffix: " Tonnes", label: "CO2 Offset" },
           ].map((stat) => (
-            <div key={stat.label} className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card/60 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-card hover:shadow-lg">
-              <stat.icon className="h-6 w-6 text-accent transition-transform duration-300 group-hover:scale-110" />
-              <span className="text-3xl font-bold tabular-nums text-foreground">
-                {stat.value.toLocaleString()}{stat.suffix}
-              </span>
-              <span className="text-sm text-muted-foreground">{stat.label}</span>
-            </div>
+            <StatCard key={stat.label} stat={stat} />
           ))}
         </div>
 
