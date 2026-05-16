@@ -157,10 +157,7 @@ export default function ImpactPage() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--accent)/0.15)_0%,transparent_65%)]" />
 
           {/* Content */}
-          <div className={cn(
-            "relative z-10 mx-auto max-w-5xl px-4 lg:px-8 text-center transition-all duration-1000",
-            heroVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
-          )}>
+          <div className="relative z-10 mx-auto max-w-5xl px-4 lg:px-8 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-forwards">
             {/* Eyebrow badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-accent backdrop-blur-sm mb-6">
               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
@@ -168,12 +165,11 @@ export default function ImpactPage() {
             </div>
 
             <h1 className="font-serif text-4xl font-bold sm:text-5xl lg:text-7xl text-foreground text-balance leading-[1.1]">
-              Every Tree Tells<br />
-              <span className="text-accent">a Real Story</span>
+              Our Global <span className="text-accent">Impact</span>
             </h1>
 
             <p className="mx-auto mt-6 max-w-2xl text-base lg:text-lg text-muted-foreground text-pretty leading-relaxed">
-              Every tree is GPS-tagged, every rupee is accounted for, and every milestone is verified in real-time. This is environmental action you can actually see.
+              Every tree is GPS-tagged, every rupee is accounted for, and every milestone is verified in real-time. Explore the tangible environmental difference we are making together.
             </p>
 
             {/* CTA Buttons */}
