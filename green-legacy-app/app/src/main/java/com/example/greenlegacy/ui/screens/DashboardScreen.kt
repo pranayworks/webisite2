@@ -32,7 +32,6 @@ import kotlinx.coroutines.launch
 enum class DashboardTab(val title: String, val icon: ImageVector) {
     HOME("Home", Icons.Default.Home),
     PLANT("Plant Tree", Icons.Default.AddCircle),
-    MY_TREES("My Trees", Icons.Default.Park),
     MORE("More", Icons.Default.MoreVert)
 }
 
@@ -42,6 +41,13 @@ fun DashboardScreen(
 ) {
     var currentTab by remember { mutableStateOf(DashboardTab.HOME) }
     var showProfile by remember { mutableStateOf(false) }
+
+    val isLoggedIn = remember { derivedStateOf { SupabaseService.isLoggedIn() } }
+    LaunchedEffect(isLoggedIn.value) {
+        if (!isLoggedIn.value) {
+            onLogout()
+        }
+    }
 
     // Shared list of user's sponsored trees loaded from Supabase
     val sponsoredTrees = remember { mutableStateListOf<PlantedTree>() }
@@ -109,14 +115,9 @@ fun DashboardScreen(
                             PlantTreeScreen(
                                 onOrderPlaced = {
                                     refreshTrees()
-                                    // Navigate to My Trees screen after planting
-                                    currentTab = DashboardTab.MY_TREES
+                                    // Navigate to Home tab after planting
+                                    currentTab = DashboardTab.HOME
                                 }
-                            )
-                        }
-                        DashboardTab.MY_TREES -> {
-                            MyImpactScreen(
-                                plantedTrees = sponsoredTrees
                             )
                         }
                         DashboardTab.MORE -> {

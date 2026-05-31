@@ -48,9 +48,10 @@ class MainActivity : ComponentActivity() {
           key to value
         }
         val accessToken = params["access_token"]
+        val refreshToken = params["refresh_token"]
         if (accessToken != null) {
           lifecycleScope.launch {
-            val result = SupabaseService.handleOAuthCallback(accessToken)
+            val result = SupabaseService.handleOAuthCallback(accessToken, refreshToken)
             SupabaseService.oauthSessionResult = result
           }
         }

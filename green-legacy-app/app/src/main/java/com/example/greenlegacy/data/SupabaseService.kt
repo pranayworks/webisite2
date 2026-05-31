@@ -11,6 +11,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -29,6 +31,7 @@ object SupabaseService {
     
     private const val PREFS_NAME = "green_legacy_prefs"
     private const val KEY_ACCESS_TOKEN = "access_token"
+    private const val KEY_REFRESH_TOKEN = "refresh_token"
     private const val KEY_USER_ID = "user_id"
     private const val KEY_USER_EMAIL = "user_email"
     private const val KEY_USER_NAME = "user_name"
@@ -42,11 +45,14 @@ object SupabaseService {
 
     private val _userName = mutableStateOf<String?>(null)
     private val _photoUriString = mutableStateOf<String?>(null)
+    private val _isLoggedIn = mutableStateOf(false)
+    private val refreshMutex = Mutex()
 
     fun init(context: Context) {
         prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         _userName.value = prefs.getString(KEY_USER_NAME, null)
         _photoUriString.value = prefs.getString(KEY_PHOTO_URI, null)
+        _isLoggedIn.value = prefs.getString(KEY_ACCESS_TOKEN, null) != null
     }
 
     val userId: String?
@@ -86,13 +92,14 @@ object SupabaseService {
         }
 
     fun isLoggedIn(): Boolean {
-        return prefs.getString(KEY_ACCESS_TOKEN, null) != null
+        return _isLoggedIn.value
     }
 
     fun logout() {
         prefs.edit().clear().apply()
         _userName.value = null
         _photoUriString.value = null
+        _isLoggedIn.value = false
     }
 
     private fun getAuthHeaders(includeUserToken: Boolean = true): Map<String, String> {
@@ -107,6 +114,99 @@ object SupabaseService {
             headers["Authorization"] = "Bearer $ANON_KEY"
         }
         return headers
+    }
+
+    suspend fun refreshSession(): Result<String> = withContext(Dispatchers.IO) {
+        val refreshToken = prefs.getString(KEY_REFRESH_TOKEN, null)
+            ?: return@withContext Result.failure(Exception("No refresh token stored"))
+
+        try {
+            val bodyJson = buildJsonObject {
+                put("refresh_token", refreshToken)
+            }.toString()
+
+            val mediaType = "application/json; charset=utf-8".toMediaType()
+            val request = Request.Builder()
+                .url("$SUPABASE_URL/auth/v1/token?grant_type=refresh_token")
+                .post(bodyJson.toRequestBody(mediaType))
+                .header("apikey", ANON_KEY)
+                .header("Content-Type", "application/json")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                val bodyStr = response.body?.string() ?: ""
+                if (!response.isSuccessful) {
+                    val errorMsg = parseErrorMessage(bodyStr)
+                    // If refresh token is invalid/expired, perform logout so the user can re-authenticate
+                    if (response.code == 400 || response.code == 401) {
+                        logout()
+                    }
+                    return@withContext Result.failure(Exception(errorMsg))
+                }
+
+                val responseJson = json.parseToJsonElement(bodyStr).jsonObject
+                val newAccessToken = responseJson["access_token"]?.jsonPrimitive?.content
+                    ?: return@withContext Result.failure(Exception("Access token missing in response"))
+                val newRefreshToken = responseJson["refresh_token"]?.jsonPrimitive?.content
+                val userJson = responseJson["user"]?.jsonObject
+                val userId = userJson?.get("id")?.jsonPrimitive?.content
+
+                val editor = prefs.edit().putString(KEY_ACCESS_TOKEN, newAccessToken)
+                if (newRefreshToken != null) {
+                    editor.putString(KEY_REFRESH_TOKEN, newRefreshToken)
+                }
+                if (userId != null) {
+                    editor.putString(KEY_USER_ID, userId)
+                }
+                editor.apply()
+                _isLoggedIn.value = true
+
+                return@withContext Result.success(newAccessToken)
+            }
+        } catch (e: Exception) {
+            return@withContext Result.failure(e)
+        }
+    }
+
+    private fun isJwtExpiredResponse(response: okhttp3.Response): Boolean {
+        if (response.code == 401) return true
+        return try {
+            val peeked = response.peekBody(2048).string()
+            peeked.contains("JWT expired", ignoreCase = true)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private suspend fun executeAuthenticatedCall(
+        buildRequest: (headers: Map<String, String>) -> Request
+    ): okhttp3.Response = withContext(Dispatchers.IO) {
+        val headers = getAuthHeaders()
+        val request = buildRequest(headers)
+        var response = client.newCall(request).execute()
+        
+        if (!response.isSuccessful && isJwtExpiredResponse(response)) {
+            response.close()
+            // Synchronize token refresh using mutex
+            val refreshed = refreshMutex.withLock {
+                val currentToken = prefs.getString(KEY_ACCESS_TOKEN, null)
+                val usedToken = headers["Authorization"]?.removePrefix("Bearer ")
+                if (currentToken != null && currentToken != usedToken) {
+                    true
+                } else {
+                    refreshSession().isSuccess
+                }
+            }
+            if (refreshed) {
+                val newHeaders = getAuthHeaders()
+                val newRequest = buildRequest(newHeaders)
+                response = client.newCall(newRequest).execute()
+            } else {
+                // If refresh failed, retry once with the old headers to return the original error
+                response = client.newCall(request).execute()
+            }
+        }
+        response
     }
 
     suspend fun signUp(
@@ -150,14 +250,19 @@ object SupabaseService {
                 val userId = userJson["id"]?.jsonPrimitive?.content 
                     ?: return@withContext Result.failure(Exception("Failed to retrieve user ID from signup"))
                 val accessToken = responseJson["access_token"]?.jsonPrimitive?.content
+                val refreshToken = responseJson["refresh_token"]?.jsonPrimitive?.content
 
                 // If signup returned auto-login tokens, cache them
                 if (accessToken != null) {
-                    prefs.edit()
+                    val editor = prefs.edit()
                         .putString(KEY_ACCESS_TOKEN, accessToken)
                         .putString(KEY_USER_ID, userId)
                         .putString(KEY_USER_EMAIL, email)
-                        .apply()
+                    if (refreshToken != null) {
+                        editor.putString(KEY_REFRESH_TOKEN, refreshToken)
+                    }
+                    editor.apply()
+                    _isLoggedIn.value = true
                     userName = fullName
                 }
 
@@ -236,16 +341,21 @@ object SupabaseService {
                 val responseJson = json.parseToJsonElement(bodyStr).jsonObject
                 val accessToken = responseJson["access_token"]?.jsonPrimitive?.content 
                     ?: return@withContext Result.failure(Exception("Access token missing in response"))
+                val refreshToken = responseJson["refresh_token"]?.jsonPrimitive?.content
                 val userJson = responseJson["user"]?.jsonObject
                 val userId = userJson?.get("id")?.jsonPrimitive?.content 
                     ?: return@withContext Result.failure(Exception("User ID missing in response"))
 
                 // Save tokens temporarily to make profile fetch request
-                prefs.edit()
+                val editor = prefs.edit()
                     .putString(KEY_ACCESS_TOKEN, accessToken)
                     .putString(KEY_USER_ID, userId)
                     .putString(KEY_USER_EMAIL, email)
-                    .apply()
+                if (refreshToken != null) {
+                    editor.putString(KEY_REFRESH_TOKEN, refreshToken)
+                }
+                editor.apply()
+                _isLoggedIn.value = true
 
                 // Fetch user full name from profiles table
                 val fullName = fetchProfileName(userId)
@@ -286,18 +396,18 @@ object SupabaseService {
     suspend fun fetchPlantedTrees(): Result<List<PlantedTree>> = withContext(Dispatchers.IO) {
         val currentUserId = userId ?: return@withContext Result.failure(Exception("Not logged in"))
         try {
-            val headers = getAuthHeaders()
-            val request = Request.Builder()
-                .url("$SUPABASE_URL/rest/v1/trees?user_id=eq.$currentUserId&select=*&order=created_at.desc")
-                .get()
-                .apply {
-                    headers.forEach { (k, v) -> header(k, v) }
-                }
-                .build()
-
-            client.newCall(request).execute().use { response ->
-                val bodyStr = response.body?.string() ?: ""
-                if (!response.isSuccessful) {
+            val response = executeAuthenticatedCall { headers ->
+                Request.Builder()
+                    .url("$SUPABASE_URL/rest/v1/trees?user_id=eq.$currentUserId&select=*&order=created_at.desc")
+                    .get()
+                    .apply {
+                        headers.forEach { (k, v) -> header(k, v) }
+                    }
+                    .build()
+            }
+            response.use { resp ->
+                val bodyStr = resp.body?.string() ?: ""
+                if (!resp.isSuccessful) {
                     return@withContext Result.failure(Exception(parseErrorMessage(bodyStr)))
                 }
 
@@ -348,19 +458,19 @@ object SupabaseService {
             }.toString()
 
             val mediaType = "application/json; charset=utf-8".toMediaType()
-            val headers = getAuthHeaders()
-            val request = Request.Builder()
-                .url("$SUPABASE_URL/rest/v1/trees")
-                .post(treeBodyJson.toRequestBody(mediaType))
-                .apply {
-                    headers.forEach { (k, v) -> header(k, v) }
-                }
-                .header("Prefer", "return=representation")
-                .build()
-
-            client.newCall(request).execute().use { response ->
-                val bodyStr = response.body?.string() ?: ""
-                if (!response.isSuccessful) {
+            val response = executeAuthenticatedCall { headers ->
+                Request.Builder()
+                    .url("$SUPABASE_URL/rest/v1/trees")
+                    .post(treeBodyJson.toRequestBody(mediaType))
+                    .apply {
+                        headers.forEach { (k, v) -> header(k, v) }
+                    }
+                    .header("Prefer", "return=representation")
+                    .build()
+            }
+            response.use { resp ->
+                val bodyStr = resp.body?.string() ?: ""
+                if (!resp.isSuccessful) {
                     return@withContext Result.failure(Exception(parseErrorMessage(bodyStr)))
                 }
 
@@ -394,7 +504,7 @@ object SupabaseService {
         context.startActivity(intent)
     }
 
-    suspend fun handleOAuthCallback(accessToken: String): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun handleOAuthCallback(accessToken: String, refreshToken: String?): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
                 .url("$SUPABASE_URL/auth/v1/user")
@@ -420,11 +530,15 @@ object SupabaseService {
                     ?: userMetadata?.get("name")?.jsonPrimitive?.content
                     ?: email.substringBefore("@")
 
-                prefs.edit()
+                val editor = prefs.edit()
                     .putString(KEY_ACCESS_TOKEN, accessToken)
                     .putString(KEY_USER_ID, userId)
                     .putString(KEY_USER_EMAIL, email)
-                    .apply()
+                if (refreshToken != null) {
+                    editor.putString(KEY_REFRESH_TOKEN, refreshToken)
+                }
+                editor.apply()
+                _isLoggedIn.value = true
                 userName = fullName
 
                 insertProfile(userId, email, fullName)
@@ -519,26 +633,23 @@ object SupabaseService {
         val fullName: String = "",
         val age: String = "",
         val phone: String = "",
-        val doorNo: String = "",
-        val street: String = "",
-        val pincode: String = "",
-        val state: String = "",
-        val gender: String = "",
-        val birthDate: String = ""
+        val address: String = "",
+        val gender: String = ""
     )
 
     suspend fun fetchUserProfile(): Result<UserProfile> = withContext(Dispatchers.IO) {
         val id = userId ?: return@withContext Result.failure(Exception("Not logged in"))
         try {
-            val request = Request.Builder()
-                .url("$SUPABASE_URL/rest/v1/profiles?id=eq.$id&select=full_name,age,phone,door_no,street,pincode,state,gender,birth_date")
-                .get()
-                .header("apikey", ANON_KEY)
-                .header("Authorization", "Bearer $ANON_KEY")
-                .build()
-            client.newCall(request).execute().use { response ->
-                val body = response.body?.string() ?: ""
-                if (!response.isSuccessful) return@withContext Result.failure(Exception(parseErrorMessage(body)))
+            val response = executeAuthenticatedCall { headers ->
+                Request.Builder()
+                    .url("$SUPABASE_URL/rest/v1/profiles?id=eq.$id&select=full_name,age,phone,address,gender")
+                    .get()
+                    .apply { headers.forEach { (k, v) -> header(k, v) } }
+                    .build()
+            }
+            response.use { resp ->
+                val body = resp.body?.string() ?: ""
+                if (!resp.isSuccessful) return@withContext Result.failure(Exception(parseErrorMessage(body)))
                 val array = json.parseToJsonElement(body).jsonArray
                 if (array.isEmpty()) return@withContext Result.success(UserProfile())
                 val obj = array[0].jsonObject
@@ -546,12 +657,8 @@ object SupabaseService {
                     fullName  = obj["full_name"]?.jsonPrimitive?.contentOrNull ?: "",
                     age       = obj["age"]?.jsonPrimitive?.contentOrNull ?: "",
                     phone     = obj["phone"]?.jsonPrimitive?.contentOrNull ?: "",
-                    doorNo    = obj["door_no"]?.jsonPrimitive?.contentOrNull ?: "",
-                    street    = obj["street"]?.jsonPrimitive?.contentOrNull ?: "",
-                    pincode   = obj["pincode"]?.jsonPrimitive?.contentOrNull ?: "",
-                    state     = obj["state"]?.jsonPrimitive?.contentOrNull ?: "",
-                    gender    = obj["gender"]?.jsonPrimitive?.contentOrNull ?: "",
-                    birthDate = obj["birth_date"]?.jsonPrimitive?.contentOrNull ?: ""
+                    address   = obj["address"]?.jsonPrimitive?.contentOrNull ?: "",
+                    gender    = obj["gender"]?.jsonPrimitive?.contentOrNull ?: ""
                 ))
             }
         } catch (e: Exception) {
@@ -566,24 +673,21 @@ object SupabaseService {
                 put("full_name", profile.fullName)
                 put("age", profile.age)
                 put("phone", profile.phone)
-                put("door_no", profile.doorNo)
-                put("street", profile.street)
-                put("pincode", profile.pincode)
-                put("state", profile.state)
+                put("address", profile.address)
                 put("gender", profile.gender)
-                put("birth_date", profile.birthDate)
             }.toString()
             val mediaType = "application/json; charset=utf-8".toMediaType()
-            val headers = getAuthHeaders()
-            val request = Request.Builder()
-                .url("$SUPABASE_URL/rest/v1/profiles?id=eq.$id")
-                .patch(bodyJson.toRequestBody(mediaType))
-                .apply { headers.forEach { (k, v) -> header(k, v) } }
-                .header("Prefer", "return=minimal")
-                .build()
-            client.newCall(request).execute().use { response ->
-                val body = response.body?.string() ?: ""
-                if (!response.isSuccessful) return@withContext Result.failure(Exception(parseErrorMessage(body)))
+            val response = executeAuthenticatedCall { headers ->
+                Request.Builder()
+                    .url("$SUPABASE_URL/rest/v1/profiles?id=eq.$id")
+                    .patch(bodyJson.toRequestBody(mediaType))
+                    .apply { headers.forEach { (k, v) -> header(k, v) } }
+                    .header("Prefer", "return=minimal")
+                    .build()
+            }
+            response.use { resp ->
+                val body = resp.body?.string() ?: ""
+                if (!resp.isSuccessful) return@withContext Result.failure(Exception(parseErrorMessage(body)))
                 // Update cached name
                 userName = profile.fullName
                 return@withContext Result.success(Unit)

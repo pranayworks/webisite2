@@ -117,13 +117,27 @@ fun ProfileMainPage(
     LaunchedEffect(Unit) {
         SupabaseService.fetchUserProfile().onSuccess { p ->
             if (p.fullName.isNotBlank()) fullName = p.fullName
-            birthDate = p.birthDate
             phone = p.phone
-            doorNo = p.doorNo
-            street = p.street
-            pincode = p.pincode
-            state = p.state
             gender = p.gender
+            
+            // Parse age to birthDate if possible
+            val ageVal = p.age.toIntOrNull()
+            if (ageVal != null && ageVal > 0) {
+                val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+                birthDate = "01/01/${currentYear - ageVal}"
+            }
+            
+            // Parse combined address
+            val addr = p.address
+            if (addr.contains(" | ")) {
+                val parts = addr.split(" | ")
+                doorNo = parts.getOrNull(0) ?: ""
+                street = parts.getOrNull(1) ?: ""
+                state = parts.getOrNull(2) ?: ""
+                pincode = parts.getOrNull(3) ?: ""
+            } else {
+                street = addr
+            }
         }
     }
 
@@ -553,22 +567,44 @@ fun ProfileMainPage(
                                         saveSuccess = false
                                         saveError = ""
                                         scope.launch {
+                                            val calculatedAge = try {
+                                                val parts = birthDate.split("/")
+                                                val day = parts[0].toInt()
+                                                val month = parts[1].toInt()
+                                                val year = parts[2].toInt()
+                                                val birthCal = java.util.Calendar.getInstance().apply {
+                                                    set(year, month - 1, day)
+                                                }
+                                                val today = java.util.Calendar.getInstance()
+                                                var calculated = today.get(java.util.Calendar.YEAR) - birthCal.get(java.util.Calendar.YEAR)
+                                                if (today.get(java.util.Calendar.DAY_OF_YEAR) < birthCal.get(java.util.Calendar.DAY_OF_YEAR)) {
+                                                    calculated--
+                                                }
+                                                calculated.toString()
+                                            } catch (e: Exception) {
+                                                ""
+                                            }
+
+                                            val combinedAddress = "$doorNo | $street | $state | $pincode"
+
                                             val result = SupabaseService.updateProfile(
                                                 SupabaseService.UserProfile(
                                                     fullName = fullName,
-                                                    birthDate = birthDate,
+                                                    age = calculatedAge,
                                                     phone = phone,
-                                                    doorNo = doorNo,
-                                                    street = street,
-                                                    pincode = pincode,
-                                                    state = state,
+                                                    address = combinedAddress,
                                                     gender = gender
                                                 )
                                             )
                                             isSaving = false
                                             result.fold(
                                                 onSuccess = { saveSuccess = true },
-                                                onFailure = { saveError = it.message ?: "Save failed. Please try again." }
+                                                onFailure = { 
+                                                    saveError = it.message ?: "Save failed. Please try again."
+                                                    if (!SupabaseService.isLoggedIn()) {
+                                                        onSignOut()
+                                                    }
+                                                }
                                             )
                                         }
                                     }
