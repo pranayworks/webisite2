@@ -3,6 +3,7 @@ package com.example.greenlegacy.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -35,6 +36,15 @@ import com.example.greenlegacy.theme.GlassBorderWhite
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.animation.Crossfade
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Eco
 
 data class WelcomeSlide(
     val imageRes: Int,
@@ -176,6 +186,56 @@ fun WelcomeScreen(
                                 .height(5.dp)
                                 .clip(RoundedCornerShape(2.5.dp))
                                 .background(color)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Beautiful rotating environmental quote banner
+            val welcomeQuotes = remember {
+                listOf(
+                    "\"The best time to plant a tree was 20 years ago. The second best time is now.\" — Chinese Proverb",
+                    "\"Someone is sitting in the shade today because someone planted a tree a long time ago.\" — Warren Buffett",
+                    "\"To plant a garden is to believe in tomorrow.\" — Audrey Hepburn",
+                    "\"He that plants trees loves others besides himself.\" — Thomas Fuller"
+                )
+            }
+            var quoteIndex by remember { mutableStateOf(0) }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    delay(6000)
+                    quoteIndex = (quoteIndex + 1) % welcomeQuotes.size
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .border(1.dp, Color(0xFFDCFCE7), RoundedCornerShape(12.dp))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Eco,
+                        contentDescription = null,
+                        tint = Color(0xFF16A34A),
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Crossfade(targetState = welcomeQuotes[quoteIndex], label = "WelcomeQuoteFade") { quote ->
+                        Text(
+                            text = quote,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            fontStyle = FontStyle.Italic,
+                            color = Color(0xFF047857),
+                            lineHeight = 15.sp
                         )
                     }
                 }

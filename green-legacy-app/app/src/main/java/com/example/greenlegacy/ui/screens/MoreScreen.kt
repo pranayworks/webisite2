@@ -141,6 +141,57 @@ fun MoreMenuContent(
                 }
             }
 
+            Spacer(Modifier.height(16.dp))
+
+            // Beautiful rotating environmental quote card
+            val moreQuotes = remember {
+                listOf(
+                    "\"The best time to plant a tree was 20 years ago. The second best time is now.\" — Chinese Proverb",
+                    "\"Someone is sitting in the shade today because someone planted a tree a long time ago.\" — Warren Buffett",
+                    "\"To plant a garden is to believe in tomorrow.\" — Audrey Hepburn",
+                    "\"He that plants trees loves others besides himself.\" — Thomas Fuller",
+                    "\"Trees are poems that the earth writes upon the sky.\" — Kahlil Gibran"
+                )
+            }
+            var quoteIndex by remember { mutableStateOf(0) }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    kotlinx.coroutines.delay(6500)
+                    quoteIndex = (quoteIndex + 1) % moreQuotes.size
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color(0xFFDCFCE7), RoundedCornerShape(16.dp))
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Eco,
+                        contentDescription = null,
+                        tint = Color(0xFF16A34A),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Crossfade(targetState = moreQuotes[quoteIndex], label = "MoreQuoteFade") { quote ->
+                        Text(
+                            text = quote,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            color = Color(0xFF047857),
+                            lineHeight = 15.sp
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(20.dp))
 
             // ── Quick Links ───────────────────────────────────────────────────
