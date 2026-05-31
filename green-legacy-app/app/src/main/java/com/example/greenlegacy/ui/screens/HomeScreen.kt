@@ -41,6 +41,9 @@ import com.example.greenlegacy.theme.*
 import com.example.greenlegacy.ui.components.GlassButton
 import com.example.greenlegacy.ui.components.GlassCard
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardCapitalization
 
@@ -401,10 +404,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Philosophy Quote Card
-        QuoteCard(
-            quote = "The best time to plant a tree was 20 years ago. The second best time is now.",
-            author = "Chinese Proverb"
-        )
+        QuoteCard()
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -1236,12 +1236,33 @@ fun HomeScreen(
 }
 
 
+data class QuoteItem(val text: String, val author: String)
+
 @Composable
 fun QuoteCard(
-    quote: String,
-    author: String,
     modifier: Modifier = Modifier
 ) {
+    val quotes = remember {
+        listOf(
+            QuoteItem("The best time to plant a tree was 20 years ago. The second best time is now.", "Chinese Proverb"),
+            QuoteItem("Someone is sitting in the shade today because someone planted a tree a long time ago.", "Warren Buffett"),
+            QuoteItem("To plant a tree is to believe in tomorrow.", "Audrey Hepburn"),
+            QuoteItem("A nation that destroys its soils destroys itself. Forests are the lungs of our land.", "Franklin D. Roosevelt"),
+            QuoteItem("He that plants trees loves others besides himself.", "Thomas Fuller"),
+            QuoteItem("The creation of a thousand forests is in one acorn.", "Ralph Waldo Emerson"),
+            QuoteItem("Trees are poems that the earth writes upon the sky.", "Kahlil Gibran")
+        )
+    }
+
+    var currentQuoteIndex by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(7000) // Rotate quote every 7 seconds
+            currentQuoteIndex = (currentQuoteIndex + 1) % quotes.size
+        }
+    }
+
     GlassCard(
         modifier = modifier.fillMaxWidth(),
         cornerRadius = 20.dp,
@@ -1260,22 +1281,30 @@ fun QuoteCard(
                     .graphicsLayer { rotationZ = 180f }
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = quote,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontStyle = FontStyle.Italic,
-                    color = Color.Black,
-                    lineHeight = 22.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "— $author",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black.copy(alpha = 0.6f)
-                )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .animateContentSize()
+            ) {
+                Crossfade(targetState = quotes[currentQuoteIndex], label = "QuoteFade") { quote ->
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = quote.text,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            fontStyle = FontStyle.Italic,
+                            color = Color.Black,
+                            lineHeight = 22.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "— ${quote.author}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black.copy(alpha = 0.6f)
+                        )
+                    }
+                }
             }
         }
     }
