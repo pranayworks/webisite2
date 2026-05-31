@@ -853,5 +853,154 @@ object SupabaseService {
             "Server Response: $jsonStr"
         }
     }
+
+    // ── Razorpay Payment Helpers ─────────────────────────────────────────────
+
+    /**
+     * Step 1: Create a Razorpay order on the server.
+     * Returns orderId, amount (in paise), currency, and the public Razorpay Key ID.
+     */
+    data class MobileOrderResponse(
+        val orderId: String,
+        val amount: Int,
+        val currency: String,
+        val trees: Int,
+        val razorpayKeyId: String
+    )
+
+    suspend fun createMobileOrder(planName: String): Result<MobileOrderResponse> = withContext(Dispatchers.IO) {
+        val currentUserId = userId ?: return@withContext Result.failure(Exception("Not logged in"))
+        val serverUrls = listOf(
+            "https://greenlegacy.in/api/mobile-order",
+            "http://localhost:3000/api/mobile-order",
+            "http://127.0.0.1:3000/api/mobile-order",
+            "http://10.68.224.146:3000/api/mobile-order",
+            "http://10.0.2.2:3000/api/mobile-order",
+            "http://192.168.1.10:3000/api/mobile-order"
+        )
+
+        val payload = buildJsonObject {
+            put("planName", planName)
+            put("userId", currentUserId)
+        }.toString()
+
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+
+        for (url in serverUrls) {
+            try {
+                val request = Request.Builder()
+                    .url(url)
+                    .post(payload.toRequestBody(mediaType))
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    val bodyStr = response.body?.string() ?: ""
+                    if (response.isSuccessful) {
+                        val obj = json.parseToJsonElement(bodyStr).jsonObject
+                        val orderId = obj["orderId"]?.jsonPrimitive?.content ?: ""
+                        val amount = obj["amount"]?.jsonPrimitive?.int ?: 0
+                        val currency = obj["currency"]?.jsonPrimitive?.content ?: "INR"
+                        val trees = obj["trees"]?.jsonPrimitive?.int ?: 1
+                        val keyId = obj["razorpayKeyId"]?.jsonPrimitive?.content ?: ""
+                        if (orderId.isNotEmpty()) {
+                            return@withContext Result.success(
+                                MobileOrderResponse(orderId, amount, currency, trees, keyId)
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("SupabaseService", "createMobileOrder failed for $url: ${e.message}")
+            }
+        }
+        return@withContext Result.failure(Exception("Could not reach payment server. Check your connection."))
+    }
+
+    /**
+     * Step 2: After Razorpay payment success, verify the signature and record the order.
+     * This calls /api/mobile-payment which verifies HMAC-SHA256 signature, saves to DB,
+     * sends email receipt, and fires Telegram/admin alerts.
+     */
+    suspend fun verifyMobilePayment(
+        razorpayPaymentId: String,
+        razorpayOrderId: String,
+        razorpaySignature: String,
+        planName: String,
+        occasion: String,
+        amountPaid: Double,
+        isGift: Boolean,
+        recipientName: String,
+        recipientEmail: String,
+        giftMessage: String,
+        location: String = "GKVK Campus",
+        coordinates: String = "12.9716° N, 77.5946° E"
+    ): Result<String> = withContext(Dispatchers.IO) {
+        val currentUserId = userId ?: return@withContext Result.failure(Exception("Not logged in"))
+        val treesCount = if (planName == "Legacy") 3 else 1
+
+        val payload = buildJsonObject {
+            put("userId", currentUserId)
+            put("stewardName", userName ?: "Steward")
+            put("userEmail", userEmail ?: "")
+            put("trees", treesCount)
+            put("planName", planName)
+            put("occasion", occasion)
+            put("amountPaid", amountPaid)
+            put("paymentId", razorpayPaymentId)
+            put("orderId", razorpayOrderId)
+            put("signature", razorpaySignature)
+            put("orderKey", razorpayOrderId)
+            put("isGift", isGift)
+            put("recipientName", if (isGift) recipientName else (userName ?: "Myself"))
+            put("recipientEmail", recipientEmail)
+            put("giftMessage", giftMessage)
+            put("location", location)
+            put("coordinates", coordinates)
+        }.toString()
+
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+        val serverUrls = listOf(
+            "https://greenlegacy.in/api/mobile-payment",
+            "http://localhost:3000/api/mobile-payment",
+            "http://127.0.0.1:3000/api/mobile-payment",
+            "http://10.68.224.146:3000/api/mobile-payment",
+            "http://10.0.2.2:3000/api/mobile-payment",
+            "http://192.168.1.10:3000/api/mobile-payment"
+        )
+
+        for (url in serverUrls) {
+            try {
+                val request = Request.Builder()
+                    .url(url)
+                    .post(payload.toRequestBody(mediaType))
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    val bodyStr = response.body?.string() ?: ""
+                    if (response.isSuccessful) {
+                        val obj = json.parseToJsonElement(bodyStr).jsonObject
+                        val success = obj["success"]?.jsonPrimitive?.booleanOrNull ?: false
+                        val dbOrderId = obj["orderId"]?.jsonPrimitive?.content ?: ""
+                        if (success) {
+                            // Also update profile tree count in cache
+                            try {
+                                val currentCount = fetchProfileTreesPlanted(currentUserId)
+                                updateProfileTreesPlanted(currentUserId, currentCount + treesCount)
+                            } catch (e: Exception) {
+                                android.util.Log.w("SupabaseService", "Profile tree count update failed: ${e.message}")
+                            }
+                            return@withContext Result.success(dbOrderId)
+                        } else {
+                            val errMsg = obj["error"]?.jsonPrimitive?.content ?: "Payment verification failed"
+                            return@withContext Result.failure(Exception(errMsg))
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("SupabaseService", "verifyMobilePayment failed for $url: ${e.message}")
+            }
+        }
+        return@withContext Result.failure(Exception("Could not verify payment. Please contact support."))
+    }
 }
 

@@ -12,9 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.example.greenlegacy.theme.GreenLegacyTheme
 import com.example.greenlegacy.data.SupabaseService
+import com.example.greenlegacy.ui.screens.RazorpayPaymentState
+import com.razorpay.PaymentResultWithDataListener
+import com.razorpay.PaymentData
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     
@@ -26,13 +30,17 @@ class MainActivity : ComponentActivity() {
 
     enableEdgeToEdge()
     setContent {
-      GreenLegacyTheme { Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { MainNavigation() } }
+      GreenLegacyTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+          MainNavigation()
+        }
+      }
     }
   }
 
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
-    setIntent(intent) // Update activity intent
+    setIntent(intent)
     handleIntent(intent)
   }
 
@@ -57,5 +65,25 @@ class MainActivity : ComponentActivity() {
         }
       }
     }
+  }
+
+  // ── Razorpay Payment Result Callbacks (PaymentResultWithDataListener) ───────
+
+  /**
+   * Called when user successfully completes payment via Razorpay checkout.
+   */
+  override fun onPaymentSuccess(razorpayPaymentId: String?, paymentData: PaymentData?) {
+    val paymentId = razorpayPaymentId ?: ""
+    val orderId = paymentData?.orderId ?: RazorpayPaymentState.currentOrderId
+    val signature = paymentData?.signature ?: ""
+    RazorpayPaymentState.onPaymentSuccess?.invoke(paymentId, orderId, signature)
+  }
+
+  /**
+   * Called when payment fails or user cancels the Razorpay sheet.
+   */
+  override fun onPaymentError(errorCode: Int, description: String?, paymentData: PaymentData?) {
+    val desc = description ?: "Payment was not completed"
+    RazorpayPaymentState.onPaymentError?.invoke(errorCode, desc)
   }
 }

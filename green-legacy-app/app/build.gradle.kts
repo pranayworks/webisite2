@@ -15,9 +15,19 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("greenlegacy-upload-key.jks")
+            storePassword = "greenlegacy123"
+            keyAlias = "greenlegacy"
+            keyPassword = "greenlegacy123"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -88,4 +98,7 @@ dependencies {
   implementation(libs.google.maps.compose)
   implementation(libs.play.services.maps)
   implementation(libs.kotlinx.serialization.json)
+
+  // Razorpay Android Payment SDK (1.6.33 is stable without standard-core/core namespace conflict)
+  implementation("com.razorpay:checkout:1.6.33")
 }

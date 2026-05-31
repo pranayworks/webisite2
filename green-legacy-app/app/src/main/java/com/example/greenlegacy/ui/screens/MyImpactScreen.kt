@@ -235,7 +235,7 @@ fun DetailedTreeItemCard(
             }
 
             Spacer(modifier = Modifier.height(10.dp))
-            Divider(color = LocalContentColor.current.copy(alpha = 0.2f), thickness = 0.5.dp)
+            HorizontalDivider(color = LocalContentColor.current.copy(alpha = 0.2f), thickness = 0.5.dp)
             Spacer(modifier = Modifier.height(10.dp))
 
             Row(

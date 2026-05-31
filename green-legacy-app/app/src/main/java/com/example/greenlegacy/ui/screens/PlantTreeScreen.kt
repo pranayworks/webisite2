@@ -1,5 +1,6 @@
 package com.example.greenlegacy.ui.screens
 
+import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -21,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -30,8 +32,20 @@ import com.example.greenlegacy.data.SupabaseService
 import com.example.greenlegacy.theme.GreenPrimary
 import com.example.greenlegacy.theme.GreenDark
 import com.example.greenlegacy.theme.GlassBorderWhite
+import com.razorpay.Checkout
+import com.razorpay.PaymentResultListener
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.json.JSONObject
+
+// ── Shared state so Razorpay callbacks (from Activity) can update Compose UI ──
+object RazorpayPaymentState {
+    var onPaymentSuccess: ((paymentId: String, orderId: String, signature: String) -> Unit)? = null
+    var onPaymentError: ((code: Int, description: String) -> Unit)? = null
+    // Stored before checkout opens so MainActivity's simple listener can retrieve them
+    var currentOrderId: String = ""
+    var currentSignature: String = ""
+}
 
 @Composable
 fun PlantTreeScreen(
@@ -40,6 +54,7 @@ fun PlantTreeScreen(
 ) {
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // ── STATE VARIABLES ──────────────────────────────────────────────────────
     var selectedTier by remember { mutableStateOf("Sapling") }
@@ -52,11 +67,11 @@ fun PlantTreeScreen(
     var giftMessage by remember { mutableStateOf("") }
 
     // Checkout UI States
-    var selectedPaymentMethod by remember { mutableStateOf("UPI") }
     var isPaying by remember { mutableStateOf(false) }
     var paymentStatusText by remember { mutableStateOf("") }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var currentRazorpayOrderId by remember { mutableStateOf("") }
 
     // Calculated fields
     val packagePrice = when (selectedTier) {
@@ -76,17 +91,124 @@ fun PlantTreeScreen(
 
     // Inspiring tree quotes
     val quotes = listOf(
-        "\"The best time to plant a tree was 20 years ago. The second best time is now.\" - Chinese Proverb",
-        "\"He who plants a tree plants a hope.\" - Lucy Larcom",
-        "\"To plant a garden is to believe in tomorrow.\" - Audrey Hepburn",
-        "\"A nation that destroys its soils destroys itself. Forests are the lungs of our land.\" - Franklin D. Roosevelt"
+        "\"The best time to plant a tree was 20 years ago. The second best time is now.\" — Chinese Proverb",
+        "\"He who plants a tree plants a hope.\" — Lucy Larcom",
+        "\"To plant a garden is to believe in tomorrow.\" — Audrey Hepburn",
+        "\"A nation that destroys its soils destroys itself. Forests are the lungs of our land.\" — Roosevelt"
     )
     val randomQuote = remember { quotes.random() }
+
+    // ── Register Razorpay callbacks ──────────────────────────────────────────
+    DisposableEffect(Unit) {
+        // Preload Razorpay for faster checkout launch
+        Checkout.preload(context)
+
+        RazorpayPaymentState.onPaymentSuccess = { paymentId, orderId, signature ->
+            scope.launch {
+                paymentStatusText = "Verifying payment..."
+                val mockCoords = "${(10..22).random()}.${(1000..9999).random()}° N, ${(72..85).random()}.${(1000..9999).random()}° E"
+                val dbRecipient = if (isGift) recipientName else (SupabaseService.userName ?: "Myself")
+
+                val result = SupabaseService.verifyMobilePayment(
+                    razorpayPaymentId = paymentId,
+                    razorpayOrderId = orderId,
+                    razorpaySignature = signature,
+                    planName = selectedTier,
+                    occasion = selectedOccasion,
+                    amountPaid = totalAmount.toDouble(),
+                    isGift = isGift,
+                    recipientName = dbRecipient,
+                    recipientEmail = recipientEmail,
+                    giftMessage = giftMessage,
+                    location = "GKVK Campus",
+                    coordinates = mockCoords
+                )
+
+                isPaying = false
+                result.fold(
+                    onSuccess = {
+                        showSuccessDialog = true
+                        // Auto-redirect to Steward Dashboard after 3 seconds
+                        scope.launch {
+                            delay(3000)
+                            if (showSuccessDialog) {
+                                showSuccessDialog = false
+                                onOrderPlaced()
+                                recipientName = ""
+                                recipientEmail = ""
+                                giftMessage = ""
+                            }
+                        }
+                    },
+                    onFailure = { error ->
+                        errorMessage = error.message ?: "Payment verification failed. Please contact support."
+                    }
+                )
+            }
+        }
+
+        RazorpayPaymentState.onPaymentError = { code, description ->
+            isPaying = false
+            errorMessage = when (code) {
+                0 -> "Payment cancelled."
+                else -> "Payment failed (Code $code): $description"
+            }
+        }
+
+        onDispose {
+            RazorpayPaymentState.onPaymentSuccess = null
+            RazorpayPaymentState.onPaymentError = null
+        }
+    }
+
+    // ── Launch Razorpay Checkout ─────────────────────────────────────────────
+    fun launchRazorpayCheckout(orderResponse: SupabaseService.MobileOrderResponse) {
+        try {
+            val activity = context as? Activity ?: run {
+                errorMessage = "Unable to open payment window"
+                isPaying = false
+                return
+            }
+            // Store orderId so MainActivity's PaymentResultListener can retrieve it
+            RazorpayPaymentState.currentOrderId = orderResponse.orderId
+            RazorpayPaymentState.currentSignature = ""
+
+            val checkout = Checkout()
+            checkout.setKeyID(orderResponse.razorpayKeyId)
+            checkout.setImage(android.R.mipmap.sym_def_app_icon)
+
+            val options = JSONObject().apply {
+                put("name", "Green Legacy")
+                put("description", "$selectedTier Sponsorship – $selectedOccasion")
+                put("image", "https://greenlegacy.in/favicon.ico")
+                put("order_id", orderResponse.orderId)
+                put("currency", orderResponse.currency)
+                put("amount", orderResponse.amount)
+                put("prefill", JSONObject().apply {
+                    put("email", SupabaseService.userEmail ?: "")
+                    put("name", SupabaseService.userName ?: "Steward")
+                })
+                put("theme", JSONObject().apply {
+                    put("color", "#064E3B")
+                })
+                put("notes", JSONObject().apply {
+                    put("plan", selectedTier)
+                    put("occasion", selectedOccasion)
+                    put("species", selectedSpecies)
+                    put("isGift", isGift.toString())
+                })
+            }
+            checkout.open(activity, options)
+        } catch (e: Exception) {
+            isPaying = false
+            errorMessage = "Failed to open payment gateway: ${e.message}"
+        }
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC)) // Ultra-light grey-blue background for contrast
+            .background(Color(0xFFF8FAFC))
             .verticalScroll(scrollState)
             .padding(bottom = 32.dp)
     ) {
@@ -96,7 +218,7 @@ fun PlantTreeScreen(
                 .fillMaxWidth()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFF064E3B), Color(0xFF022C22)) // Forest Green Gradient
+                        listOf(Color(0xFF064E3B), Color(0xFF022C22))
                     )
                 )
                 .padding(horizontal = 20.dp, vertical = 32.dp)
@@ -110,13 +232,13 @@ fun PlantTreeScreen(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Join our mission to plant native species on verified campuses.",
+                    text = "Plant a verified native tree. Make it meaningful.",
                     fontSize = 13.sp,
                     color = Color.White.copy(0.7f)
                 )
                 Spacer(Modifier.height(16.dp))
 
-                // Beautiful motivational quote card inside header
+                // Motivational quote card
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -145,7 +267,6 @@ fun PlantTreeScreen(
             SectionHeader(stepNum = "1", title = "Select Sponsorship Package")
             Spacer(Modifier.height(10.dp))
 
-            // Seedling Card (₹299)
             PackageCard(
                 name = "Seedling",
                 price = "₹299",
@@ -157,7 +278,6 @@ fun PlantTreeScreen(
             )
             Spacer(Modifier.height(10.dp))
 
-            // Sapling Card (₹599) - BEST VALUE
             PackageCard(
                 name = "Sapling",
                 price = "₹599",
@@ -169,7 +289,6 @@ fun PlantTreeScreen(
             )
             Spacer(Modifier.height(10.dp))
 
-            // Legacy Card (₹1,999) - PREMIUM
             PackageCard(
                 name = "Legacy",
                 price = "₹1,999",
@@ -193,7 +312,6 @@ fun PlantTreeScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    // Occasion selection header
                     Text(
                         text = "Select Occasion",
                         fontSize = 14.sp,
@@ -202,7 +320,6 @@ fun PlantTreeScreen(
                     )
                     Spacer(Modifier.height(10.dp))
 
-                    // Occasion row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -229,15 +346,14 @@ fun PlantTreeScreen(
                                 modifier = Modifier.weight(1f)
                             )
                         }
-                        // Spacer to fill the third column in the second row
                         Spacer(Modifier.weight(1f))
                     }
 
                     Spacer(Modifier.height(20.dp))
-                    Divider(color = Color(0xFFF1F5F9))
+                    HorizontalDivider(color = Color(0xFFF1F5F9))
                     Spacer(Modifier.height(16.dp))
 
-                    // "Is this a gift?" selection switch card
+                    // "Is this a gift?" toggle
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -277,7 +393,7 @@ fun PlantTreeScreen(
                         )
                     }
 
-                    // Conditional details expansion with animation
+                    // Conditional recipient details
                     AnimatedVisibility(visible = isGift) {
                         Column(modifier = Modifier.padding(top = 16.dp)) {
                             Text(
@@ -315,7 +431,7 @@ fun PlantTreeScreen(
                                 value = giftMessage,
                                 onValueChange = { giftMessage = it },
                                 label = { Text("Gift Message (Optional)") },
-                                placeholder = { Text("Write a warm environment message...") },
+                                placeholder = { Text("Write a warm environmental message...") },
                                 minLines = 2,
                                 maxLines = 4,
                                 modifier = Modifier.fillMaxWidth(),
@@ -329,7 +445,7 @@ fun PlantTreeScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // ── 4. STEP 3: PAYMENT SUMMARY & TRUST ────────────────────────────
+            // ── 4. STEP 3: ORDER SUMMARY & PAYMENT ────────────────────────────
             SectionHeader(stepNum = "3", title = "Order Summary & Payment")
             Spacer(Modifier.height(10.dp))
 
@@ -357,7 +473,7 @@ fun PlantTreeScreen(
                         Text("₹$gstAmount.00", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
                     }
                     Spacer(Modifier.height(10.dp))
-                    Divider(color = Color(0xFFF1F5F9))
+                    HorizontalDivider(color = Color(0xFFF1F5F9))
                     Spacer(Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -369,61 +485,34 @@ fun PlantTreeScreen(
                     }
 
                     Spacer(Modifier.height(20.dp))
-                    Divider(color = Color(0xFFF1F5F9))
+                    HorizontalDivider(color = Color(0xFFF1F5F9))
                     Spacer(Modifier.height(16.dp))
 
-                    // Payment Method selector (UPI / CARD tabs)
+                    // Accepted payment methods label
                     Text(
-                        text = "Choose Payment Option",
+                        text = "Accepted Payment Methods",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )
                     Spacer(Modifier.height(10.dp))
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(Color(0xFFF8FAFC), RoundedCornerShape(12.dp))
-                            .padding(4.dp)
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (selectedPaymentMethod == "UPI") Color.White else Color.Transparent)
-                                .border(
-                                    1.dp,
-                                    if (selectedPaymentMethod == "UPI") Color(0xFF16A34A).copy(0.15f) else Color.Transparent,
-                                    RoundedCornerShape(10.dp)
-                                )
-                                .clickable { selectedPaymentMethod = "UPI" }
-                                .padding(vertical = 10.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("UPI (GPay / PhonePe)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedPaymentMethod == "UPI") Color(0xFF16A34A) else Color.Gray)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (selectedPaymentMethod == "CARD") Color.White else Color.Transparent)
-                                .border(
-                                    1.dp,
-                                    if (selectedPaymentMethod == "CARD") Color(0xFF16A34A).copy(0.15f) else Color.Transparent,
-                                    RoundedCornerShape(10.dp)
-                                )
-                                .clickable { selectedPaymentMethod = "CARD" }
-                                .padding(vertical = 10.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Credit / Debit Card", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedPaymentMethod == "CARD") Color(0xFF16A34A) else Color.Gray)
-                        }
+                        PaymentMethodBadge("UPI", "⚡")
+                        PaymentMethodBadge("Cards", "💳")
+                        PaymentMethodBadge("Net Banking", "🏦")
+                        PaymentMethodBadge("Wallets", "📱")
                     }
 
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(16.dp))
 
-                    // Trust/Security indications
+                    // Trust/Security indicators
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -433,115 +522,102 @@ fun PlantTreeScreen(
                         TrustBadge(icon = Icons.Default.CheckCircle, text = "Geo-Tagged")
                     }
 
+                    // Razorpay branding
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "🔒 Powered by Razorpay — India's most trusted payment gateway",
+                        fontSize = 10.sp,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
                     if (errorMessage.isNotEmpty()) {
                         Spacer(Modifier.height(10.dp))
-                        Text(errorMessage, fontSize = 12.sp, color = Color(0xFFDC2626), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                        Card(
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF1F1))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Warning, null, tint = Color(0xFFDC2626), modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(errorMessage, fontSize = 12.sp, color = Color(0xFFDC2626), lineHeight = 16.sp)
+                            }
+                        }
                     }
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Checkout Button
+                    // ── CHECKOUT BUTTON ────────────────────────────────────────
                     Button(
                         onClick = {
                             if (isGift && (recipientName.isBlank() || recipientEmail.isBlank())) {
-                                errorMessage = "Please enter recipient details"
-                            } else {
-                                errorMessage = ""
-                                isPaying = true
-                                scope.launch {
-                                    paymentStatusText = "Connecting secure payment gateway..."
-                                    delay(1500)
-                                    paymentStatusText = "Processing request mandate..."
-                                    delay(1200)
-                                    paymentStatusText = "Verifying environmental ledger..."
-                                    delay(1000)
+                                errorMessage = "Please enter recipient name and email"
+                                return@Button
+                            }
+                            errorMessage = ""
+                            isPaying = true
+                            paymentStatusText = "Creating secure order..."
 
-                                    // Trigger backend database record
-                                    val dbRecipient = if (isGift) recipientName else (SupabaseService.userName ?: "Myself")
-                                    val mockCoords = "${(10..22).random()}.${(1000..9999).random()}° N, ${(72..85).random()}.${(1000..9999).random()}° E"
-                                    
-                                    val result = SupabaseService.plantNewTree(
-                                        recipient = dbRecipient,
-                                        occasion = selectedOccasion,
-                                        campus = "GKVK Campus", // Defaulted internally as campus selection is removed
-                                        species = selectedSpecies,
-                                        coordinates = mockCoords,
-                                        planName = selectedTier,
-                                        amountPaid = totalAmount.toDouble(),
-                                        isGift = isGift,
-                                        recipientEmail = recipientEmail,
-                                        giftMessage = giftMessage
-                                    )
-                                    
-                                    isPaying = false
-                                    result.fold(
-                                        onSuccess = {
-                                            showSuccessDialog = true
-                                            scope.launch {
-                                                delay(2500)
-                                                if (showSuccessDialog) {
-                                                    showSuccessDialog = false
-                                                    onOrderPlaced()
-                                                    recipientName = ""
-                                                    recipientEmail = ""
-                                                    giftMessage = ""
-                                                }
-                                            }
-                                        },
-                                        onFailure = { error ->
-                                            errorMessage = error.message ?: "Transaction failed. Please try again."
-                                        }
-                                    )
-                                }
+                            scope.launch {
+                                val orderResult = SupabaseService.createMobileOrder(selectedTier)
+                                orderResult.fold(
+                                    onSuccess = { orderResponse ->
+                                        currentRazorpayOrderId = orderResponse.orderId
+                                        paymentStatusText = "Opening payment gateway..."
+                                        launchRazorpayCheckout(orderResponse)
+                                        // isPaying stays true until Razorpay callbacks fire
+                                    },
+                                    onFailure = { error ->
+                                        isPaying = false
+                                        errorMessage = error.message ?: "Failed to initialize payment. Try again."
+                                    }
+                                )
                             }
                         },
                         enabled = !isPaying,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp),
+                            .height(56.dp),
                         shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF16A34A))
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF064E3B))
                     ) {
-                        Icon(Icons.Default.Security, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = if (isPaying) "Authorizing..." else "Secure Payment  |  ₹$totalAmount",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
+                        if (isPaying) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                text = paymentStatusText.ifEmpty { "Processing..." },
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        } else {
+                            Icon(Icons.Default.Lock, null, tint = Color(0xFFB2F432), modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Pay Securely  |  ₹$totalAmount",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
                     }
                 }
             }
         }
     }
 
-    // ── Payment Processing Dialog ─────────────────────────────────────────────
-    if (isPaying) {
-        AlertDialog(
-            onDismissRequest = {},
-            confirmButton = {},
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    CircularProgressIndicator(color = Color(0xFF16A34A), modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.width(12.dp))
-                    Text("Processing Order", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
-            },
-            text = {
-                Text(paymentStatusText, fontSize = 13.sp, color = Color.Gray, modifier = Modifier.padding(vertical = 8.dp))
-            },
-            shape = RoundedCornerShape(20.dp)
-        )
-    }
-
     // ── Success Dialog ────────────────────────────────────────────────────────
     if (showSuccessDialog) {
         AlertDialog(
-            onDismissRequest = { 
+            onDismissRequest = {
                 showSuccessDialog = false
                 onOrderPlaced()
                 recipientName = ""
@@ -557,10 +633,10 @@ fun PlantTreeScreen(
                         recipientEmail = ""
                         giftMessage = ""
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF16A34A)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF064E3B)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("View My Legacy", color = Color.White)
+                    Text("View My Legacy 🌱", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             title = {
@@ -568,14 +644,22 @@ fun PlantTreeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = Color(0xFF16A34A),
-                        modifier = Modifier.size(48.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(Color(0xFFF0FDF4), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🌳", fontSize = 32.sp)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Payment Successful!",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center,
+                        color = Color(0xFF064E3B)
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Text("Tree Sourced Successfully!", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, textAlign = TextAlign.Center)
                 }
             },
             text = {
@@ -584,21 +668,45 @@ fun PlantTreeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Thank you! A native tree ($selectedSpecies) has been sponsored for $selectedOccasion.",
-                        fontSize = 13.sp,
+                        text = "Your $selectedSpecies has been sponsored for $selectedOccasion. 🎉",
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Center,
-                        lineHeight = 18.sp
+                        lineHeight = 20.sp,
+                        color = Color(0xFF374151)
                     )
-                    if (isGift) {
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = "We will email a customized eco-certificate directly to $recipientEmail shortly.",
-                            fontSize = 12.sp,
-                            color = Color.Gray,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 16.sp
-                        )
+                    Spacer(Modifier.height(12.dp))
+                    // Email confirmation note
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFFF0FDF4), RoundedCornerShape(10.dp))
+                            .padding(12.dp)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "📧 Payment receipt has been sent to your email",
+                                fontSize = 12.sp,
+                                color = Color(0xFF065F46),
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Medium
+                            )
+                            if (isGift) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "🎁 Gift certificate also sent to $recipientEmail",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF047857),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
                     }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Redirecting to My Forestry...",
+                        fontSize = 11.sp,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center
+                    )
                 }
             },
             shape = RoundedCornerShape(24.dp)
@@ -613,13 +721,13 @@ private fun SectionHeader(stepNum: String, title: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
-                .size(24.dp)
-                .background(Color(0xFF16A34A), CircleShape),
+                .size(26.dp)
+                .background(Color(0xFF064E3B), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(stepNum, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(stepNum, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB2F432))
         }
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(10.dp))
         Text(title, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Color.Black)
     }
 }
@@ -634,7 +742,7 @@ private fun PackageCard(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = if (selected) Color(0xFF16A34A) else Color(0xFFE2E8F0)
+    val borderColor = if (selected) Color(0xFF064E3B) else Color(0xFFE2E8F0)
     val borderWidth = if (selected) 2.dp else 1.dp
     val bgColor = if (selected) Color(0xFFF0FDF4) else Color.White
 
@@ -660,23 +768,27 @@ private fun PackageCard(
                                 Spacer(Modifier.width(8.dp))
                                 Box(
                                     modifier = Modifier
-                                        .background(Color(0xFF16A34A).copy(0.12f), RoundedCornerShape(50.dp))
+                                        .background(Color(0xFF064E3B).copy(0.1f), RoundedCornerShape(50.dp))
                                         .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
-                                    Text(badge, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
+                                    Text(badge, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color(0xFF064E3B))
                                 }
                             }
                         }
                         Spacer(Modifier.height(2.dp))
                         Text(species, fontSize = 12.sp, color = Color.Gray)
                     }
-                    Text(price, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = if (selected) Color(0xFF16A34A) else Color.Black)
+                    Text(price, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = if (selected) Color(0xFF064E3B) else Color.Black)
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Eco, null, tint = Color(0xFF16A34A), modifier = Modifier.size(13.dp))
                     Spacer(Modifier.width(4.dp))
                     Text(co2Offset, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF16A34A))
+                    if (selected) {
+                        Spacer(Modifier.width(8.dp))
+                        Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF16A34A), modifier = Modifier.size(14.dp))
+                    }
                 }
             }
         }
@@ -690,7 +802,7 @@ private fun OccasionChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bgColor = if (isSelected) Color(0xFF16A34A) else Color(0xFFF8FAFC)
+    val bgColor = if (isSelected) Color(0xFF064E3B) else Color(0xFFF8FAFC)
     val contentColor = if (isSelected) Color.White else Color.Black.copy(0.7f)
     val borderCol = if (isSelected) Color.Transparent else Color(0xFFE2E8F0)
 
@@ -723,9 +835,18 @@ private fun TrustBadge(icon: ImageVector, text: String) {
 }
 
 @Composable
+private fun PaymentMethodBadge(label: String, emoji: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(emoji, fontSize = 18.sp)
+        Spacer(Modifier.height(2.dp))
+        Text(label, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
 private fun inputColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Color(0xFF16A34A),
-    focusedLabelColor = Color(0xFF16A34A),
+    focusedBorderColor = Color(0xFF064E3B),
+    focusedLabelColor = Color(0xFF064E3B),
     unfocusedBorderColor = Color(0xFFD1D5DB),
     focusedContainerColor = Color.White,
     unfocusedContainerColor = Color.White

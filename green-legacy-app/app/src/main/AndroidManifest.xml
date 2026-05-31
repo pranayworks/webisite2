@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Razorpay SDK: needed for UPI/carrier-based payment detection -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -16,6 +19,7 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDummyKeyForGreenLegacyFallback" />
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTask"
@@ -33,6 +37,7 @@
                     android:host="login-callback" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

@@ -22,7 +22,7 @@ export default function TestDatabase() {
         }
 
         // 1. Audit Profiles
-        const profileCols = ['id', 'full_name', 'phone', 'address', 'trees_planted', 'stripe_customer_id', 'email']
+        const profileCols = ['id', 'full_name', 'phone', 'address', 'age', 'trees_planted', 'stripe_customer_id', 'email']
         const pStatus = await Promise.all(profileCols.map(c => checkColumn('profiles', c)))
         auditResults.push({
           table: 'profiles',
@@ -156,6 +156,7 @@ export default function TestDatabase() {
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS age TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email TEXT;
 
