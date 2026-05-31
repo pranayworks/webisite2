@@ -1,6 +1,6 @@
 import { sendEmail, generateOrderConfirmationEmailHtml, generateGiftEmailHtml } from "@/lib/email"
 import { sendTelegramNotification } from "@/lib/telegram"
-import { supabaseAdmin as supabase } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase"
 import { NextResponse } from "next/server"
 import crypto from "crypto"
 
