@@ -35,7 +35,8 @@ export default function TestDatabase() {
         const orderCols = [
           'id', 'user_id', 'steward_name', 'trees', 'plan_name', 'amount_paid', 
           'payment_id', 'order_key', 'is_csr', 'company_name', 'gst_number', 'status',
-          'is_gift', 'recipient_name', 'recipient_email', 'gift_message'
+          'is_gift', 'recipient_name', 'recipient_email', 'gift_message',
+          'location', 'coordinates', 'species', 'planting_gps', 'planting_photo', 'planting_date'
         ]
         const oStatus = await Promise.all(orderCols.map(c => checkColumn('planting_orders', c)))
         auditResults.push({
@@ -176,8 +177,21 @@ CREATE TABLE IF NOT EXISTS planting_orders (
   recipient_name TEXT,
   recipient_email TEXT,
   gift_message TEXT,
+  location TEXT,
+  coordinates TEXT,
+  species TEXT,
+  planting_gps TEXT,
+  planting_photo TEXT,
+  planting_date TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS location TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS coordinates TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS species TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS planting_gps TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS planting_photo TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS planting_date TEXT;
 
 CREATE TABLE IF NOT EXISTS testimonials (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -41,6 +41,7 @@ fun DashboardScreen(
 ) {
     var currentTab by remember { mutableStateOf(DashboardTab.HOME) }
     var showProfile by remember { mutableStateOf(false) }
+    var startProfileOnStewardDashboard by remember { mutableStateOf(false) }
 
     val isLoggedIn = remember { derivedStateOf { SupabaseService.isLoggedIn() } }
     LaunchedEffect(isLoggedIn.value) {
@@ -77,16 +78,22 @@ fun DashboardScreen(
     // Profile screen shown as full-screen overlay
     if (showProfile) {
         ProfileScreen(
-            onBack = { showProfile = false },
+            onBack = { 
+                showProfile = false 
+                startProfileOnStewardDashboard = false
+            },
             onSignOut = {
                 showProfile = false
+                startProfileOnStewardDashboard = false
                 SupabaseService.logout()
                 onLogout()
             },
             onPlantTreeClick = {
                 showProfile = false
+                startProfileOnStewardDashboard = false
                 currentTab = DashboardTab.PLANT
-            }
+            },
+            startOnStewardDashboard = startProfileOnStewardDashboard
         )
         return
     }
@@ -115,7 +122,8 @@ fun DashboardScreen(
                             PlantTreeScreen(
                                 onOrderPlaced = {
                                     refreshTrees()
-                                    // Navigate to Home tab after planting
+                                    startProfileOnStewardDashboard = true
+                                    showProfile = true
                                     currentTab = DashboardTab.HOME
                                 }
                             )

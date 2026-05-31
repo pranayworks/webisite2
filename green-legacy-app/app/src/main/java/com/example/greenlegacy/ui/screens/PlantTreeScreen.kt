@@ -465,13 +465,28 @@ fun PlantTreeScreen(
                                         occasion = selectedOccasion,
                                         campus = "GKVK Campus", // Defaulted internally as campus selection is removed
                                         species = selectedSpecies,
-                                        coordinates = mockCoords
+                                        coordinates = mockCoords,
+                                        planName = selectedTier,
+                                        amountPaid = totalAmount.toDouble(),
+                                        isGift = isGift,
+                                        recipientEmail = recipientEmail,
+                                        giftMessage = giftMessage
                                     )
                                     
                                     isPaying = false
                                     result.fold(
                                         onSuccess = {
                                             showSuccessDialog = true
+                                            scope.launch {
+                                                delay(2500)
+                                                if (showSuccessDialog) {
+                                                    showSuccessDialog = false
+                                                    onOrderPlaced()
+                                                    recipientName = ""
+                                                    recipientEmail = ""
+                                                    giftMessage = ""
+                                                }
+                                            }
                                         },
                                         onFailure = { error ->
                                             errorMessage = error.message ?: "Transaction failed. Please try again."

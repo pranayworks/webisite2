@@ -155,3 +155,42 @@ CREATE POLICY "Anyone can send inquiries" ON contact_messages FOR INSERT WITH CH
 -- Only authenticated admins can view and manage inquiries
 CREATE POLICY "Admins can view inquiries" ON contact_messages FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Admins can manage inquiries" ON contact_messages USING (auth.role() = 'authenticated');
+
+-- 8. Planting Orders Table (Sync with Mobile App)
+CREATE TABLE IF NOT EXISTS planting_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id),
+  steward_name TEXT,
+  trees INTEGER,
+  plan_name TEXT,
+  occasion TEXT,
+  status TEXT DEFAULT 'Pending',
+  amount_paid NUMERIC,
+  payment_id TEXT,
+  order_key TEXT,
+  is_csr BOOLEAN DEFAULT FALSE,
+  company_name TEXT,
+  gst_number TEXT,
+  is_gift BOOLEAN DEFAULT FALSE,
+  recipient_name TEXT,
+  recipient_email TEXT,
+  gift_message TEXT,
+  location TEXT,
+  coordinates TEXT,
+  species TEXT,
+  planting_gps TEXT,
+  planting_photo TEXT,
+  planting_date TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS location TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS coordinates TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS species TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS planting_gps TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS planting_photo TEXT;
+ALTER TABLE planting_orders ADD COLUMN IF NOT EXISTS planting_date TEXT;
+
+GRANT ALL ON TABLE planting_orders TO authenticated, anon, service_role;
+ALTER TABLE planting_orders DISABLE ROW LEVEL SECURITY;
+

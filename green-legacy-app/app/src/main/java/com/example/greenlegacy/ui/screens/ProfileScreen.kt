@@ -50,9 +50,12 @@ private enum class ProfileSubPage { MAIN, STEWARD_DASHBOARD }
 fun ProfileScreen(
     onBack: () -> Unit,
     onSignOut: () -> Unit,
-    onPlantTreeClick: () -> Unit = {}
+    onPlantTreeClick: () -> Unit = {},
+    startOnStewardDashboard: Boolean = false
 ) {
-    var subPage by remember { mutableStateOf(ProfileSubPage.MAIN) }
+    var subPage by remember(startOnStewardDashboard) {
+        mutableStateOf(if (startOnStewardDashboard) ProfileSubPage.STEWARD_DASHBOARD else ProfileSubPage.MAIN)
+    }
 
     when (subPage) {
         ProfileSubPage.MAIN -> ProfileMainPage(
@@ -61,7 +64,13 @@ fun ProfileScreen(
             onOpenStewardDashboard = { subPage = ProfileSubPage.STEWARD_DASHBOARD }
         )
         ProfileSubPage.STEWARD_DASHBOARD -> StewardDashboardPage(
-            onBack = { subPage = ProfileSubPage.MAIN },
+            onBack = {
+                if (startOnStewardDashboard) {
+                    onBack()
+                } else {
+                    subPage = ProfileSubPage.MAIN
+                }
+            },
             onPlantTreeClick = onPlantTreeClick
         )
     }

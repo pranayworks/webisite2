@@ -393,12 +393,55 @@ object SupabaseService {
         return@withContext null
     }
 
+    private suspend fun fetchProfileTreesPlanted(id: String): Int {
+        try {
+            val response = executeAuthenticatedCall { headers ->
+                Request.Builder()
+                    .url("$SUPABASE_URL/rest/v1/profiles?id=eq.$id&select=trees_planted")
+                    .get()
+                    .apply {
+                        headers.forEach { (k, v) -> header(k, v) }
+                    }
+                    .build()
+            }
+            response.use { resp ->
+                if (resp.isSuccessful) {
+                    val body = resp.body?.string() ?: ""
+                    val array = json.parseToJsonElement(body).jsonArray
+                    if (array.isNotEmpty()) {
+                        return array[0].jsonObject["trees_planted"]?.jsonPrimitive?.intOrNull ?: 0
+                    }
+                }
+            }
+        } catch (e: Exception) {}
+        return 0
+    }
+
+    private suspend fun updateProfileTreesPlanted(id: String, count: Int) {
+        try {
+            val body = buildJsonObject {
+                put("trees_planted", count)
+            }.toString()
+            val mediaType = "application/json; charset=utf-8".toMediaType()
+            val response = executeAuthenticatedCall { headers ->
+                Request.Builder()
+                    .url("$SUPABASE_URL/rest/v1/profiles?id=eq.$id")
+                    .patch(body.toRequestBody(mediaType))
+                    .apply {
+                        headers.forEach { (k, v) -> header(k, v) }
+                    }
+                    .build()
+            }
+            response.close()
+        } catch (e: Exception) {}
+    }
+
     suspend fun fetchPlantedTrees(): Result<List<PlantedTree>> = withContext(Dispatchers.IO) {
         val currentUserId = userId ?: return@withContext Result.failure(Exception("Not logged in"))
         try {
             val response = executeAuthenticatedCall { headers ->
                 Request.Builder()
-                    .url("$SUPABASE_URL/rest/v1/trees?user_id=eq.$currentUserId&select=*&order=created_at.desc")
+                    .url("$SUPABASE_URL/rest/v1/planting_orders?user_id=eq.$currentUserId&select=*&order=created_at.desc")
                     .get()
                     .apply {
                         headers.forEach { (k, v) -> header(k, v) }
@@ -414,15 +457,34 @@ object SupabaseService {
                 val jsonArray = json.parseToJsonElement(bodyStr).jsonArray
                 val list = jsonArray.map { element ->
                     val obj = element.jsonObject
+                    val stewardName = obj["steward_name"]?.jsonPrimitive?.content ?: "Steward"
+                    val recipientName = obj["recipient_name"]?.jsonPrimitive?.content
+                    val recipientVal = if (!recipientName.isNullOrBlank()) recipientName else stewardName
+
+                    val planName = obj["plan_name"]?.jsonPrimitive?.content ?: "Sapling"
+                    val speciesName = obj["species"]?.jsonPrimitive?.content
+                    val speciesVal = if (!speciesName.isNullOrBlank()) speciesName else "$planName (Native)"
+
+                    val loc = obj["location"]?.jsonPrimitive?.content
+                    val campusVal = if (!loc.isNullOrBlank()) loc else "GKVK Campus"
+
+                    val gps = obj["planting_gps"]?.jsonPrimitive?.content ?: obj["coordinates"]?.jsonPrimitive?.content
+                    val coordsVal = if (!gps.isNullOrBlank()) gps else "12.9716° N, 77.5946° E"
+
+                    val dateVal = obj["planting_date"]?.jsonPrimitive?.content ?: obj["created_at"]?.jsonPrimitive?.content ?: "Today"
+                    val formattedDate = try {
+                        if (dateVal.contains("T")) dateVal.substringBefore("T") else dateVal
+                    } catch (e: Exception) { "Today" }
+
                     PlantedTree(
                         id = obj["id"]?.jsonPrimitive?.content ?: "GL-UNKNOWN",
-                        recipient = obj["recipient"]?.jsonPrimitive?.content ?: "",
-                        occasion = obj["occasion"]?.jsonPrimitive?.content ?: "",
-                        species = obj["species"]?.jsonPrimitive?.content ?: "",
-                        campus = obj["campus"]?.jsonPrimitive?.content ?: "",
-                        date = obj["date"]?.jsonPrimitive?.content ?: "Today",
-                        status = obj["status"]?.jsonPrimitive?.content ?: "Growing",
-                        coordinates = obj["coordinates"]?.jsonPrimitive?.content ?: "12.9716° N, 77.5946° E"
+                        recipient = recipientVal,
+                        occasion = obj["occasion"]?.jsonPrimitive?.content ?: "General Stewardship",
+                        species = speciesVal,
+                        campus = campusVal,
+                        date = formattedDate,
+                        status = obj["status"]?.jsonPrimitive?.content ?: "Pending",
+                        coordinates = coordsVal
                     )
                 }
                 return@withContext Result.success(list)
@@ -437,61 +499,139 @@ object SupabaseService {
         occasion: String,
         campus: String,
         species: String,
-        coordinates: String
+        coordinates: String,
+        planName: String = "Sapling",
+        amountPaid: Double = 599.0,
+        isGift: Boolean = false,
+        recipientEmail: String = "",
+        giftMessage: String = ""
     ): Result<PlantedTree> = withContext(Dispatchers.IO) {
         val currentUserId = userId ?: return@withContext Result.failure(Exception("Not logged in"))
         try {
             val randomId = "GL-${(10000..99999).random()}"
+            val paymentId = "pay_${java.util.UUID.randomUUID().toString().replace("-", "").slice(0..14)}"
+            val orderKey = "order_${java.util.UUID.randomUUID().toString().replace("-", "").slice(0..14)}"
             val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
             val formattedDate = dateFormat.format(Date())
 
-            val treeBodyJson = buildJsonObject {
-                put("id", randomId)
-                put("user_id", currentUserId)
-                put("recipient", recipient)
+            val treesCount = if (planName == "Legacy") 3 else 1
+
+            // Prepare the payload for Next.js backend notifications & database insertion
+            val payload = buildJsonObject {
+                put("userId", currentUserId)
+                put("stewardName", userName ?: "Steward")
+                put("userEmail", userEmail ?: "")
+                put("trees", treesCount)
+                put("planName", planName)
                 put("occasion", occasion)
-                put("campus", campus)
-                put("species", species)
+                put("amountPaid", amountPaid)
+                put("paymentId", paymentId)
+                put("orderKey", orderKey)
+                put("isGift", isGift)
+                put("recipientName", recipient)
+                put("recipientEmail", recipientEmail)
+                put("giftMessage", giftMessage)
+                put("location", campus)
                 put("coordinates", coordinates)
-                put("status", "Growing")
-                put("date", formattedDate)
+            }
+
+            // Try Next.js server call first
+            val serverUrls = listOf(
+                "https://greenlegacy.in/api/mobile-payment",
+                "http://10.0.2.2:3000/api/mobile-payment",
+                "http://192.168.1.10:3000/api/mobile-payment"
+            )
+
+            for (url in serverUrls) {
+                try {
+                    val mediaType = "application/json; charset=utf-8".toMediaType()
+                    val request = Request.Builder()
+                        .url(url)
+                        .post(payload.toString().toRequestBody(mediaType))
+                        .build()
+                    
+                    client.newCall(request).execute().use { response ->
+                        if (response.isSuccessful) {
+                            return@withContext Result.success(
+                                PlantedTree(
+                                    id = randomId,
+                                    recipient = if (isGift) recipient else (userName ?: "Myself"),
+                                    occasion = occasion,
+                                    species = species,
+                                    campus = campus,
+                                    date = formattedDate,
+                                    status = "Pending",
+                                    coordinates = coordinates
+                                )
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Try next URL
+                }
+            }
+
+            // Fallback to direct client-side database insertion to planting_orders if server is offline
+            val orderBodyJson = buildJsonObject {
+                put("user_id", currentUserId)
+                put("steward_name", userName ?: "Steward")
+                put("trees", treesCount)
+                put("plan_name", planName)
+                put("occasion", occasion)
+                put("status", "Pending")
+                put("amount_paid", amountPaid)
+                put("payment_id", paymentId)
+                put("order_key", orderKey)
+                put("is_gift", isGift)
+                if (isGift) {
+                    put("recipient_name", recipient)
+                    put("recipient_email", recipientEmail)
+                    put("gift_message", giftMessage)
+                }
+                put("location", campus)
+                put("species", species)
+                put("planting_gps", coordinates)
             }.toString()
 
             val mediaType = "application/json; charset=utf-8".toMediaType()
             val response = executeAuthenticatedCall { headers ->
                 Request.Builder()
-                    .url("$SUPABASE_URL/rest/v1/trees")
-                    .post(treeBodyJson.toRequestBody(mediaType))
+                    .url("$SUPABASE_URL/rest/v1/planting_orders")
+                    .post(orderBodyJson.toRequestBody(mediaType))
                     .apply {
                         headers.forEach { (k, v) -> header(k, v) }
                     }
                     .header("Prefer", "return=representation")
                     .build()
             }
+            
             response.use { resp ->
                 val bodyStr = resp.body?.string() ?: ""
                 if (!resp.isSuccessful) {
                     return@withContext Result.failure(Exception(parseErrorMessage(bodyStr)))
                 }
 
-                val list = json.parseToJsonElement(bodyStr).jsonArray
-                if (list.isEmpty()) {
-                    return@withContext Result.failure(Exception("No tree returned on creation"))
+                // Update profiles tree count
+                try {
+                    val currentTreesCount = fetchProfileTreesPlanted(currentUserId)
+                    val newCount = currentTreesCount + treesCount
+                    updateProfileTreesPlanted(currentUserId, newCount)
+                } catch (e: Exception) {
+                    android.util.Log.e("SupabaseService", "Failed to update profiles tree count", e)
                 }
-                val obj = list[0].jsonObject
 
-                val newTree = PlantedTree(
-                    id = obj["id"]?.jsonPrimitive?.content ?: randomId,
-                    recipient = obj["recipient"]?.jsonPrimitive?.content ?: recipient,
-                    occasion = obj["occasion"]?.jsonPrimitive?.content ?: occasion,
-                    species = obj["species"]?.jsonPrimitive?.content ?: species,
-                    campus = obj["campus"]?.jsonPrimitive?.content ?: campus,
-                    date = obj["date"]?.jsonPrimitive?.content ?: formattedDate,
-                    status = obj["status"]?.jsonPrimitive?.content ?: "Growing",
-                    coordinates = obj["coordinates"]?.jsonPrimitive?.content ?: coordinates
+                return@withContext Result.success(
+                    PlantedTree(
+                        id = randomId,
+                        recipient = if (isGift) recipient else (userName ?: "Myself"),
+                        occasion = occasion,
+                        species = species,
+                        campus = campus,
+                        date = formattedDate,
+                        status = "Pending",
+                        coordinates = coordinates
+                    )
                 )
-
-                return@withContext Result.success(newTree)
             }
         } catch (e: Exception) {
             return@withContext Result.failure(e)
